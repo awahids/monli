@@ -36,7 +36,7 @@ import {
   ArrowUpRight,
   ArrowDownRight,
 } from 'lucide-react';
-import { formatDate } from '@/lib/date';
+import { formatDate, getBudgetMonth, getDaysInMonth } from '@/lib/date';
 import { useOffline } from '@/hooks/use-offline';
 
 const toCamel = (str: string) =>
@@ -168,7 +168,10 @@ export default function DashboardPage() {
           .order('date', { ascending: false });
 
         // Fetch budgets (current month)
-        const currentMonth = new Date().toISOString().slice(0, 7);
+        const currentMonth = getBudgetMonth(
+          new Date(),
+          user?.budgetCutoffDay ?? 31,
+        );
         const { data: budgetsData } = await supabase
           .from('budgets')
           .select(
@@ -204,16 +207,27 @@ export default function DashboardPage() {
     if (!accounts.length || !transactions.length) return;
 
     // Calculate KPIs
-    const currentMonth = new Date().toISOString().slice(0, 7);
-    const prevMonthDate = new Date();
-    prevMonthDate.setMonth(prevMonthDate.getMonth() - 1);
-    const prevMonth = prevMonthDate.toISOString().slice(0, 7);
+    const currentMonth = getBudgetMonth(
+      new Date(),
+      user?.budgetCutoffDay ?? 31,
+    );
+    const [year, month] = currentMonth.split('-').map(Number);
+    const prevDate = new Date(Date.UTC(year, month - 1, 1));
+    prevDate.setUTCMonth(prevDate.getUTCMonth() - 1);
+    const prevMonth = `${prevDate.getUTCFullYear()}-${String(
+      prevDate.getUTCMonth() + 1,
+    ).padStart(2, '0')}`;
 
     // Total balance
     let totalBalance = 0;
     let prevTotalBalance = 0;
-    const prevMonthEnd = new Date();
-    prevMonthEnd.setDate(0);
+    const prevMonthEnd = new Date(
+      Date.UTC(
+        prevDate.getUTCFullYear(),
+        prevDate.getUTCMonth(),
+        Math.min(user?.budgetCutoffDay ?? 31, getDaysInMonth(prevDate)),
+      ),
+    );
     const prevMonthEndStr = formatDate(prevMonthEnd);
 
     accounts.forEach(account => {
@@ -339,7 +353,7 @@ export default function DashboardPage() {
     );
 
     setCategorySpends(Array.from(categoryMap.values()));
-  }, [accounts, transactions, budgets]);
+  }, [accounts, transactions, budgets, user?.budgetCutoffDay]);
 
   if (loading) {
     return <LoadingSpinner />;
