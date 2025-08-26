@@ -3,6 +3,7 @@ export interface User {
   email: string;
   name: string;
   defaultCurrency: string;
+  budgetCutoffDay: number;
   onboardingCompleted: boolean;
 }
 

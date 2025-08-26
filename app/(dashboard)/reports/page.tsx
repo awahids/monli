@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useAppStore } from '@/lib/store';
+import { getBudgetMonth } from '@/lib/date';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -48,8 +50,9 @@ interface SummaryResponse {
 }
 
 export default function ReportsPage() {
+  const { user } = useAppStore();
   const now = new Date();
-  const defaultMonth = now.toISOString().slice(0, 7);
+  const defaultMonth = getBudgetMonth(now, user?.budgetCutoffDay ?? 31);
   const defaultYear = String(now.getUTCFullYear());
 
   const [month, setMonth] = useState(defaultMonth);
