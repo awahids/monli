@@ -43,6 +43,7 @@ import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { CalendarIcon, X } from 'lucide-react';
 import { formatIDR, parseIDR } from '@/lib/currency';
+import { supabase } from '@/lib/supabase';
 
 const getJakartaDate = () => {
   const dateStr = new Intl.DateTimeFormat('en-CA', {
@@ -154,6 +155,31 @@ export function TransactionForm({
   });
 
   const [tagInput, setTagInput] = useState('');
+  const [suggestedTags, setSuggestedTags] = useState<string[]>([]);
+
+  const note = form.watch('note');
+
+  useEffect(() => {
+    const handler = setTimeout(async () => {
+      if (!note || !note.trim()) {
+        setSuggestedTags([]);
+        return;
+      }
+      try {
+        const { data } = await supabase.rpc('infer_tags', { note });
+        if (Array.isArray(data)) {
+          const existing = form.getValues('tags') || [];
+          setSuggestedTags(
+            data.filter((tag: string) => !existing.includes(tag))
+          );
+        }
+      } catch (err) {
+        console.error('Failed to infer tags', err);
+      }
+    }, 500);
+
+    return () => clearTimeout(handler);
+  }, [note, form]);
 
   useEffect(() => {
     if (transaction) {
@@ -444,7 +470,7 @@ export function TransactionForm({
                     <div className="flex flex-wrap gap-2">
                       {field.value?.map((tag, idx) => (
                         <Badge
-                          key={idx}
+                          key={tag}
                           variant="secondary"
                           className="flex items-center gap-1"
                         >
@@ -459,6 +485,23 @@ export function TransactionForm({
                           />
                         </Badge>
                       ))}
+                      {suggestedTags
+                        .filter((tag) => !field.value?.includes(tag))
+                        .map((tag) => (
+                          <Badge
+                            key={`suggest-${tag}`}
+                            variant="outline"
+                            className="cursor-pointer"
+                            onClick={() => {
+                              field.onChange([...(field.value || []), tag]);
+                              setSuggestedTags((prev) =>
+                                prev.filter((t) => t !== tag)
+                              );
+                            }}
+                          >
+                            {tag}
+                          </Badge>
+                        ))}
                       <Input
                         value={tagInput}
                         onChange={(e) => setTagInput(e.target.value)}
