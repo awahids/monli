@@ -3,7 +3,6 @@ import { createClient } from "@/lib/supabase/server";
 import { getUser } from "@/lib/auth/server";
 import { accountSchema } from "@/lib/validation";
 import { z } from "zod";
-import { getAccountBalances } from "@/lib/balances";
 
 export const dynamic = "force-dynamic";
 
@@ -44,8 +43,6 @@ export async function PATCH(
       );
     }
 
-    const balances = await getAccountBalances(supabase, user.id, [data.id]);
-
     return NextResponse.json({
       id: data.id,
       userId: data.user_id,
@@ -55,7 +52,7 @@ export async function PATCH(
       openingBalance: data.opening_balance,
       archived: data.archived,
       accountNumber: data.account_number ?? undefined,
-      currentBalance: balances[data.id] ?? data.opening_balance,
+      currentBalance: data.current_balance,
     });
   } catch (e) {
     return NextResponse.json({ error: (e as Error).message }, { status: 401 });

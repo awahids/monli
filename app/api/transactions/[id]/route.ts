@@ -3,7 +3,6 @@ import { createServerClient } from '@/lib/supabase/server';
 import { getUser } from '@/lib/auth/server';
 import { transactionPatchSchema } from '@/lib/validation';
 import { z } from 'zod';
-import { getAccountBalances } from '@/lib/balances';
 
 export const dynamic = 'force-dynamic';
 
@@ -70,8 +69,16 @@ export async function PATCH(
         );
       }
       if (process.env.DISALLOW_NEGATIVE_BALANCE === 'true') {
-        const balances = await getAccountBalances(supabase, user.id, [newFrom]);
-        let balance = balances[newFrom] ?? 0;
+        const { data: bal, error: balErr } = await supabase
+          .from('accounts')
+          .select('current_balance')
+          .eq('user_id', user.id)
+          .eq('id', newFrom)
+          .single();
+        if (balErr) {
+          return NextResponse.json({ error: balErr.message }, { status: 400 });
+        }
+        let balance = bal?.current_balance ?? 0;
         if (existing.type === 'transfer' && existing.from_account_id === newFrom) {
           balance += existing.amount;
         }

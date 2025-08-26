@@ -40,6 +40,7 @@ export interface Database {
           type: 'bank' | 'ewallet' | 'cash';
           currency: string;
           opening_balance: number;
+          current_balance: number;
           archived: boolean;
           account_number: string | null;
           created_at: string;
@@ -52,6 +53,7 @@ export interface Database {
           type: 'bank' | 'ewallet' | 'cash';
           currency?: string;
           opening_balance?: number;
+          current_balance?: number;
           archived?: boolean;
           account_number?: string | null;
           created_at?: string;
@@ -62,6 +64,7 @@ export interface Database {
           type?: 'bank' | 'ewallet' | 'cash';
           currency?: string;
           opening_balance?: number;
+          current_balance?: number;
           archived?: boolean;
           account_number?: string | null;
           updated_at?: string;

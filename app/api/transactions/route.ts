@@ -3,7 +3,6 @@ import { createServerClient } from '@/lib/supabase/server';
 import { getUser } from '@/lib/auth/server';
 import { transactionCreateSchema } from '@/lib/validation';
 import { z } from 'zod';
-import { getAccountBalances } from '@/lib/balances';
 
 export async function GET(req: Request) {
   const supabase = createServerClient();
@@ -87,12 +86,16 @@ export async function POST(req: Request) {
       body.type === 'transfer' &&
       body.fromAccountId
     ) {
-      const balances = await getAccountBalances(
-        supabase,
-        user.id,
-        [body.fromAccountId]
-      );
-      if ((balances[body.fromAccountId] ?? 0) - body.amount < 0) {
+      const { data: bal, error: balErr } = await supabase
+        .from('accounts')
+        .select('current_balance')
+        .eq('user_id', user.id)
+        .eq('id', body.fromAccountId)
+        .single();
+      if (balErr) {
+        return NextResponse.json({ error: balErr.message }, { status: 400 });
+      }
+      if ((bal?.current_balance ?? 0) - body.amount < 0) {
         return NextResponse.json(
           { error: 'Insufficient funds' },
           { status: 400 }
