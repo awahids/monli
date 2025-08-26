@@ -1,12 +1,18 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Joyride, { CallBackProps, STATUS, Step } from 'react-joyride';
 import { useAppStore } from '@/lib/store';
 
 export function OnboardingTour() {
   const { user, setUser } = useAppStore();
-  const [run, setRun] = useState(!user?.onboardingCompleted);
+  const [run, setRun] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      setRun(!user.onboardingCompleted);
+    }
+  }, [user]);
 
   if (!user) return null;
 
