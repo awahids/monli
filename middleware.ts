@@ -84,9 +84,7 @@ export async function middleware(request: NextRequest) {
     request.nextUrl.pathname.startsWith("/settings");
 
   if (request.nextUrl.pathname === "/") {
-    return NextResponse.redirect(
-      new URL(user ? "/dashboard" : "/auth/sign-in", request.url),
-    );
+    return response;
   }
 
   if (isProtectedPath) {
@@ -115,6 +113,6 @@ export const config = {
      * - favicon.ico (favicon file)
      * - public folder
      */
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).+)",
   ],
 };
