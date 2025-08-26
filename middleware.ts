@@ -65,20 +65,11 @@ export async function middleware(request: NextRequest) {
 
   // Refresh session if expired - required for Server Components
   let user = null;
-  let needsOnboarding = false;
   try {
     const {
       data: { user: authUser },
     } = await supabase.auth.getUser();
     user = authUser;
-    if (authUser) {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("onboarding_completed")
-        .eq("id", authUser.id)
-        .single();
-      needsOnboarding = !profile?.onboarding_completed;
-    }
   } catch (error) {
     console.error("Auth error in middleware:", error);
     // Continue without user - will be handled by route protection below
@@ -94,32 +85,13 @@ export async function middleware(request: NextRequest) {
 
   if (request.nextUrl.pathname === "/") {
     return NextResponse.redirect(
-      new URL(
-        user
-          ? needsOnboarding
-            ? "/onboarding"
-            : "/dashboard"
-          : "/auth/sign-in",
-        request.url,
-      ),
+      new URL(user ? "/dashboard" : "/auth/sign-in", request.url),
     );
   }
 
   if (isProtectedPath) {
     if (!user) {
       return NextResponse.redirect(new URL("/auth/sign-in", request.url));
-    }
-    if (needsOnboarding) {
-      return NextResponse.redirect(new URL("/onboarding", request.url));
-    }
-  }
-
-  if (request.nextUrl.pathname.startsWith("/onboarding")) {
-    if (!user) {
-      return NextResponse.redirect(new URL("/auth/sign-in", request.url));
-    }
-    if (!needsOnboarding) {
-      return NextResponse.redirect(new URL("/dashboard", request.url));
     }
   }
 
@@ -128,9 +100,7 @@ export async function middleware(request: NextRequest) {
       request.nextUrl.pathname.startsWith("/auth/sign-up")) &&
     user
   ) {
-    return NextResponse.redirect(
-      new URL(needsOnboarding ? "/onboarding" : "/dashboard", request.url),
-    );
+    return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
   return response;
