@@ -75,6 +75,13 @@ export async function middleware(request: NextRequest) {
     // Continue without user - will be handled by route protection below
   }
 
+  // Redirect root path directly to auth or dashboard
+  if (request.nextUrl.pathname === "/") {
+    return NextResponse.redirect(
+      new URL(user ? "/dashboard" : "/auth/sign-in", request.url),
+    );
+  }
+
   // Protect dashboard routes
   if (
     request.nextUrl.pathname.startsWith("/dashboard") ||
