@@ -92,13 +92,13 @@ export default function DashboardPage() {
       actualDate: formatDate(values.actualDate),
       date: formatDate(values.actualDate),
       type: values.type,
-      accountId: values.accountId || undefined,
-      fromAccountId: values.fromAccountId || undefined,
-      toAccountId: values.toAccountId || undefined,
-      categoryId: values.categoryId || undefined,
+      accountId: values.accountId ?? null,
+      fromAccountId: values.fromAccountId ?? null,
+      toAccountId: values.toAccountId ?? null,
+      categoryId: values.categoryId ?? null,
       amount: values.amount,
       note: values.note || '',
-      tags: values.tags,
+      tags: values.tags || [],
     };
 
     if (!isOnline) {

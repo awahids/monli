@@ -5,11 +5,33 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Home, Receipt, Plus, PieChart, Settings } from "lucide-react";
-import TransactionForm from "@/components/transactions/transaction-form";
+import TransactionForm, {
+  TransactionFormValues,
+} from "@/components/transactions/transaction-form";
 import type { Transaction } from "@/types";
 import { useAppStore } from "@/lib/store";
+import { formatDate } from "@/lib/date";
+import { toast } from "sonner";
+import { useOffline } from "@/hooks/use-offline";
 import { motion } from "framer-motion";
 import { useTheme } from "next-themes";
+
+const toCamel = (str: string) =>
+  str.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
+
+function keysToCamel<T>(obj: any): T {
+  if (Array.isArray(obj)) {
+    return obj.map((v) => keysToCamel(v)) as any;
+  }
+  if (obj && typeof obj === "object" && obj.constructor === Object) {
+    const result: Record<string, any> = {};
+    for (const [key, value] of Object.entries(obj)) {
+      result[toCamel(key)] = keysToCamel(value);
+    }
+    return result as T;
+  }
+  return obj as T;
+}
 
 const links = [
   { href: "/dashboard", icon: Home, label: "Dashboard" },
@@ -23,13 +45,65 @@ export function MobileNav() {
   const pathname = usePathname();
   const [formOpen, setFormOpen] = useState(false);
   const [transaction, setTransaction] = useState<Transaction | undefined>();
-  const { accounts, categories } = useAppStore();
+  const {
+    user,
+    accounts,
+    categories,
+    transactions,
+    setTransactions,
+  } = useAppStore();
+  const { isOnline, addOfflineChange } = useOffline();
   const { theme } = useTheme();
   const isDarkTheme = theme === "dark";
 
   const handleAddTransaction = () => {
     setTransaction(undefined);
     setFormOpen(true);
+  };
+
+  const handleSubmit = async (values: TransactionFormValues) => {
+    const payload = {
+      budgetMonth: values.budgetMonth,
+      actualDate: formatDate(values.actualDate),
+      date: formatDate(values.actualDate),
+      type: values.type,
+      accountId: values.accountId ?? null,
+      fromAccountId: values.fromAccountId ?? null,
+      toAccountId: values.toAccountId ?? null,
+      categoryId: values.categoryId ?? null,
+      amount: values.amount,
+      note: values.note || '',
+      tags: values.tags || [],
+    };
+
+    if (!isOnline) {
+      const tempTx: Transaction = {
+        id: `offline-${Date.now()}`,
+        userId: user?.id || '',
+        ...payload,
+      };
+      setTransactions([tempTx, ...transactions]);
+      await addOfflineChange('create', 'transactions', payload);
+      toast.success('Transaction saved offline');
+      setFormOpen(false);
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/transactions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to create transaction');
+      const tx = keysToCamel<Transaction>(data);
+      setTransactions([tx, ...transactions]);
+      toast.success('Transaction created');
+      setFormOpen(false);
+    } catch (e) {
+      toast.error((e as Error).message);
+    }
   };
 
   // Sisipkan tombol Plus pada index ke-2 (0-based)
@@ -115,11 +189,7 @@ export function MobileNav() {
           accounts={accounts}
           categories={categories}
           onOpenChange={(open) => setFormOpen(open)}
-          onSubmit={async (values) => {
-            // TODO: call your create transaction API here
-            console.log("Transaction Submitted:", values);
-            setFormOpen(false);
-          }}
+          onSubmit={handleSubmit}
         />
       )}
     </>
