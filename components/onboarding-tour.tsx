@@ -26,8 +26,7 @@ export function OnboardingTour() {
   ];
 
   const handleCallback = async (data: CallBackProps) => {
-    const finishedStatuses = [STATUS.FINISHED, STATUS.SKIPPED];
-    if (finishedStatuses.includes(data.status)) {
+    if (data.status === STATUS.FINISHED || data.status === STATUS.SKIPPED) {
       setRun(false);
       try {
         await fetch('/api/onboarding/complete', { method: 'POST' });
