@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { createServerClient } from '@/lib/supabase/server';
 import { getUser } from '@/lib/auth/server';
 import { transactionCreateSchema } from '@/lib/validation';
+import { getBudgetMonth } from '@/lib/date';
 import { z } from 'zod';
 
 export async function GET(req: Request) {
@@ -102,13 +103,26 @@ export async function POST(req: Request) {
         );
       }
     }
+    const { data: profile, error: profileErr } = await supabase
+      .from('profiles')
+      .select('budget_cutoff_day')
+      .eq('id', user.id)
+      .single();
+    if (profileErr || !profile) {
+      return NextResponse.json({ error: profileErr?.message }, { status: 400 });
+    }
+    const budgetMonth = getBudgetMonth(
+      new Date(body.actualDate),
+      profile.budget_cutoff_day ?? 31,
+    );
+
     const { data, error } = await supabase
       .from('transactions')
       .insert({
         user_id: user.id,
         date: body.actualDate,
         actual_date: body.actualDate,
-        budget_month: body.budgetMonth,
+        budget_month: budgetMonth,
         type: body.type,
         account_id: body.accountId,
         from_account_id: body.fromAccountId,

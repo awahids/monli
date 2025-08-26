@@ -87,6 +87,7 @@ export async function getCurrentUser(): Promise<User | null> {
     email: profile.email,
     name: profile.name,
     defaultCurrency: profile.default_currency,
+    budgetCutoffDay: profile.budget_cutoff_day ?? 31,
     onboardingCompleted: profile.onboarding_completed,
   };
 }
