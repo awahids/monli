@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { createServerClient } from '@/lib/supabase/server';
 import { getUser } from '@/lib/auth/server';
 import { transactionPatchSchema } from '@/lib/validation';
+import { getBudgetMonth } from '@/lib/date';
 import { z } from 'zod';
 
 export const dynamic = 'force-dynamic';
@@ -22,7 +23,7 @@ export async function PATCH(
     const { data: existing, error: exErr } = await supabase
       .from('transactions')
       .select(
-        'type, amount, account_id, from_account_id, to_account_id, category_id',
+        'type, amount, account_id, from_account_id, to_account_id, category_id, actual_date',
       )
       .eq('id', params.id)
       .eq('user_id', user.id)
@@ -94,12 +95,26 @@ export async function PATCH(
       }
     }
 
+    const { data: profile, error: profileErr } = await supabase
+      .from('profiles')
+      .select('budget_cutoff_day')
+      .eq('id', user.id)
+      .single();
+    if (profileErr || !profile) {
+      return NextResponse.json({ error: profileErr?.message }, { status: 400 });
+    }
+    const actualDate = body.actualDate ?? existing.actual_date;
+    const budgetMonth = getBudgetMonth(
+      new Date(actualDate),
+      profile.budget_cutoff_day ?? 31,
+    );
+
     const { data, error } = await supabase
       .from('transactions')
       .update({
-        date: body.actualDate,
-        actual_date: body.actualDate,
-        budget_month: body.budgetMonth,
+        date: actualDate,
+        actual_date: actualDate,
+        budget_month: budgetMonth,
         type: newType,
         account_id: newAccountId,
         from_account_id: newFrom,

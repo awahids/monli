@@ -43,6 +43,8 @@ import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { CalendarIcon, X } from 'lucide-react';
 import { formatIDR, parseIDR } from '@/lib/currency';
+import { getBudgetMonth } from '@/lib/date';
+import { useAppStore } from '@/lib/store';
 
 const getJakartaDate = () => {
   const dateStr = new Intl.DateTimeFormat('en-CA', {
@@ -50,15 +52,6 @@ const getJakartaDate = () => {
   }).format(new Date());
   return new Date(`${dateStr}T00:00:00+07:00`);
 };
-
-const getCurrentMonth = () =>
-  new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'Asia/Jakarta',
-    year: 'numeric',
-    month: '2-digit',
-  })
-    .format(new Date())
-    .slice(0, 7);
 
 const formSchema = z
   .object({
@@ -130,6 +123,7 @@ export function TransactionForm({
   onDelete,
   id,
 }: Props) {
+  const { user } = useAppStore();
   // react-hook-form's resolver expects the schema's input type, while the
   // submit handler uses the parsed output type. Specify both generics so the
   // form works with Zod's coercion (e.g. `z.coerce.number()`).
@@ -140,7 +134,10 @@ export function TransactionForm({
   >({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      budgetMonth: getCurrentMonth(),
+      budgetMonth: getBudgetMonth(
+        getJakartaDate(),
+        user?.budgetCutoffDay ?? 31,
+      ),
       actualDate: getJakartaDate(),
       type: 'expense',
       accountId: undefined,
@@ -171,7 +168,10 @@ export function TransactionForm({
       });
     } else {
       form.reset({
-        budgetMonth: getCurrentMonth(),
+        budgetMonth: getBudgetMonth(
+          getJakartaDate(),
+          user?.budgetCutoffDay ?? 31,
+        ),
         actualDate: getJakartaDate(),
         type: 'expense',
         amount: 0,
@@ -179,12 +179,23 @@ export function TransactionForm({
         tags: [],
       });
     }
-  }, [transaction, form]);
+  }, [transaction, form, user?.budgetCutoffDay]);
+
+  const actualDate = form.watch('actualDate');
+  useEffect(() => {
+    form.setValue(
+      'budgetMonth',
+      getBudgetMonth(actualDate, user?.budgetCutoffDay ?? 31),
+    );
+  }, [actualDate, user?.budgetCutoffDay, form]);
 
   const handleSubmit = async (values: TransactionFormValues) => {
     await onSubmit(values);
     form.reset({
-      budgetMonth: getCurrentMonth(),
+      budgetMonth: getBudgetMonth(
+        getJakartaDate(),
+        user?.budgetCutoffDay ?? 31,
+      ),
       actualDate: getJakartaDate(),
       type: 'expense',
       amount: 0,
@@ -211,23 +222,6 @@ export function TransactionForm({
             onSubmit={form.handleSubmit(handleSubmit)}
             className="space-y-4 pb-24 px-4 sm:px-0"
           >
-            <FormField
-              control={form.control}
-              name="budgetMonth"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Budget Month</FormLabel>
-                  <FormControl>
-                    <Input type="month" {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    This decides which monthly budget the transaction belongs to.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
             <FormField
               control={form.control}
               name="actualDate"

@@ -59,9 +59,9 @@ export default function SettingsPage() {
   const [editingCategory, setEditingCategory] = useState<Category | undefined>();
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  const profileForm = useForm<ProfileFormValues>({
+  const profileForm = useForm<z.input<typeof profileFormSchema>, any, ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
-    defaultValues: { name: '', defaultCurrency: 'IDR' },
+    defaultValues: { name: '', defaultCurrency: 'IDR', budgetCutoffDay: 31 },
   });
 
   useEffect(() => {
@@ -70,7 +70,8 @@ export default function SettingsPage() {
       .then((data) => {
         profileForm.reset({
           name: data.name,
-          defaultCurrency: data.defaultCurrency || 'IDR',
+          defaultCurrency: data.default_currency || 'IDR',
+          budgetCutoffDay: data.budget_cutoff_day || 31,
         });
         setEmail(data.email);
       });
@@ -192,6 +193,19 @@ export default function SettingsPage() {
                             <SelectItem value="EUR">EUR</SelectItem>
                           </SelectContent>
                         </Select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={profileForm.control}
+                  name="budgetCutoffDay"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Budget cut-off day</FormLabel>
+                      <FormControl>
+                        <Input type="number" min={1} max={31} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
