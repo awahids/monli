@@ -1,5 +1,7 @@
 # robots.txt for Google Search indexing
 User-agent: *
 Allow: /
+Disallow: /auth/
+Disallow: /zakat
 
 Sitemap: https://monli.fun/sitemap.xml

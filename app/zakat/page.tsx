@@ -1,6 +1,13 @@
 import { redirect } from 'next/navigation';
+import type { Metadata } from 'next';
 import { createServerClient } from '@/lib/supabase/server';
 import ZakatCalculator from './zakat-calculator';
+
+export const metadata: Metadata = {
+  title: 'Kalkulator Zakat - Monli',
+  description: 'Hitung kewajiban zakatmu dengan kalkulator zakat Monli.',
+  robots: { index: false, follow: false },
+};
 
 export default async function ZakatPage() {
   const supabase = createServerClient();
