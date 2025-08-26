@@ -83,9 +83,9 @@ export default function RootLayout({
       <head>
         <meta name="theme-color" content="#4F46E5" />
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        <link rel="apple-touch-icon" href="/favicon.svg" />
         <link rel="manifest" href="/manifest.json" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
-        <link rel="apple-touch-icon" href="/favicon.svg" />
         <meta name="apple-mobile-web-app-title" content="monli" />
         <meta
           name="google-site-verification"
