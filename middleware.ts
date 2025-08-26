@@ -65,44 +65,72 @@ export async function middleware(request: NextRequest) {
 
   // Refresh session if expired - required for Server Components
   let user = null;
+  let needsOnboarding = false;
   try {
     const {
       data: { user: authUser },
     } = await supabase.auth.getUser();
     user = authUser;
+    if (authUser) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("onboarding_completed")
+        .eq("id", authUser.id)
+        .single();
+      needsOnboarding = !profile?.onboarding_completed;
+    }
   } catch (error) {
     console.error("Auth error in middleware:", error);
     // Continue without user - will be handled by route protection below
   }
 
-  // Redirect root path directly to auth or dashboard
-  if (request.nextUrl.pathname === "/") {
-    return NextResponse.redirect(
-      new URL(user ? "/dashboard" : "/auth/sign-in", request.url),
-    );
-  }
-
-  // Protect dashboard routes
-  if (
+  const isProtectedPath =
     request.nextUrl.pathname.startsWith("/dashboard") ||
     request.nextUrl.pathname.startsWith("/accounts") ||
     request.nextUrl.pathname.startsWith("/budgets") ||
     request.nextUrl.pathname.startsWith("/transactions") ||
     request.nextUrl.pathname.startsWith("/reports") ||
-    request.nextUrl.pathname.startsWith("/settings")
-  ) {
+    request.nextUrl.pathname.startsWith("/settings");
+
+  if (request.nextUrl.pathname === "/") {
+    return NextResponse.redirect(
+      new URL(
+        user
+          ? needsOnboarding
+            ? "/onboarding"
+            : "/dashboard"
+          : "/auth/sign-in",
+        request.url,
+      ),
+    );
+  }
+
+  if (isProtectedPath) {
     if (!user) {
       return NextResponse.redirect(new URL("/auth/sign-in", request.url));
     }
+    if (needsOnboarding) {
+      return NextResponse.redirect(new URL("/onboarding", request.url));
+    }
   }
 
-  // Redirect authenticated users away from auth pages
+  if (request.nextUrl.pathname.startsWith("/onboarding")) {
+    if (!user) {
+      return NextResponse.redirect(new URL("/auth/sign-in", request.url));
+    }
+    if (!needsOnboarding) {
+      return NextResponse.redirect(new URL("/dashboard", request.url));
+    }
+  }
+
   if (
     (request.nextUrl.pathname.startsWith("/auth/sign-in") ||
       request.nextUrl.pathname.startsWith("/auth/sign-up")) &&
     user
   ) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+    return NextResponse.redirect(
+      new URL(needsOnboarding ? "/onboarding" : "/dashboard", request.url),
+    );
   }
 
   return response;
