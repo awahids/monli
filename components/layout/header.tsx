@@ -29,6 +29,7 @@ function UserNav() {
     try {
       await signOut();
       toast.success('Signed out successfully');
+      window.location.href = '/auth/sign-in';
     } catch (error) {
       toast.error('Failed to sign out');
     }
