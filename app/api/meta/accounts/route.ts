@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createServerClient } from '@/lib/supabase/server';
 import { getUser } from '@/lib/auth/server';
-import { getAccountBalances } from '@/lib/balances';
 
 export async function GET() {
   const supabase = createServerClient();
@@ -9,19 +8,14 @@ export async function GET() {
     const user = await getUser();
     const { data, error } = await supabase
       .from('accounts')
-      .select('id, name, type, currency')
+      .select('id, name, type, currency, current_balance')
       .eq('user_id', user.id);
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
-    const balances = await getAccountBalances(
-      supabase,
-      user.id,
-      data?.map((a) => a.id) ?? []
-    );
     const rows = (data ?? []).map((acc) => ({
       ...acc,
-      computedBalance: balances[acc.id] ?? 0,
+      computedBalance: acc.current_balance,
     }));
     return NextResponse.json(rows);
   } catch (e) {

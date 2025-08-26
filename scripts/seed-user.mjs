@@ -45,6 +45,7 @@ async function seed() {
     type: 'cash',
     currency: 'IDR',
     opening_balance: 0,
+    current_balance: 0,
   });
 
   if (accountError) {

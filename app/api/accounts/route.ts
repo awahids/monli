@@ -3,7 +3,6 @@ import { createClient } from "@/lib/supabase/server";
 import { getUser } from "@/lib/auth/server";
 import { accountSchema } from "@/lib/validation";
 import { z } from "zod";
-import { getAccountBalances } from "@/lib/balances";
 
 export async function GET(req: Request) {
   const supabase = createClient();
@@ -32,12 +31,6 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
-    const balances = await getAccountBalances(
-      supabase,
-      user.id,
-      data?.map((a) => a.id) ?? [],
-    );
-
     const rows = (data ?? []).map((acc) => ({
       id: acc.id,
       userId: acc.user_id,
@@ -47,7 +40,7 @@ export async function GET(req: Request) {
       openingBalance: acc.opening_balance,
       archived: acc.archived,
       accountNumber: acc.account_number ?? undefined,
-      currentBalance: balances[acc.id] ?? acc.opening_balance,
+      currentBalance: acc.current_balance,
     }));
 
     return NextResponse.json({ rows, page, pageSize, total: count ?? 0 });
@@ -74,6 +67,7 @@ export async function POST(req: Request) {
         type: body.type,
         currency: body.currency ?? "IDR",
         opening_balance: body.openingBalance ?? 0,
+        current_balance: body.openingBalance ?? 0,
         archived: body.archived ?? false,
         account_number: body.accountNumber ?? null,
       })
@@ -86,8 +80,6 @@ export async function POST(req: Request) {
       );
     }
 
-    const balances = await getAccountBalances(supabase, user.id, [data.id]);
-
     return NextResponse.json({
       id: data.id,
       userId: data.user_id,
@@ -97,7 +89,7 @@ export async function POST(req: Request) {
       openingBalance: data.opening_balance,
       archived: data.archived,
       accountNumber: data.account_number ?? undefined,
-      currentBalance: balances[data.id] ?? data.opening_balance,
+      currentBalance: data.current_balance,
     });
   } catch (e) {
     return NextResponse.json({ error: (e as Error).message }, { status: 401 });
