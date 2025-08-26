@@ -44,7 +44,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Edit, Trash2 } from 'lucide-react';
+import * as Icons from 'lucide-react';
 
 const profileFormSchema = profileSchema;
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
@@ -220,8 +220,13 @@ export default function SettingsPage() {
             </Button>
           </CardHeader>
           <CardContent className="space-y-4 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <ToggleGroup type="single" value={typeFilter} onValueChange={(v) => setTypeFilter((v as any) || 'all')}>
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+              <ToggleGroup
+                type="single"
+                value={typeFilter}
+                onValueChange={(v) => setTypeFilter((v as any) || 'all')}
+                className="w-full sm:w-auto"
+              >
                 <ToggleGroupItem value="all">All</ToggleGroupItem>
                 <ToggleGroupItem value="expense">Expense</ToggleGroupItem>
                 <ToggleGroupItem value="income">Income</ToggleGroupItem>
@@ -230,15 +235,15 @@ export default function SettingsPage() {
                 placeholder="Search category..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="ml-auto w-full sm:w-64"
+                className="w-full sm:ml-auto sm:w-64"
               />
             </div>
-            {filtered.length === 0 ? (
-              <div className="text-center py-10 text-sm text-muted-foreground">
-                No categories found.
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
+          {filtered.length === 0 ? (
+            <div className="text-center py-10 text-sm text-muted-foreground">
+              No categories found.
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
                 <Table className="hidden md:table">
                   <TableHeader>
                     <TableRow>
@@ -250,15 +255,49 @@ export default function SettingsPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filtered.map((c) => (
-                      <TableRow key={c.id}>
-                        <TableCell>{c.icon}</TableCell>
-                        <TableCell>{c.name}</TableCell>
-                        <TableCell className="capitalize">{c.type}</TableCell>
-                        <TableCell>
-                          <div className="h-4 w-4 rounded-full" style={{ backgroundColor: c.color }} />
-                        </TableCell>
-                        <TableCell className="space-x-2 text-right">
+                    {filtered.map((c) => {
+                      const Icon = (Icons as any)[c.icon as keyof typeof Icons];
+                      return (
+                        <TableRow key={c.id}>
+                          <TableCell>{Icon ? <Icon className="h-4 w-4" /> : null}</TableCell>
+                          <TableCell>{c.name}</TableCell>
+                          <TableCell className="capitalize">{c.type}</TableCell>
+                          <TableCell>
+                            <div className="h-4 w-4 rounded-full" style={{ backgroundColor: c.color }} />
+                          </TableCell>
+                          <TableCell className="space-x-2 text-right">
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              onClick={() => {
+                                setEditingCategory(c);
+                                setCategoryDialogOpen(true);
+                              }}
+                            >
+                              <Icons.Edit className="h-4 w-4" />
+                            </Button>
+                            <Button size="icon" variant="ghost" onClick={() => setDeleteId(c.id)}>
+                              <Icons.Trash2 className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+                <div className="space-y-2 md:hidden">
+                  {filtered.map((c) => {
+                    const Icon = (Icons as any)[c.icon as keyof typeof Icons];
+                    return (
+                      <div key={c.id} className="flex items-center justify-between rounded-md border p-3">
+                        <div className="flex items-center gap-3">
+                          <span>{Icon ? <Icon className="h-5 w-5" /> : null}</span>
+                          <div>
+                            <p className="font-medium leading-none">{c.name}</p>
+                            <p className="text-sm text-muted-foreground capitalize">{c.type}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
                           <Button
                             size="icon"
                             variant="ghost"
@@ -267,43 +306,15 @@ export default function SettingsPage() {
                               setCategoryDialogOpen(true);
                             }}
                           >
-                            <Edit className="h-4 w-4" />
+                            <Icons.Edit className="h-4 w-4" />
                           </Button>
                           <Button size="icon" variant="ghost" onClick={() => setDeleteId(c.id)}>
-                            <Trash2 className="h-4 w-4" />
+                            <Icons.Trash2 className="h-4 w-4" />
                           </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-                <div className="space-y-2 md:hidden">
-                  {filtered.map((c) => (
-                    <div key={c.id} className="flex items-center justify-between rounded-md border p-3">
-                      <div className="flex items-center gap-3">
-                        <span>{c.icon}</span>
-                        <div>
-                          <p className="font-medium leading-none">{c.name}</p>
-                          <p className="text-sm text-muted-foreground capitalize">{c.type}</p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          onClick={() => {
-                            setEditingCategory(c);
-                            setCategoryDialogOpen(true);
-                          }}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button size="icon" variant="ghost" onClick={() => setDeleteId(c.id)}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}

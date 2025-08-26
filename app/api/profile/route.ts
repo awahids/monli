@@ -8,20 +8,21 @@ export async function GET() {
   const supabase = createServerClient();
   try {
     const user = await getUser();
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('id, email, name, default_currency')
-      .eq('id', user.id)
-      .single();
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, email, name, default_currency, onboarding_completed')
+        .eq('id', user.id)
+        .single();
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
-    return NextResponse.json({
-      id: data.id,
-      email: data.email,
-      name: data.name,
-      defaultCurrency: data.default_currency,
-    });
+      return NextResponse.json({
+        id: data.id,
+        email: data.email,
+        name: data.name,
+        defaultCurrency: data.default_currency,
+        onboardingCompleted: data.onboarding_completed,
+      });
   } catch (e) {
     return NextResponse.json({ error: (e as Error).message }, { status: 401 });
   }
@@ -37,24 +38,25 @@ export async function PATCH(req: Request) {
   }
   try {
     const user = await getUser();
-    const { data, error } = await supabase
-      .from('profiles')
-      .update({
-        name: body.name,
-        default_currency: body.defaultCurrency,
-      })
-      .eq('id', user.id)
-      .select('id, email, name, default_currency')
-      .single();
+      const { data, error } = await supabase
+        .from('profiles')
+        .update({
+          name: body.name,
+          default_currency: body.defaultCurrency,
+        })
+        .eq('id', user.id)
+        .select('id, email, name, default_currency, onboarding_completed')
+        .single();
     if (error || !data) {
       return NextResponse.json({ error: error?.message || 'Not found' }, { status: 404 });
     }
-    return NextResponse.json({
-      id: data.id,
-      email: data.email,
-      name: data.name,
-      defaultCurrency: data.default_currency,
-    });
+      return NextResponse.json({
+        id: data.id,
+        email: data.email,
+        name: data.name,
+        defaultCurrency: data.default_currency,
+        onboardingCompleted: data.onboarding_completed,
+      });
   } catch (e) {
     return NextResponse.json({ error: (e as Error).message }, { status: 401 });
   }

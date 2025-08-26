@@ -3,6 +3,7 @@ export interface User {
   email: string;
   name: string;
   defaultCurrency: string;
+  onboardingCompleted: boolean;
 }
 
 export interface Account {

@@ -75,28 +75,26 @@ export async function middleware(request: NextRequest) {
     // Continue without user - will be handled by route protection below
   }
 
-  // Redirect root path directly to auth or dashboard
+  const isProtectedPath =
+    request.nextUrl.pathname.startsWith("/dashboard") ||
+    request.nextUrl.pathname.startsWith("/accounts") ||
+    request.nextUrl.pathname.startsWith("/budgets") ||
+    request.nextUrl.pathname.startsWith("/transactions") ||
+    request.nextUrl.pathname.startsWith("/reports") ||
+    request.nextUrl.pathname.startsWith("/settings");
+
   if (request.nextUrl.pathname === "/") {
     return NextResponse.redirect(
       new URL(user ? "/dashboard" : "/auth/sign-in", request.url),
     );
   }
 
-  // Protect dashboard routes
-  if (
-    request.nextUrl.pathname.startsWith("/dashboard") ||
-    request.nextUrl.pathname.startsWith("/accounts") ||
-    request.nextUrl.pathname.startsWith("/budgets") ||
-    request.nextUrl.pathname.startsWith("/transactions") ||
-    request.nextUrl.pathname.startsWith("/reports") ||
-    request.nextUrl.pathname.startsWith("/settings")
-  ) {
+  if (isProtectedPath) {
     if (!user) {
       return NextResponse.redirect(new URL("/auth/sign-in", request.url));
     }
   }
 
-  // Redirect authenticated users away from auth pages
   if (
     (request.nextUrl.pathname.startsWith("/auth/sign-in") ||
       request.nextUrl.pathname.startsWith("/auth/sign-up")) &&

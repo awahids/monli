@@ -9,6 +9,7 @@ import { MobileNav } from "@/components/layout/mobile-nav";
 import { useAppStore } from "@/lib/store";
 import { getCurrentUser } from "@/lib/auth";
 import { OfflineBanner } from "@/components/ui/offline-banner";
+import { OnboardingTour } from "@/components/onboarding-tour";
 
 export default function DashboardLayout({
   children,
@@ -54,6 +55,7 @@ export default function DashboardLayout({
         </div>
       </div>
       <Toaster />
+      <OnboardingTour />
     </div>
   );
 }
