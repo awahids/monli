@@ -1,7 +1,9 @@
 # robots.txt for Google Search indexing
 User-agent: *
 Allow: /
-Disallow: /auth/
+# Allow authentication routes to be indexed
+# removing previous disallow rule
+Allow: /auth/
 Disallow: /zakat
 
 Sitemap: https://monli.fun/sitemap.xml
