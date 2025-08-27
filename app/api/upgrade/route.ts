@@ -43,12 +43,12 @@ export async function POST() {
     const transaction = await snap.createTransaction({
       transaction_details: {
         order_id: orderId,
-        gross_amount: 50000,
+        gross_amount: 9000,
       },
       item_details: [
         {
           id: "pro-plan",
-          price: 50000,
+          price: 9000,
           quantity: 1,
           name: "Pro Plan Subscription",
         },
@@ -62,7 +62,7 @@ export async function POST() {
       user_id: user.id,
       order_id: orderId,
       product_name: "Pro Plan Subscription",
-      amount: 50000,
+      amount: 9000,
       status: "pending",
       token: transaction.token,
     });

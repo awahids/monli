@@ -14,7 +14,9 @@ export default function UpgradePage() {
   const router = useRouter();
   const { user } = useAppStore();
   const clientKey = process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY || '';
-  const price = 50000;
+  // Discounted price for a limited time promotion
+  const originalPrice = 50000;
+  const price = 9000;
 
   useEffect(() => {
     const script = document.createElement('script');
@@ -105,14 +107,34 @@ export default function UpgradePage() {
         <CardHeader>
           <CardTitle>Upgrade to Pro</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <p>Unlock all features by upgrading to Pro.</p>
-          <div className="space-y-1 text-sm">
-            <div className="font-medium">Order Details</div>
-            <div>Product: Pro Plan Subscription</div>
-            <div>Price: {formatIDR(price)}</div>
+        <CardContent className="space-y-6">
+          <div className="space-y-2">
+            <p className="text-sm text-muted-foreground">
+              Unlock all features and get unlimited access to future updates.
+            </p>
+            <ul className="list-disc list-inside text-sm text-muted-foreground">
+              <li>Unlimited projects</li>
+              <li>Priority support</li>
+              <li>Advanced analytics</li>
+            </ul>
           </div>
-          <Button onClick={handleUpgrade}>Upgrade Now</Button>
+          <div className="rounded-md border p-4 space-y-2">
+            <div className="text-sm font-medium">Order Summary</div>
+            <div className="flex items-center justify-between text-sm">
+              <span>Pro Plan Subscription</span>
+              <span>
+                <span className="mr-2 line-through text-muted-foreground">
+                  {formatIDR(originalPrice)}
+                </span>
+                <span className="font-semibold text-primary">
+                  {formatIDR(price)}
+                </span>
+              </span>
+            </div>
+          </div>
+          <Button className="w-full" onClick={handleUpgrade}>
+            Checkout
+          </Button>
         </CardContent>
       </Card>
     </div>
