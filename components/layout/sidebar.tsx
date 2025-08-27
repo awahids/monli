@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { useAppStore } from '@/lib/store';
 import {
   LayoutDashboard,
   Wallet,
@@ -39,6 +40,7 @@ const mobileNavigation = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const { user } = useAppStore();
 
   return (
     <div className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0">
@@ -71,14 +73,16 @@ export function Sidebar() {
           })}
         </nav>
 
-        <div className="mt-auto p-3">
-          <div className="rounded-lg border bg-muted/50 p-4 text-center">
-            <p className="text-sm font-medium">Upgrade Pro</p>
-            <Button asChild size="sm" className="mt-2 w-full">
-              <Link href="/upgrade">Upgrade</Link>
-            </Button>
+        {user?.plan !== 'PRO' && (
+          <div className="mt-auto p-3">
+            <div className="rounded-lg border bg-muted/50 p-4 text-center">
+              <p className="text-sm font-medium">Upgrade Pro</p>
+              <Button asChild size="sm" className="mt-2 w-full">
+                <Link href="/upgrade">Upgrade</Link>
+              </Button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
@@ -87,6 +91,7 @@ export function Sidebar() {
 export function MobileSidebar() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const { user } = useAppStore();
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -160,16 +165,18 @@ export function MobileSidebar() {
               </Link>
             </div>
 
-            <div className="mt-6 border-t border-border p-4">
-              <div className="rounded-lg bg-muted/50 p-4 text-center">
-                <p className="text-sm font-medium">Upgrade Pro</p>
-                <Button asChild size="sm" className="mt-2 w-full">
-                  <Link href="/upgrade" onClick={() => setOpen(false)}>
-                    Upgrade
-                  </Link>
-                </Button>
+            {user?.plan !== 'PRO' && (
+              <div className="mt-6 border-t border-border p-4">
+                <div className="rounded-lg bg-muted/50 p-4 text-center">
+                  <p className="text-sm font-medium">Upgrade Pro</p>
+                  <Button asChild size="sm" className="mt-2 w-full">
+                    <Link href="/upgrade" onClick={() => setOpen(false)}>
+                      Upgrade
+                    </Link>
+                  </Button>
+                </div>
               </div>
-            </div>
+            )}
           </nav>
         </div>
       </SheetContent>

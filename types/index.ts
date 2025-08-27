@@ -4,6 +4,7 @@ export interface User {
   name: string;
   defaultCurrency: string;
   onboardingCompleted: boolean;
+  plan: 'FREE' | 'PRO';
 }
 
 export interface Account {
@@ -79,6 +80,16 @@ export interface CategorySpend {
   amount: number;
   budgeted: number;
   color: string;
+}
+
+export interface Payment {
+  id: string;
+  userId: string;
+  orderId: string;
+  productName: string;
+  amount: number;
+  status: string;
+  createdAt: string;
 }
 
 export type { CategoryPoint, ChartResponse } from './reports';

@@ -198,6 +198,35 @@ export interface Database {
           updated_at?: string;
         };
       };
+
+      payments: {
+        Row: {
+          id: string;
+          user_id: string;
+          order_id: string;
+          product_name: string;
+          amount: number;
+          status: string;
+          token: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          order_id: string;
+          product_name: string;
+          amount: number;
+          status?: string;
+          token: string;
+          created_at?: string;
+        };
+        Update: {
+          product_name?: string;
+          amount?: number;
+          status?: string;
+          token?: string;
+        };
+      };
     };
   };
 }
