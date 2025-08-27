@@ -47,7 +47,9 @@ export async function POST(req: Request) {
             },
             {
               type: 'image_url',
-              image_url: `data:${file.type};base64,${base64}`,
+              image_url: {
+                url: `data:${file.type};base64,${base64}`,
+              },
             },
           ],
         },
