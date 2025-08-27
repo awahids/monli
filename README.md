@@ -11,6 +11,7 @@ monli adalah aplikasi pengelola keuangan pribadi yang membantu kamu mencatat pen
 - **Analisis & Grafik**: Pantau tren keuangan melalui grafik interaktif dan ringkasan bulanan.
 - **Tabungan & Tujuan**: Buat target tabungan, ikuti progres, dan raih tujuan finansialmu.
 - **Sinkronisasi & Keamanan**: Data terenkripsi dan bisa disinkronkan antar perangkat.
+- **Upgrade ke Pro**: Tingkatkan akun melalui Midtrans dan pantau status pembayaranmu.
 
 Lihat [docs/seo.md](docs/seo.md) untuk detail strategi dan kata kunci SEO.
 
