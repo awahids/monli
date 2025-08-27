@@ -1,10 +1,15 @@
-interface MidtransSnap {
+export interface SnapResult {
+  order_id: string;
+  [key: string]: unknown;
+}
+
+export interface MidtransSnap {
   pay(
     token: string,
     options?: {
-      onSuccess?: (result: unknown) => void;
-      onPending?: (result: unknown) => void;
-      onError?: (error: unknown) => void;
+      onSuccess?: (result: SnapResult) => void;
+      onPending?: (result: SnapResult) => void;
+      onError?: (error: SnapResult) => void;
       onClose?: () => void;
     },
   ): void;

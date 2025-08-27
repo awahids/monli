@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { formatIDR } from '@/lib/currency';
+import type { SnapResult } from '@/types/snap';
 
 export default function UpgradePage() {
   const { toast } = useToast();
@@ -34,7 +35,7 @@ export default function UpgradePage() {
       const { token, orderId } = await res.json();
       if (window.snap) {
         window.snap.pay(token, {
-          onSuccess: async (result) => {
+          onSuccess: async (result: SnapResult) => {
             await fetch(`/api/payments/${result.order_id}`, {
               method: 'PATCH',
               headers: { 'Content-Type': 'application/json' },
@@ -43,7 +44,7 @@ export default function UpgradePage() {
             toast({ description: 'Payment successful' });
             router.push(`/payments/${result.order_id}`);
           },
-          onPending: async (result) => {
+          onPending: async (result: SnapResult) => {
             await fetch(`/api/payments/${result.order_id}`, {
               method: 'PATCH',
               headers: { 'Content-Type': 'application/json' },
@@ -51,7 +52,7 @@ export default function UpgradePage() {
             });
             toast({ description: 'Payment pending' });
           },
-          onError: async (result) => {
+          onError: async (result: SnapResult) => {
             await fetch(`/api/payments/${result.order_id}`, {
               method: 'PATCH',
               headers: { 'Content-Type': 'application/json' },
