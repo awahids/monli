@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import * as Icons from 'lucide-react';
 import { format } from 'date-fns';
+import Link from 'next/link';
 
 import {
   Dialog,
@@ -85,9 +86,10 @@ export function BudgetDetailDialog({
   const [isEditing, setIsEditing] = useState(false);
   const [newCategoryId, setNewCategoryId] = useState('');
   const [newAmount, setNewAmount] = useState('');
+  const isPro = user?.plan === 'PRO';
 
   useEffect(() => {
-    if (!budgetId || !user) return;
+    if (!budgetId || !user || !isPro) return;
 
     const fetchData = async () => {
       setLoading(true);
@@ -160,6 +162,7 @@ export function BudgetDetailDialog({
     setCategories,
     setTransactions,
     setLoading,
+    isPro,
   ]);
 
   const totalBudget = budget?.totalAmount ?? 0;
@@ -174,10 +177,12 @@ export function BudgetDetailDialog({
 
   const availableCategories = useMemo(
     () =>
-      categories.filter(
-        (c) => c.type === 'expense' && !items.some((i) => i.categoryId === c.id)
-      ),
-    [categories, items]
+      !isPro
+        ? []
+        : categories.filter(
+            (c) => c.type === 'expense' && !items.some((i) => i.categoryId === c.id)
+          ),
+    [categories, items, isPro]
   );
 
   const handleUpdateItem = async (itemId: string, amount: number) => {
@@ -244,6 +249,26 @@ export function BudgetDetailDialog({
 
   // Responsive: combine table and cards, show table on md+, cards on sm
   // Ensure dialog remains within viewport and content scrolls
+
+  if (!isPro) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-md text-center">
+          <DialogHeader>
+            <DialogTitle>Budget details are a Pro feature</DialogTitle>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            <p className="text-muted-foreground">
+              Upgrade to unlock detailed budget breakdowns.
+            </p>
+            <Button asChild>
+              <Link href="/upgrade">Upgrade to Pro</Link>
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
