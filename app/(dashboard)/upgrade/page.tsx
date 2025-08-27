@@ -20,7 +20,11 @@ export default function UpgradePage() {
 
   useEffect(() => {
     const script = document.createElement('script');
-    script.src = 'https://app.sandbox.midtrans.com/snap/snap.js';
+    const snapUrl =
+      process.env.NEXT_PUBLIC_MIDTRANS_IS_PRODUCTION === 'true'
+        ? 'https://app.midtrans.com/snap/snap.js'
+        : 'https://app.sandbox.midtrans.com/snap/snap.js';
+    script.src = snapUrl;
     script.setAttribute('data-client-key', clientKey);
     document.body.appendChild(script);
     return () => {

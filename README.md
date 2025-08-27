@@ -21,4 +21,4 @@ Untuk mengaktifkan pembayaran Midtrans, siapkan variabel lingkungan berikut:
 
 - `MIDTRANS_SERVER_KEY` – server key dari Midtrans
 - `NEXT_PUBLIC_MIDTRANS_CLIENT_KEY` – client key untuk skrip Snap
-- `MIDTRANS_IS_PRODUCTION` – set ke `true` bila menggunakan mode produksi; biarkan kosong untuk sandbox
+- `NEXT_PUBLIC_MIDTRANS_IS_PRODUCTION` – set ke `true` bila menggunakan mode produksi; biarkan kosong untuk sandbox
