@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Plus, Eye } from 'lucide-react';
 import { format } from 'date-fns';
@@ -66,7 +65,6 @@ export default function BudgetsPage() {
   const [selectedBudgetId, setSelectedBudgetId] = useState<string | null>(null);
   const [isAdding, setIsAdding] = useState(false);
   const disableAdd = user?.plan === 'FREE' && budgets.length >= 2;
-  const router = useRouter();
 
   useEffect(() => {
     if (!user) return;
@@ -129,10 +127,6 @@ export default function BudgetsPage() {
   };
 
   const openBudgetDetail = (id: string) => {
-    if (user?.plan !== 'PRO') {
-      router.push('/upgrade');
-      return;
-    }
     setSelectedBudgetId(id);
   };
 
