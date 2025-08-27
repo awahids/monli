@@ -92,20 +92,30 @@ export default function DashboardPage() {
       actualDate: formatDate(values.actualDate),
       date: formatDate(values.actualDate),
       type: values.type,
-      accountId: values.accountId || undefined,
-      fromAccountId: values.fromAccountId || undefined,
-      toAccountId: values.toAccountId || undefined,
-      categoryId: values.categoryId || undefined,
+      accountId: values.accountId ?? null,
+      fromAccountId: values.fromAccountId ?? null,
+      toAccountId: values.toAccountId ?? null,
+      categoryId: values.categoryId ?? null,
       amount: values.amount,
       note: values.note || '',
-      tags: values.tags,
+      tags: values.tags || [],
     };
 
     if (!isOnline) {
       const tempTx: Transaction = {
         id: `offline-${Date.now()}`,
         userId: user?.id || '',
-        ...payload,
+        budgetMonth: payload.budgetMonth,
+        actualDate: payload.actualDate,
+        date: payload.date,
+        type: payload.type,
+        accountId: payload.accountId ?? undefined,
+        fromAccountId: payload.fromAccountId ?? undefined,
+        toAccountId: payload.toAccountId ?? undefined,
+        categoryId: payload.categoryId ?? undefined,
+        amount: payload.amount,
+        note: payload.note,
+        tags: payload.tags,
       };
       setTransactions([tempTx, ...transactions]);
       await addOfflineChange('create', 'transactions', payload);

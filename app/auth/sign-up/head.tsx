@@ -6,7 +6,7 @@ export default function Head() {
         name="description"
         content="Buat akun Monli untuk mulai mengatur dan memantau keuangan pribadimu."
       />
-      <meta name="robots" content="noindex, nofollow" />
+      <meta name="robots" content="index, follow" />
     </>
   );
 }
