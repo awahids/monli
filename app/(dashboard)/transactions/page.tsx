@@ -60,6 +60,10 @@ import TransactionForm, {
 } from '@/components/transactions/transaction-form';
 import { formatDate } from '@/lib/date';
 import { useOffline } from '@/hooks/use-offline';
+import OcrReviewDialog, {
+  OcrItem,
+  ReviewItem,
+} from '@/components/transactions/ocr-review-dialog';
 
 const toCamel = (str: string) =>
   str.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
@@ -114,6 +118,9 @@ export default function TransactionsPage() {
   const [total, setTotal] = useState(0);
   const [dateField, setDateField] = useState<'actual' | 'budget'>('actual');
   const [groupBy, setGroupBy] = useState<'actual' | 'budget'>('actual');
+  const [ocrOpen, setOcrOpen] = useState(false);
+  const [ocrItems, setOcrItems] = useState<OcrItem[]>([]);
+  const [ocrDate, setOcrDate] = useState<Date>(new Date());
 
   const groupedTransactions = useMemo(() => {
     const groups: Record<string, Transaction[]> = {};
@@ -346,20 +353,53 @@ export default function TransactionsPage() {
         return;
       }
       const date = data.date ? new Date(data.date) : new Date();
-      setInitialValues({
-        amount: data.amount,
-        note: data.description,
-        actualDate: date,
-        budgetMonth: format(date, 'yyyy-MM'),
-        type: 'expense',
-      });
-      setEditing(undefined);
-      setFormOpen(true);
+      setOcrDate(date);
+      if (Array.isArray(data.items) && data.items.length) {
+        setOcrItems(data.items as OcrItem[]);
+        setOcrOpen(true);
+      } else {
+        setInitialValues({
+          amount: data.amount,
+          note: data.description,
+          actualDate: date,
+          budgetMonth: format(date, 'yyyy-MM'),
+          type: 'expense',
+        });
+        setEditing(undefined);
+        setFormOpen(true);
+      }
     } catch {
       toast.error('Failed to parse receipt');
     } finally {
       e.target.value = '';
     }
+  };
+
+  const handleOcrSave = async (items: ReviewItem[]) => {
+    const date = ocrDate;
+    for (const item of items) {
+      const res = await fetch('/api/transactions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          budgetMonth: format(date, 'yyyy-MM'),
+          actualDate: date,
+          type: 'expense',
+          accountId: item.accountId,
+          categoryId: item.categoryId,
+          amount: item.amount,
+          note: item.note || item.description,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        toast.error(data.error || 'Failed to save transaction');
+        return;
+      }
+    }
+    toast.success('Transactions saved');
+    setOcrOpen(false);
+    await fetchTransactions();
   };
 
   const openNew = () => {
@@ -376,6 +416,14 @@ export default function TransactionsPage() {
 
   return (
     <div className="space-y-4">
+      <OcrReviewDialog
+        open={ocrOpen}
+        onOpenChange={setOcrOpen}
+        items={ocrItems}
+        accounts={accounts}
+        categories={categories}
+        onSave={handleOcrSave}
+      />
       <input
         ref={fileInputRef}
         type="file"

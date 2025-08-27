@@ -43,7 +43,7 @@ export async function POST(req: Request) {
           content: [
             {
               type: 'text',
-              text: 'Extract description, total amount (in numbers) and purchase date (yyyy-mm-dd) from this receipt image. Reply with JSON {"description":string,"amount":number,"date":string|null}.',
+              text: 'Extract line items with description and amount, the total amount (in numbers) and purchase date (yyyy-mm-dd) from this receipt image. Reply with JSON {"items":[{"description":string,"amount":number}],"total":number,"date":string|null}.',
             },
             {
               type: 'image_url',
@@ -55,7 +55,7 @@ export async function POST(req: Request) {
         },
       ],
       temperature: 0,
-      max_tokens: 300,
+      max_tokens: 500,
     });
 
     const content = completion.choices[0]?.message?.content || '{}';
@@ -66,9 +66,16 @@ export async function POST(req: Request) {
       data = {};
     }
 
+    const items = Array.isArray(data.items)
+      ? data.items.map((it: any) => ({
+          description: it.description ?? '',
+          amount: it.amount ?? 0,
+        }))
+      : [];
+
     return NextResponse.json({
-      description: data.description ?? '',
-      amount: data.amount ?? 0,
+      items,
+      total: data.total ?? 0,
       date: data.date ?? null,
     });
   } catch (e) {
