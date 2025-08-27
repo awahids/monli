@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import midtransClient from "midtrans-client";
 import { getUser } from "@/lib/auth/server";
+import { createClient } from "@/lib/supabase/server";
 
 export async function POST() {
   const serverKey = process.env.MIDTRANS_SERVER_KEY;
@@ -24,16 +25,37 @@ export async function POST() {
       clientKey,
     });
 
+    const orderId = `${user.id}-${Date.now()}`;
     const transaction = await snap.createTransaction({
       transaction_details: {
-        order_id: `${user.id}-${Date.now()}`,
+        order_id: orderId,
         gross_amount: 50000,
       },
+      item_details: [
+        {
+          id: "pro-plan",
+          price: 50000,
+          quantity: 1,
+          name: "Pro Plan Subscription",
+        },
+      ],
       customer_details: {
         email: user.email,
       },
     });
-    return NextResponse.json({ token: transaction.token });
+
+    const supabase = createClient();
+    const { error } = await supabase.from("payments").insert({
+      user_id: user.id,
+      order_id: orderId,
+      product_name: "Pro Plan Subscription",
+      amount: 50000,
+      status: "pending",
+      token: transaction.token,
+    });
+    if (error) throw error;
+
+    return NextResponse.json({ token: transaction.token, orderId });
   } catch (e) {
     const err = e as {
       httpStatusCode?: number;

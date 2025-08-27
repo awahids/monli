@@ -81,4 +81,14 @@ export interface CategorySpend {
   color: string;
 }
 
+export interface Payment {
+  id: string;
+  userId: string;
+  orderId: string;
+  productName: string;
+  amount: number;
+  status: string;
+  createdAt: string;
+}
+
 export type { CategoryPoint, ChartResponse } from './reports';
