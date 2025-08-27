@@ -11,16 +11,19 @@ export async function POST() {
       { status: 500 },
     );
   }
+
   try {
     const user = await getUser();
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+
     const snap = new midtransClient.Snap({
-      isProduction: process.env.NODE_ENV === "production",
+      isProduction: process.env.MIDTRANS_IS_PRODUCTION === "true",
       serverKey,
       clientKey,
     });
+
     const transaction = await snap.createTransaction({
       transaction_details: {
         order_id: `${user.id}-${Date.now()}`,
@@ -32,9 +35,14 @@ export async function POST() {
     });
     return NextResponse.json({ token: transaction.token });
   } catch (e) {
-    return NextResponse.json(
-      { error: (e as Error).message },
-      { status: 500 },
-    );
+    const err = e as {
+      httpStatusCode?: number;
+      ApiResponse?: { error_messages?: string[] };
+      message?: string;
+    };
+    const status = err.httpStatusCode ?? 500;
+    const message =
+      err.ApiResponse?.error_messages?.join(", ") || err.message || "Unknown error";
+    return NextResponse.json({ error: message }, { status });
   }
 }
