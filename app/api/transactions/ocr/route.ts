@@ -80,9 +80,7 @@ export async function POST(req: Request) {
     });
   } catch (e) {
     console.error(e);
-    return NextResponse.json(
-      { error: 'Failed to parse receipt' },
-      { status: 500 }
-    );
+    const message = e instanceof Error ? e.message : 'Failed to parse receipt';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
