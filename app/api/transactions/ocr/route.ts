@@ -1,11 +1,18 @@
 import { NextResponse } from 'next/server';
 import { getUser } from '@/lib/auth/server';
 import { createSumopodClient, getSumopodModel } from '@/lib/sumopod';
+import { createClient } from '@/lib/supabase/server';
 
 export async function POST(req: Request) {
   try {
+    const supabase = createClient();
     const user = await getUser();
-    if (user.plan !== 'PRO') {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('plan')
+      .eq('id', user.id)
+      .single();
+    if (profile?.plan !== 'PRO') {
       return NextResponse.json(
         { error: 'Receipt OCR is available for PRO plan only' },
         { status: 403 }
