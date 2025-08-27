@@ -8,3 +8,7 @@ export function createSumopodClient() {
   return new OpenAI({ apiKey, baseURL: 'https://ai.sumopod.com/v1' });
 }
 
+export function getSumopodModel() {
+  return process.env.SUMOPOD_MODEL || 'gpt-4o-mini';
+}
+

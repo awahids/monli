@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getUser } from '@/lib/auth/server';
-import { createSumopodClient } from '@/lib/sumopod';
+import { createSumopodClient, getSumopodModel } from '@/lib/sumopod';
 
 export async function POST(req: Request) {
   try {
@@ -21,9 +21,10 @@ export async function POST(req: Request) {
     const arrayBuffer = await file.arrayBuffer();
     const base64 = Buffer.from(arrayBuffer).toString('base64');
     const client = createSumopodClient();
+    const model = getSumopodModel();
 
     const completion = await client.chat.completions.create({
-      model: 'gpt-4o-mini',
+      model,
       messages: [
         {
           role: 'system',
