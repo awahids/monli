@@ -1,6 +1,14 @@
 'use client';
 
-import { useEffect, useState, useCallback, useMemo, Fragment } from 'react';
+import {
+  useEffect,
+  useState,
+  useCallback,
+  useMemo,
+  Fragment,
+  useRef,
+  ChangeEvent,
+} from 'react';
 import { format, parseISO } from 'date-fns';
 import * as LucideIcons from 'lucide-react';
 import { Plus, Pencil, Trash, Calendar as CalendarIcon } from 'lucide-react';
@@ -96,6 +104,10 @@ export default function TransactionsPage() {
   const [search, setSearch] = useState('');
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Transaction | undefined>();
+  const [initialValues, setInitialValues] = useState<
+    Partial<TransactionFormValues>
+  >();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { isOnline, addOfflineChange } = useOffline();
   const [page, setPage] = useState(1);
   const pageSize = 20;
@@ -257,6 +269,7 @@ export default function TransactionsPage() {
       toast.success(isEditing ? 'Transaction updated offline' : 'Transaction added offline');
       setFormOpen(false);
       setEditing(undefined);
+      setInitialValues(undefined);
       return;
     }
 
@@ -285,6 +298,7 @@ export default function TransactionsPage() {
     await fetchTransactions();
     setFormOpen(false);
     setEditing(undefined);
+    setInitialValues(undefined);
   };
 
   const handleDelete = async () => {
@@ -316,6 +330,38 @@ export default function TransactionsPage() {
     await fetchTransactions();
   };
 
+  const handleOcrFile = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await fetch('/api/transactions/ocr', {
+        method: 'POST',
+        body: formData,
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.error || 'Failed to parse receipt');
+        return;
+      }
+      const date = data.date ? new Date(data.date) : new Date();
+      setInitialValues({
+        amount: data.amount,
+        note: data.description,
+        actualDate: date,
+        budgetMonth: format(date, 'yyyy-MM'),
+        type: 'expense',
+      });
+      setEditing(undefined);
+      setFormOpen(true);
+    } catch {
+      toast.error('Failed to parse receipt');
+    } finally {
+      e.target.value = '';
+    }
+  };
+
   const openNew = () => {
     setEditing(undefined);
     setFormOpen(true);
@@ -330,6 +376,13 @@ export default function TransactionsPage() {
 
   return (
     <div className="space-y-4">
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleOcrFile}
+      />
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-3xl font-bold tracking-tight">Transactions</h2>
@@ -337,9 +390,19 @@ export default function TransactionsPage() {
             Track your recent transactions.
           </p>
         </div>
-        <Button className="hidden md:flex" onClick={openNew}>
-          <Plus className="mr-2 h-4 w-4" /> Add Transaction
-        </Button>
+        <div className="hidden md:flex gap-2">
+          {user?.plan === 'PRO' && (
+            <Button
+              variant="outline"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <LucideIcons.Camera className="mr-2 h-4 w-4" /> Scan Receipt
+            </Button>
+          )}
+          <Button onClick={openNew}>
+            <Plus className="mr-2 h-4 w-4" /> Add Transaction
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -690,6 +753,16 @@ export default function TransactionsPage() {
         </Pagination>
       )}
 
+      {user?.plan === 'PRO' && (
+        <Button
+          variant="outline"
+          onClick={() => fileInputRef.current?.click()}
+          className="md:hidden fixed right-6 bottom-[calc(10rem+env(safe-area-inset-bottom))] rounded-full h-14 w-14 p-0"
+        >
+          <LucideIcons.Camera className="h-6 w-6" />
+        </Button>
+      )}
+
       <Button
         onClick={openNew}
         className="md:hidden fixed right-6 bottom-[calc(5rem+env(safe-area-inset-bottom))] rounded-full h-14 w-14 p-0"
@@ -704,6 +777,7 @@ export default function TransactionsPage() {
           setFormOpen(o);
         }}
         transaction={editing}
+        initialValues={initialValues}
         accounts={accounts}
         categories={categories}
         onSubmit={handleSave}

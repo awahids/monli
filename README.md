@@ -22,3 +22,9 @@ Untuk mengaktifkan pembayaran Midtrans, siapkan variabel lingkungan berikut:
 - `MIDTRANS_SERVER_KEY` – server key dari Midtrans
 - `NEXT_PUBLIC_MIDTRANS_CLIENT_KEY` – client key untuk skrip Snap
 - `NEXT_PUBLIC_MIDTRANS_IS_PRODUCTION` – set ke `true` bila menggunakan mode produksi; biarkan kosong untuk sandbox
+
+## Konfigurasi OCR SumoPod
+
+Fitur pemindaian struk (OCR) untuk pembuatan transaksi tersedia untuk pengguna PRO. Tambahkan variabel lingkungan berikut:
+
+- `SUMOPOD_API_KEY` – API key untuk [SumoPod AI](https://ai.sumopod.com)

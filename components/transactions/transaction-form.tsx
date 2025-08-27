@@ -118,6 +118,7 @@ interface Props {
   onSubmit: (values: TransactionFormValues) => Promise<void>;
   onDelete?: () => Promise<void>;
   id?: string;
+  initialValues?: Partial<TransactionFormValues>;
 }
 
 export function TransactionForm({
@@ -129,6 +130,7 @@ export function TransactionForm({
   onSubmit,
   onDelete,
   id,
+  initialValues,
 }: Props) {
   // react-hook-form's resolver expects the schema's input type, while the
   // submit handler uses the parsed output type. Specify both generics so the
@@ -169,6 +171,19 @@ export function TransactionForm({
         note: transaction.note || '',
         tags: transaction.tags || [],
       });
+    } else if (initialValues) {
+      form.reset({
+        budgetMonth: initialValues.budgetMonth ?? getCurrentMonth(),
+        actualDate: initialValues.actualDate ?? getJakartaDate(),
+        type: initialValues.type ?? 'expense',
+        accountId: initialValues.accountId,
+        fromAccountId: initialValues.fromAccountId,
+        toAccountId: initialValues.toAccountId,
+        categoryId: initialValues.categoryId,
+        amount: initialValues.amount ?? 0,
+        note: initialValues.note ?? '',
+        tags: initialValues.tags ?? [],
+      });
     } else {
       form.reset({
         budgetMonth: getCurrentMonth(),
@@ -179,7 +194,7 @@ export function TransactionForm({
         tags: [],
       });
     }
-  }, [transaction, form]);
+  }, [transaction, initialValues, form]);
 
   const handleSubmit = async (values: TransactionFormValues) => {
     await onSubmit(values);
