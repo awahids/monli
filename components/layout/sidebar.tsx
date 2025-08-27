@@ -53,24 +53,26 @@ export function Sidebar() {
         </div>
 
         <nav className="mt-6 flex-grow px-3 space-y-1">
-          {navigation.map((item) => {
-            const isActive = pathname === item.href;
-            return (
-              <Link
-                key={item.name}
-                href={item.href}
-                className={cn(
-                  "flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors",
-                  isActive
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                )}
-              >
-                <item.icon className="mr-3 h-5 w-5" />
-                {item.name}
-              </Link>
-            );
-          })}
+          {navigation
+            .filter((item) => item.name !== "Reports" || user?.plan === "PRO")
+            .map((item) => {
+              const isActive = pathname === item.href;
+              return (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className={cn(
+                    "flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors",
+                    isActive
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                  )}
+                >
+                  <item.icon className="mr-3 h-5 w-5" />
+                  {item.name}
+                </Link>
+              );
+            })}
         </nav>
 
         {user?.plan !== 'PRO' && (
@@ -136,19 +138,21 @@ export function MobileSidebar() {
             })}
 
             <div className="pt-4 mt-4 border-t border-border space-y-2">
-              <Link
-                href="/reports"
-                onClick={() => setOpen(false)}
-                className={cn(
-                  "flex items-center px-4 py-4 text-base font-medium rounded-xl transition-all duration-200 touch-manipulation",
-                  pathname === "/reports"
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground active:bg-muted/80",
-                )}
-              >
-                <BarChart3 className="mr-4 h-5 w-5 flex-shrink-0" />
-                Reports
-              </Link>
+              {user?.plan === 'PRO' && (
+                <Link
+                  href="/reports"
+                  onClick={() => setOpen(false)}
+                  className={cn(
+                    "flex items-center px-4 py-4 text-base font-medium rounded-xl transition-all duration-200 touch-manipulation",
+                    pathname === "/reports"
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground active:bg-muted/80",
+                  )}
+                >
+                  <BarChart3 className="mr-4 h-5 w-5 flex-shrink-0" />
+                  Reports
+                </Link>
+              )}
 
               <Link
                 href="/zakat"

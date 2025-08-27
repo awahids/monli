@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { Plus, Eye } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -63,6 +64,7 @@ export default function BudgetsPage() {
   const [year, setYear] = useState('all');
   const [selectedBudgetId, setSelectedBudgetId] = useState<string | null>(null);
   const [isAdding, setIsAdding] = useState(false);
+  const disableAdd = user?.plan === 'FREE' && budgets.length >= 2;
 
   useEffect(() => {
     if (!user) return;
@@ -184,16 +186,27 @@ export default function BudgetsPage() {
             Kelola anggaran bulanan Anda.
           </p>
         </div>
-        <div className="hidden md:block">
-          <Button
-            onClick={() => setIsAdding(true)}
-            className="transition-transform hover:scale-105 flex items-center gap-1"
-          >
-            <Plus className="h-4 w-4" />
-            Buat Anggaran
-          </Button>
-        </div>
+        {!disableAdd && (
+          <div className="hidden md:block">
+            <Button
+              onClick={() => setIsAdding(true)}
+              className="transition-transform hover:scale-105 flex items-center gap-1"
+            >
+              <Plus className="h-4 w-4" />
+              Buat Anggaran
+            </Button>
+          </div>
+        )}
       </div>
+      {disableAdd && (
+        <p className="text-sm text-muted-foreground">
+          Free plan limited to two budgets.{' '}
+          <Link href="/upgrade" className="text-primary underline">
+            Upgrade
+          </Link>{' '}
+          to create more.
+        </p>
+      )}
 
       <div className="flex gap-2 max-w-xs">
         <Select value={year} onValueChange={setYear}>
@@ -272,16 +285,18 @@ export default function BudgetsPage() {
       </div>
 
       {/* Tombol tambah di mobile, selalu fixed dan mudah dijangkau */}
-      <Button
-        onClick={() => setIsAdding(true)}
-        className={cn(
-          'md:hidden fixed right-6 bottom-[calc(5rem+env(safe-area-inset-bottom))] h-14 w-14 rounded-full p-0 shadow-lg',
-          'flex items-center justify-center bg-primary text-white transition-transform hover:scale-105'
-        )}
-        aria-label="Buat Anggaran"
-      >
-        <Plus className="h-7 w-7" />
-      </Button>
+      {!disableAdd && (
+        <Button
+          onClick={() => setIsAdding(true)}
+          className={cn(
+            'md:hidden fixed right-6 bottom-[calc(5rem+env(safe-area-inset-bottom))] h-14 w-14 rounded-full p-0 shadow-lg',
+            'flex items-center justify-center bg-primary text-white transition-transform hover:scale-105'
+          )}
+          aria-label="Buat Anggaran"
+        >
+          <Plus className="h-7 w-7" />
+        </Button>
+      )}
       <BudgetDetailDialog
         budgetId={selectedBudgetId}
         open={selectedBudgetId !== null}

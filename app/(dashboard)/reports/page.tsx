@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -28,6 +29,7 @@ import {
 import { formatIDR } from '@/lib/currency';
 import { Download, Filter } from 'lucide-react';
 import CategoryMovementChart from '@/components/reports/category-movement-chart';
+import { useAppStore } from '@/lib/store';
 
 interface TrendRow {
   month: string;
@@ -52,6 +54,7 @@ export default function ReportsPage() {
   const defaultMonth = now.toISOString().slice(0, 7);
   const defaultYear = String(now.getUTCFullYear());
 
+  const { user } = useAppStore();
   const [month, setMonth] = useState(defaultMonth);
   const [year, setYear] = useState(defaultYear);
   const [summary, setSummary] = useState<SummaryResponse>({
@@ -82,11 +85,15 @@ export default function ReportsPage() {
   }, [year]);
 
   useEffect(() => {
+    if (user?.plan !== 'PRO') {
+      setCategoryData([]);
+      return;
+    }
     fetch(`/api/reports/category?month=${month}`)
       .then((res) => res.json())
       .then((res) => setCategoryData(res.data || []))
       .catch(() => setCategoryData([]));
-  }, [month]);
+  }, [month, user]);
 
   const exportCSV = (
     rows: Record<string, unknown>[],
@@ -367,44 +374,60 @@ export default function ReportsPage() {
         </TabsContent>
 
         <TabsContent value="category" className="space-y-4">
-          <div className="flex justify-start sm:justify-end">
-            <Button
-              variant="outline"
-              size="sm"
-              className="gap-1 w-full sm:w-auto"
-              onClick={exportCategoryCSV}
-            >
-              <Download className="h-4 w-4" /> Export CSV
-            </Button>
-          </div>
-          <Card>
-            <CardHeader>
-              <CardTitle>Category Details ({month})</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="h-64 sm:h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={categoryData}
-                      dataKey="amount"
-                      nameKey="name"
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={90}
-                      innerRadius={50}
-                    >
-                      {categoryData.map((entry) => (
-                        <Cell key={entry.categoryId} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(v: number) => formatIDR(v)} />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
+          {user?.plan === 'PRO' ? (
+            <>
+              <div className="flex justify-start sm:justify-end">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1 w-full sm:w-auto"
+                  onClick={exportCategoryCSV}
+                >
+                  <Download className="h-4 w-4" /> Export CSV
+                </Button>
               </div>
-            </CardContent>
-          </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Category Details ({month})</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-64 sm:h-80">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={categoryData}
+                          dataKey="amount"
+                          nameKey="name"
+                          cx="50%"
+                          cy="50%"
+                          outerRadius={90}
+                          innerRadius={50}
+                        >
+                          {categoryData.map((entry) => (
+                            <Cell key={entry.categoryId} fill={entry.color} />
+                          ))}
+                        </Pie>
+                        <Tooltip formatter={(v: number) => formatIDR(v)} />
+                        <Legend />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                </CardContent>
+              </Card>
+            </>
+          ) : (
+            <Card>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Upgrade to PRO to view category reports.{' '}
+                  <Link href="/upgrade" className="text-primary underline">
+                    Upgrade
+                  </Link>
+                  .
+                </p>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
 
         <TabsContent value="movement" className="space-y-4">

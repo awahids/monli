@@ -9,6 +9,14 @@ export async function GET(req: Request) {
   const supabase = createServerClient();
   try {
     const user = await getUser();
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('plan')
+      .eq('id', user.id)
+      .single();
+    if (profile?.plan !== 'PRO') {
+      return NextResponse.json({ error: 'Upgrade to access category reports' }, { status: 403 });
+    }
     const { searchParams } = new URL(req.url);
     const month = searchParams.get('month');
     if (!month) {
