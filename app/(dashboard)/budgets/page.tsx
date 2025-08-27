@@ -10,6 +10,7 @@ import { formatIDR } from '@/lib/currency';
 import { Budget, Transaction } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import {
   Select,
   SelectContent,
@@ -273,7 +274,10 @@ export default function BudgetsPage() {
       {/* Tombol tambah di mobile, selalu fixed dan mudah dijangkau */}
       <Button
         onClick={() => setIsAdding(true)}
-        className="md:hidden fixed right-6 bottom-[calc(5rem+env(safe-area-inset-bottom))] h-14 w-14 rounded-full p-0 shadow-lg flex items-center justify-center bg-primary text-white transition-transform hover:scale-105"
+        className={cn(
+          'md:hidden fixed right-6 bottom-[calc(5rem+env(safe-area-inset-bottom))] h-14 w-14 rounded-full p-0 shadow-lg',
+          'flex items-center justify-center bg-primary text-white transition-transform hover:scale-105'
+        )}
         aria-label="Buat Anggaran"
       >
         <Plus className="h-7 w-7" />
