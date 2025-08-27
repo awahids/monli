@@ -85,7 +85,7 @@ export default function ReportsPage() {
   }, [year]);
 
   useEffect(() => {
-    if (user?.plan !== 'PRO') {
+    if (user?.plan !== "PRO") {
       setCategoryData([]);
       return;
     }
@@ -94,6 +94,20 @@ export default function ReportsPage() {
       .then((res) => setCategoryData(res.data || []))
       .catch(() => setCategoryData([]));
   }, [month, user]);
+
+  if (user?.plan !== "PRO") {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 px-4 text-center space-y-4">
+        <h2 className="text-2xl font-bold">Reports are a Pro feature</h2>
+        <p className="text-muted-foreground">
+          Upgrade to access detailed financial reports and insights.
+        </p>
+        <Button asChild size="lg" className="mt-2 w-full sm:w-auto shadow-lg">
+          <Link href="/upgrade">Upgrade to Pro</Link>
+        </Button>
+      </div>
+    );
+  }
 
   const exportCSV = (
     rows: Record<string, unknown>[],
@@ -374,60 +388,44 @@ export default function ReportsPage() {
         </TabsContent>
 
         <TabsContent value="category" className="space-y-4">
-          {user?.plan === 'PRO' ? (
-            <>
-              <div className="flex justify-start sm:justify-end">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="gap-1 w-full sm:w-auto"
-                  onClick={exportCategoryCSV}
-                >
-                  <Download className="h-4 w-4" /> Export CSV
-                </Button>
+          <div className="flex justify-start sm:justify-end">
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1 w-full sm:w-auto"
+              onClick={exportCategoryCSV}
+            >
+              <Download className="h-4 w-4" /> Export CSV
+            </Button>
+          </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Category Details ({month})</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="h-64 sm:h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={categoryData}
+                      dataKey="amount"
+                      nameKey="name"
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={90}
+                      innerRadius={50}
+                    >
+                      {categoryData.map((entry) => (
+                        <Cell key={entry.categoryId} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(v: number) => formatIDR(v)} />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
               </div>
-              <Card>
-                <CardHeader>
-                  <CardTitle>Category Details ({month})</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-64 sm:h-80">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={categoryData}
-                          dataKey="amount"
-                          nameKey="name"
-                          cx="50%"
-                          cy="50%"
-                          outerRadius={90}
-                          innerRadius={50}
-                        >
-                          {categoryData.map((entry) => (
-                            <Cell key={entry.categoryId} fill={entry.color} />
-                          ))}
-                        </Pie>
-                        <Tooltip formatter={(v: number) => formatIDR(v)} />
-                        <Legend />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
-                </CardContent>
-              </Card>
-            </>
-          ) : (
-            <Card>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  Upgrade to PRO to view category reports.{' '}
-                  <Link href="/upgrade" className="text-primary underline">
-                    Upgrade
-                  </Link>
-                  .
-                </p>
-              </CardContent>
-            </Card>
-          )}
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="movement" className="space-y-4">
