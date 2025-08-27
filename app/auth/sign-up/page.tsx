@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -33,6 +34,7 @@ type SignUpForm = z.infer<typeof signUpSchema>;
 
 export default function SignUpPage() {
   const { toast } = useToast();
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
 
   const {
@@ -67,7 +69,7 @@ export default function SignUpPage() {
       });
 
       // Redirect to sign-in page after successful registration
-      window.location.href = '/auth/sign-in';
+      router.replace('/auth/sign-in');
     } catch (e) {
       console.error('Sign up error:', e);
       toast({

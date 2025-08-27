@@ -3,7 +3,7 @@
 import { useAppStore } from '@/lib/store';
 import { signOut } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,17 +19,20 @@ import { OfflineIndicator } from '@/components/ui/offline-indicator';
 import { Moon, Sun, Laptop, User, LogOut } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTheme } from 'next-themes';
+import { useRouter } from 'next/navigation';
 import { MobileSidebar } from './sidebar';
 
 function UserNav() {
   const { user } = useAppStore();
   const { setTheme } = useTheme();
+  const router = useRouter();
 
   const handleSignOut = async () => {
     try {
       await signOut();
       toast.success('Signed out successfully');
-      window.location.href = '/auth/sign-in';
+      router.replace('/auth/sign-in');
+      router.refresh();
     } catch (error) {
       toast.error('Failed to sign out');
     }
