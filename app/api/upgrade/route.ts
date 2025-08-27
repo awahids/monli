@@ -19,6 +19,20 @@ export async function POST() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const supabase = createClient();
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('plan')
+      .eq('id', user.id)
+      .single();
+    if (profileError) throw profileError;
+    if (profile.plan === 'PRO') {
+      return NextResponse.json(
+        { error: 'Already upgraded' },
+        { status: 400 },
+      );
+    }
+
     const snap = new midtransClient.Snap({
       isProduction: process.env.MIDTRANS_IS_PRODUCTION === "true",
       serverKey,
@@ -44,7 +58,6 @@ export async function POST() {
       },
     });
 
-    const supabase = createClient();
     const { error } = await supabase.from("payments").insert({
       user_id: user.id,
       order_id: orderId,

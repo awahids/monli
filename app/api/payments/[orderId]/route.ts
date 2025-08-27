@@ -47,6 +47,15 @@ export async function PATCH(req: Request, { params }: Params) {
       .eq("user_id", user.id)
       .eq("order_id", params.orderId);
     if (error) throw error;
+
+    if (status === 'success') {
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ plan: 'PRO' })
+        .eq('id', user.id);
+      if (profileError) throw profileError;
+    }
+
     return NextResponse.json({ ok: true });
   } catch (e) {
     return NextResponse.json(

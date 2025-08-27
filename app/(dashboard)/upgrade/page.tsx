@@ -6,11 +6,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { formatIDR } from '@/lib/currency';
+import { useAppStore } from '@/lib/store';
 import type { SnapResult } from '@/types/snap';
 
 export default function UpgradePage() {
   const { toast } = useToast();
   const router = useRouter();
+  const { user } = useAppStore();
   const clientKey = process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY || '';
   const price = 50000;
 
@@ -78,6 +80,23 @@ export default function UpgradePage() {
         variant: 'destructive',
       });
     }
+  }
+
+  if (!user) return null;
+
+  if (user.plan === 'PRO') {
+    return (
+      <div className="flex justify-center">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle>You are already Pro</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p>Your account has been upgraded.</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   return (

@@ -4,6 +4,7 @@ export interface User {
   name: string;
   defaultCurrency: string;
   onboardingCompleted: boolean;
+  plan: 'FREE' | 'PRO';
 }
 
 export interface Account {
