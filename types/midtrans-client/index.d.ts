@@ -1,21 +1,3 @@
-export interface Snap {
-  pay(
-    token: string,
-    options?: {
-      onSuccess?: (result: unknown) => void;
-      onPending?: (result: unknown) => void;
-      onError?: (error: unknown) => void;
-      onClose?: () => void;
-    },
-  ): void;
-}
-
-declare global {
-  interface Window {
-    snap?: Snap;
-  }
-}
-
 declare module 'midtrans-client' {
   interface SnapConfig {
     isProduction?: boolean;
@@ -48,5 +30,3 @@ declare module 'midtrans-client' {
 
   export default midtransClient;
 }
-
-export {};
