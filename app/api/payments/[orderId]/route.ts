@@ -1,6 +1,19 @@
 import { NextResponse } from "next/server";
+import midtransClient from "midtrans-client";
 import { getUser } from "@/lib/auth/server";
 import { createClient } from "@/lib/supabase/server";
+
+function mapStatus(status: string) {
+  switch (status) {
+    case "settlement":
+    case "capture":
+      return "success";
+    case "pending":
+      return "pending";
+    default:
+      return "failed";
+  }
+}
 
 interface Params {
   params: { orderId: string };
@@ -17,6 +30,28 @@ export async function GET(_req: Request, { params }: Params) {
       .eq("order_id", params.orderId)
       .single();
     if (error) throw error;
+
+    const serverKey = process.env.MIDTRANS_SERVER_KEY;
+    const clientKey = process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY;
+
+    if (serverKey && clientKey) {
+      const snap = new midtransClient.Snap({
+        isProduction: process.env.MIDTRANS_IS_PRODUCTION === "true",
+        serverKey,
+        clientKey,
+      });
+      const res = await snap.transaction.status(data.order_id);
+      const newStatus = mapStatus(res.transaction_status);
+      if (newStatus !== data.status) {
+        const { error: updateError } = await supabase
+          .from("payments")
+          .update({ status: newStatus })
+          .eq("id", data.id);
+        if (updateError) throw updateError;
+        data.status = newStatus;
+      }
+    }
+
     return NextResponse.json({
       payment: {
         id: data.id,

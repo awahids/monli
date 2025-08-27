@@ -27,9 +27,17 @@ declare module 'midtrans-client' {
     item_details?: ItemDetail[];
   }
 
+  interface TransactionStatusResponse {
+    transaction_status: string;
+    [key: string]: any;
+  }
+
   class Snap {
     constructor(config: SnapConfig);
     createTransaction(params: TransactionParams): Promise<{ token: string }>;
+    transaction: {
+      status(orderId: string): Promise<TransactionStatusResponse>;
+    };
   }
 
   const midtransClient: {
