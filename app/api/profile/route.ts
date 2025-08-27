@@ -10,7 +10,7 @@ export async function GET() {
     const user = await getUser();
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, email, name, default_currency, onboarding_completed')
+        .select('id, email, name, default_currency, onboarding_completed, budget_cutoff_day')
         .eq('id', user.id)
         .single();
     if (error) {
@@ -22,6 +22,7 @@ export async function GET() {
         name: data.name,
         defaultCurrency: data.default_currency,
         onboardingCompleted: data.onboarding_completed,
+        budgetCutoffDay: data.budget_cutoff_day,
       });
   } catch (e) {
     return NextResponse.json({ error: (e as Error).message }, { status: 401 });
@@ -43,9 +44,10 @@ export async function PATCH(req: Request) {
         .update({
           name: body.name,
           default_currency: body.defaultCurrency,
+          budget_cutoff_day: body.budgetCutoffDay,
         })
         .eq('id', user.id)
-        .select('id, email, name, default_currency, onboarding_completed')
+        .select('id, email, name, default_currency, onboarding_completed, budget_cutoff_day')
         .single();
     if (error || !data) {
       return NextResponse.json({ error: error?.message || 'Not found' }, { status: 404 });
@@ -56,6 +58,7 @@ export async function PATCH(req: Request) {
         name: data.name,
         defaultCurrency: data.default_currency,
         onboardingCompleted: data.onboarding_completed,
+        budgetCutoffDay: data.budget_cutoff_day,
       });
   } catch (e) {
     return NextResponse.json({ error: (e as Error).message }, { status: 401 });

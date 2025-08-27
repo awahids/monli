@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase';
 import { Budget, Category } from '@/types';
 import { toast } from 'sonner';
 import { formatIDR, parseIDR } from '@/lib/currency';
+import { getBudgetMonth } from '@/lib/date';
 import {
   Dialog,
   DialogContent,
@@ -49,7 +50,11 @@ type BudgetFormDialogProps = {
 export function BudgetFormDialog({ open, onOpenChange }: BudgetFormDialogProps) {
   const { user, budgets, setBudgets } = useAppStore();
   const [categories, setCategories] = useState<Category[]>([]);
-  const [month, setMonth] = useState<string>(() => new Date().toISOString().slice(0, 7));
+  const initialMonth = getBudgetMonth(
+    new Date(),
+    user?.budgetCutoffDay ?? 31,
+  );
+  const [month, setMonth] = useState<string>(initialMonth);
   const [total, setTotal] = useState(0);
   const [items, setItems] = useState<ItemInput[]>([{ categoryId: '', amount: '' }]);
   const [submitting, setSubmitting] = useState(false);
@@ -111,7 +116,9 @@ export function BudgetFormDialog({ open, onOpenChange }: BudgetFormDialogProps) 
       setBudgets([...budgets, newBudget]);
       toast.success('Budget created');
       onOpenChange(false);
-      setMonth(new Date().toISOString().slice(0, 7));
+      setMonth(
+        getBudgetMonth(new Date(), user?.budgetCutoffDay ?? 31),
+      );
       setTotal(0);
       setItems([{ categoryId: '', amount: '' }]);
     } else {
