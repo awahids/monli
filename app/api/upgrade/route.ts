@@ -13,8 +13,11 @@ export async function POST() {
   }
   try {
     const user = await getUser();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     const snap = new midtransClient.Snap({
-      isProduction: false,
+      isProduction: process.env.NODE_ENV === "production",
       serverKey,
       clientKey,
     });

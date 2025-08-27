@@ -20,19 +20,32 @@ export default function UpgradePage() {
   }, [clientKey]);
 
   async function handleUpgrade() {
-    const res = await fetch('/api/upgrade', { method: 'POST' });
-    if (!res.ok) {
-      const { error } = await res.json();
-      toast({ description: error || 'Failed to initiate payment', variant: 'destructive' });
-      return;
+    try {
+      const res = await fetch('/api/upgrade', { method: 'POST' });
+      if (!res.ok) {
+        const { error } = await res.json();
+        toast({ description: error || 'Failed to initiate payment', variant: 'destructive' });
+        return;
+      }
+      const { token } = await res.json();
+      if (window.snap) {
+        window.snap.pay(token, {
+          onSuccess: () => toast({ description: 'Payment successful' }),
+          onPending: () => toast({ description: 'Payment pending' }),
+          onError: () =>
+            toast({ description: 'Payment failed', variant: 'destructive' }),
+          onClose: () =>
+            toast({ description: 'Payment popup closed', variant: 'destructive' }),
+        });
+      } else {
+        toast({ description: 'Payment SDK not loaded', variant: 'destructive' });
+      }
+    } catch (e) {
+      toast({
+        description: (e as Error).message || 'Failed to initiate payment',
+        variant: 'destructive',
+      });
     }
-    const { token } = await res.json();
-    (window as any).snap.pay(token, {
-      onSuccess: () => toast({ description: 'Payment successful' }),
-      onPending: () => toast({ description: 'Payment pending' }),
-      onError: () => toast({ description: 'Payment failed', variant: 'destructive' }),
-      onClose: () => toast({ description: 'Payment popup closed', variant: 'destructive' }),
-    });
   }
 
   return (
