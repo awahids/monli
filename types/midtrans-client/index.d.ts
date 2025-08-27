@@ -14,9 +14,17 @@ declare module 'midtrans-client' {
     email?: string;
   }
 
+  interface ItemDetail {
+    id: string;
+    price: number;
+    quantity: number;
+    name: string;
+  }
+
   interface TransactionParams {
     transaction_details: TransactionDetails;
     customer_details?: CustomerDetails;
+    item_details?: ItemDetail[];
   }
 
   class Snap {
