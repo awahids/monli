@@ -14,6 +14,8 @@ import {
   Settings,
   Menu,
   Package2,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -37,42 +39,59 @@ const mobileNavigation = [
   // { name: "Settings", href: "/settings", icon: Settings },
 ];
 
-export function Sidebar() {
+interface SidebarProps {
+  collapsed: boolean;
+  onToggle: () => void;
+}
+
+export function Sidebar({ collapsed, onToggle }: SidebarProps) {
   const pathname = usePathname();
   const { user } = useAppStore();
 
   return (
-    <div className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0">
-      <div className="flex flex-col flex-grow pt-5 bg-card border-r border-border overflow-y-auto">
-        <div className="px-3 py-4">
-          <h2 className="text-xl font-bold text-foreground">Monli App</h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            Personal Finance Manager
-          </p>
+    <div
+      className={cn(
+        "hidden md:flex md:flex-col md:fixed md:inset-y-0 bg-card border-r border-border transition-all duration-300",
+        collapsed ? "md:w-16" : "md:w-64"
+      )}
+    >
+      <div className="flex flex-col flex-grow overflow-y-auto pt-5">
+        <div className={cn("px-3 py-4", collapsed && "items-center flex justify-center")}
+        >
+          {!collapsed && (
+            <>
+              <h2 className="text-xl font-bold text-foreground">Monli App</h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                Personal Finance Manager
+              </p>
+            </>
+          )}
         </div>
 
-        <nav className="mt-6 flex-grow px-3 space-y-1">
+        <nav className={cn("mt-6 flex-grow space-y-1", collapsed ? "px-0" : "px-3")}
+        >
           {navigation.map((item) => {
-              const isActive = pathname === item.href;
-              return (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className={cn(
-                    "flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors",
-                    isActive
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                  )}
-                >
-                  <item.icon className="mr-3 h-5 w-5" />
-                  {item.name}
-                </Link>
-              );
-            })}
+            const isActive = pathname === item.href;
+            return (
+              <Link
+                key={item.name}
+                href={item.href}
+                className={cn(
+                  "flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors",
+                  collapsed && "justify-center",
+                  isActive
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                )}
+              >
+                <item.icon className={cn("h-5 w-5", !collapsed && "mr-3")} />
+                {!collapsed && item.name}
+              </Link>
+            );
+          })}
         </nav>
 
-        {user?.plan !== 'PRO' && (
+        {user?.plan !== 'PRO' && !collapsed && (
           <div className="mt-auto p-3">
             <div className="rounded-lg border bg-muted/50 p-4 text-center">
               <p className="text-sm font-medium">Upgrade Pro</p>
@@ -82,6 +101,20 @@ export function Sidebar() {
             </div>
           </div>
         )}
+      </div>
+      <div className="p-2 border-t border-border">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onToggle}
+          className="w-full"
+        >
+          {collapsed ? (
+            <ChevronRight className="h-4 w-4" />
+          ) : (
+            <ChevronLeft className="h-4 w-4" />
+          )}
+        </Button>
       </div>
     </div>
   );
