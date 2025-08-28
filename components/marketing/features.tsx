@@ -4,9 +4,10 @@ import Image from "next/image";
 import { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { TextPlugin } from "gsap/TextPlugin";
 import { Wallet, ReceiptText, LayoutDashboard, TrendingUp } from "lucide-react";
 
-gsap.registerPlugin(ScrollTrigger);
+gsap.registerPlugin(ScrollTrigger, TextPlugin);
 
 const features = [
   {
@@ -64,6 +65,24 @@ export function Features() {
             start: "top 80%",
           },
         });
+
+        const title = card.querySelector(".feature-title");
+        if (title) {
+          const finalText = title.textContent || "";
+          gsap.fromTo(
+            title,
+            { text: "" },
+            {
+              text: finalText,
+              duration: 0.8,
+              ease: "power2.out",
+              scrollTrigger: {
+                trigger: card,
+                start: "top 80%",
+              },
+            },
+          );
+        }
 
         const image = card.querySelector(".feature-image");
         if (image) {
@@ -139,7 +158,7 @@ export function Features() {
                   </div>
                 </div>
                 <div className="p-8">
-                  <h3 className="text-2xl font-bold text-foreground mb-4 group-hover:text-primary transition-colors duration-300">
+                  <h3 className="feature-title text-2xl font-bold text-foreground mb-4 group-hover:text-primary transition-colors duration-300">
                     {feature.title}
                   </h3>
                   <p className="text-muted-foreground text-lg leading-relaxed">

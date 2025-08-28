@@ -4,13 +4,17 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { gsap } from "gsap";
+import { TextPlugin } from "gsap/TextPlugin";
 
 import { Button } from "@/components/ui/button";
 
 export function Hero() {
   const sectionRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
+    gsap.registerPlugin(TextPlugin);
+
     const ctx = gsap.context(() => {
       gsap.from(".hero-animate", {
         y: 40,
@@ -19,6 +23,15 @@ export function Hero() {
         stagger: 0.2,
         ease: "power2.out",
       });
+
+      if (trackRef.current) {
+        const finalText = trackRef.current.textContent || "";
+        gsap.fromTo(
+          trackRef.current,
+          { text: "" },
+          { text: finalText, duration: 1.2, ease: "power2.out" },
+        );
+      }
     }, sectionRef);
 
     return () => ctx.revert();
@@ -72,7 +85,10 @@ export function Hero() {
           <h1 className="hero-animate text-4xl font-extrabold tracking-tight text-foreground sm:text-6xl lg:text-7xl leading-tight">
             <span className="block mb-2">Budget monthly,</span>
             <span className="relative block">
-              <span className="bg-gradient-to-r from-primary via-primary to-primary/70 bg-clip-text text-transparent animate-pulse">
+              <span
+                ref={trackRef}
+                className="bg-gradient-to-r from-primary via-primary to-primary/70 bg-clip-text text-transparent animate-pulse"
+              >
                 track daily
               </span>
               <svg
