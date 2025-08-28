@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
+import { formatIDR } from '@/lib/currency';
 
 export function Pricing() {
   return (
@@ -13,22 +14,30 @@ export function Pricing() {
         <div className="grid items-start gap-6 md:grid-cols-2">
           <Card className="border-dashed shadow-none">
             <CardHeader className="text-center">
-              <CardTitle>Free</CardTitle>
-              <p className="mt-2 text-sm text-muted-foreground">Coming soon</p>
+              <CardTitle className="text-3xl font-bold">{formatIDR(0)}</CardTitle>
+              <p className="text-sm text-muted-foreground">Free plan</p>
             </CardHeader>
+            <CardContent>
+              <ul className="space-y-2 text-left">
+                <li>1 account</li>
+                <li>Up to 2 budgets</li>
+                <li>Manual transactions</li>
+                <li>No reports</li>
+              </ul>
+            </CardContent>
           </Card>
           <Card className="shadow-none">
             <CardHeader className="text-center">
               <Badge className="mx-auto mb-2">Pro</Badge>
-              <CardTitle className="text-3xl font-bold">Rp0</CardTitle>
-              <p className="text-sm text-muted-foreground">Intro period</p>
+              <CardTitle className="text-3xl font-bold">{formatIDR(9000)}</CardTitle>
+              <p className="text-sm text-muted-foreground">per month promo</p>
             </CardHeader>
             <CardContent>
               <ul className="space-y-2 text-left">
                 <li>Unlimited accounts</li>
                 <li>Unlimited budgets</li>
-                <li>Unlimited transactions</li>
-                <li>Export soon</li>
+                <li>Receipt OCR scanning</li>
+                <li>Category reports</li>
               </ul>
             </CardContent>
             <CardFooter>
