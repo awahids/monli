@@ -17,6 +17,18 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Email is required' }, { status: 400 });
     }
 
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('plan, name, default_currency')
+      .eq('id', user.id)
+      .single();
+    if (profile?.plan !== 'PRO') {
+      return NextResponse.json(
+        { error: 'Chat is available for PRO plan only' },
+        { status: 403 }
+      );
+    }
+
     const { count } = await supabase
       .from('ai_logs')
       .select('*', { count: 'exact', head: true })
@@ -33,12 +45,6 @@ export async function POST(req: Request) {
       email: user.email,
       feature: 'chat',
     });
-
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('name, default_currency')
-      .eq('id', user.id)
-      .single();
     const { data: transactions } = await supabase
       .from('transactions')
       .select('date, amount, note')
