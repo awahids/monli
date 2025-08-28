@@ -110,7 +110,7 @@ export const formSchema = z
 export type TransactionFormValues = z.infer<typeof formSchema>;
 
 interface FieldsProps {
-  form: UseFormReturn<TransactionFormValues>;
+  form: UseFormReturn<z.input<typeof formSchema>, any, TransactionFormValues>;
   accounts: Account[];
   categories: Category[];
   contentRef: React.RefObject<HTMLDivElement> | null;

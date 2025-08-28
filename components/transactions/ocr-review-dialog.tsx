@@ -33,7 +33,7 @@ export interface ItemFormHandle {
 const OcrItemForm = forwardRef<ItemFormHandle, ItemFormProps>(
   ({ item, accounts, categories, date, contentRef }, ref) => {
     const form = useForm<
-      zod.input<typeof formSchema>,
+      z.input<typeof formSchema>,
       any,
       TransactionFormValues
     >({
@@ -52,7 +52,7 @@ const OcrItemForm = forwardRef<ItemFormHandle, ItemFormProps>(
       },
     });
 
-    useImperativeHandle(ref, () => ({ getValues: () => form.getValues() }));
+    useImperativeHandle(ref, () => ({ getValues: () => form.getValues() as TransactionFormValues }));
 
     return (
       <Form {...form}>
