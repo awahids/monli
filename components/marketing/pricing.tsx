@@ -56,9 +56,14 @@ export function Pricing() {
             <CardHeader className="text-center">
               <Badge className="mx-auto mb-2">Pro</Badge>
               <div className="flex flex-col items-center">
-                <span className="text-lg text-muted-foreground line-through">
-                  {formatIDR(15000)}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-lg text-muted-foreground line-through">
+                    {formatIDR(49000)}
+                  </span>
+                  <span className="text-sm font-medium text-green-600">
+                    -{Math.round(((49000 - 9000) / 49000) * 100)}%
+                  </span>
+                </div>
                 <CardTitle className="text-3xl font-bold">
                   {formatIDR(9000)}
                 </CardTitle>
