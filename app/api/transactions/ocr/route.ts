@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getUser } from '@/lib/auth/server';
 import { createSumopodClient, getSumopodModel } from '@/lib/sumopod';
 import { createClient } from '@/lib/supabase/server';
+import { getAiUsageCount, logAiUsage } from '@/lib/ai-usage';
 
 export async function POST(req: Request) {
   try {
@@ -9,7 +10,7 @@ export async function POST(req: Request) {
     const user = await getUser();
     const { data: profile } = await supabase
       .from('profiles')
-      .select('plan')
+      .select('plan, ai_unlimited')
       .eq('id', user.id)
       .single();
     if (profile?.plan !== 'PRO') {
@@ -29,6 +30,18 @@ export async function POST(req: Request) {
     const base64 = Buffer.from(arrayBuffer).toString('base64');
     const client = createSumopodClient();
     const model = getSumopodModel();
+
+    if (user.email) {
+      const isUnlimited = profile?.ai_unlimited;
+      const count = await getAiUsageCount(supabase, user.email, 'ocr');
+      if (!isUnlimited && count >= 30) {
+        return NextResponse.json(
+          { error: 'OCR usage limit reached' },
+          { status: 403 }
+        );
+      }
+      await logAiUsage(supabase, user.email, 'ocr');
+    }
 
     const completion = await client.chat.completions.create({
       model,

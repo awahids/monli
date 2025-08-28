@@ -4,6 +4,11 @@ import { User, Account, Category, Transaction, Budget } from '@/types';
 // Check if we're in browser environment
 const isBrowser = typeof window !== 'undefined';
 
+export interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
 interface AppState {
   user: User | null;
   accounts: Account[];
@@ -12,6 +17,9 @@ interface AppState {
   budgets: Budget[];
   loading: boolean;
   isOfflineMode: boolean;
+
+  // Chat
+  chatMessages: ChatMessage[];
   
   // Actions
   setUser: (user: User | null) => void;
@@ -21,6 +29,9 @@ interface AppState {
   setBudgets: (budgets: Budget[]) => void;
   setLoading: (loading: boolean) => void;
   setOfflineMode: (isOffline: boolean) => void;
+
+  addChatMessage: (message: ChatMessage) => void;
+  clearChatMessages: () => void;
   
   // Computed
   getCurrentBalance: (accountId: string) => number;
@@ -36,6 +47,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   budgets: [],
   loading: false,
   isOfflineMode: isBrowser ? !navigator.onLine : false,
+  chatMessages: [],
 
   setUser: (user) => set({ user }),
   setAccounts: (accounts) => set({ accounts }),
@@ -44,6 +56,10 @@ export const useAppStore = create<AppState>((set, get) => ({
   setBudgets: (budgets) => set({ budgets }),
   setLoading: (loading) => set({ loading }),
   setOfflineMode: (isOffline) => set({ isOfflineMode: isOffline }),
+
+  addChatMessage: (message) =>
+    set(state => ({ chatMessages: [...state.chatMessages, message] })),
+  clearChatMessages: () => set({ chatMessages: [] }),
 
   getCurrentBalance: (accountId: string) => {
     const { accounts, transactions } = get();
