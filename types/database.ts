@@ -227,6 +227,25 @@ export interface Database {
           token?: string;
         };
       };
+      ai_logs: {
+        Row: {
+          id: string;
+          email: string;
+          feature: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          email: string;
+          feature: string;
+          created_at?: string;
+        };
+        Update: {
+          email?: string;
+          feature?: string;
+          created_at?: string;
+        };
+      };
     };
   };
 }

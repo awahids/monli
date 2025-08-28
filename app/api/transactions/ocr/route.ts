@@ -30,6 +30,24 @@ export async function POST(req: Request) {
     const client = createSumopodClient();
     const model = getSumopodModel();
 
+    if (user.email) {
+      const { count } = await supabase
+        .from('ai_logs')
+        .select('*', { count: 'exact', head: true })
+        .eq('email', user.email)
+        .eq('feature', 'ocr');
+      if ((count ?? 0) >= 30) {
+        return NextResponse.json(
+          { error: 'OCR usage limit reached' },
+          { status: 403 }
+        );
+      }
+      await supabase.from('ai_logs').insert({
+        email: user.email,
+        feature: 'ocr',
+      });
+    }
+
     const completion = await client.chat.completions.create({
       model,
       messages: [
