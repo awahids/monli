@@ -62,8 +62,8 @@ import { formatDate } from '@/lib/date';
 import { useOffline } from '@/hooks/use-offline';
 import OcrReviewDialog, {
   OcrItem,
-  ReviewItem,
 } from '@/components/transactions/ocr-review-dialog';
+import { TransactionFormValues } from '@/components/transactions/transaction-form';
 
 const toCamel = (str: string) =>
   str.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
@@ -375,21 +375,25 @@ export default function TransactionsPage() {
     }
   };
 
-  const handleOcrSave = async (items: ReviewItem[]) => {
-    const date = ocrDate;
-    for (const item of items) {
+  const handleOcrSave = async (items: TransactionFormValues[]) => {
+    for (const values of items) {
+      const payload = {
+        budgetMonth: values.budgetMonth,
+        actualDate: formatDate(values.actualDate),
+        date: formatDate(values.actualDate),
+        type: values.type,
+        accountId: values.accountId ?? null,
+        fromAccountId: values.fromAccountId ?? null,
+        toAccountId: values.toAccountId ?? null,
+        categoryId: values.categoryId ?? null,
+        amount: values.amount,
+        note: values.note || '',
+        tags: values.tags || [],
+      };
       const res = await fetch('/api/transactions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          budgetMonth: format(date, 'yyyy-MM'),
-          actualDate: date,
-          type: 'expense',
-          accountId: item.accountId,
-          categoryId: item.categoryId,
-          amount: item.amount,
-          note: item.note || item.description,
-        }),
+        body: JSON.stringify(payload),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
@@ -422,6 +426,7 @@ export default function TransactionsPage() {
         items={ocrItems}
         accounts={accounts}
         categories={categories}
+        date={ocrDate}
         onSave={handleOcrSave}
       />
       <input

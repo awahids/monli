@@ -1,19 +1,74 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Form } from '@/components/ui/form';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { format } from 'date-fns';
+import * as z from 'zod';
+
+import {
+  TransactionFields,
+  formSchema,
+  TransactionFormValues,
+} from './transaction-form';
 import { Account, Category } from '@/types';
 
-export type OcrItem = { description: string; amount: number; };
+export type OcrItem = { description: string; amount: number };
 
-export interface ReviewItem extends OcrItem {
-  accountId?: string;
-  categoryId?: string;
-  note?: string;
+interface ItemFormProps {
+  item: OcrItem;
+  accounts: Account[];
+  categories: Category[];
+  date: Date;
+  contentRef: React.RefObject<HTMLDivElement> | null;
 }
+
+export interface ItemFormHandle {
+  getValues: () => TransactionFormValues;
+}
+
+const OcrItemForm = forwardRef<ItemFormHandle, ItemFormProps>(
+  ({ item, accounts, categories, date, contentRef }, ref) => {
+    const form = useForm<
+      zod.input<typeof formSchema>,
+      any,
+      TransactionFormValues
+    >({
+      resolver: zodResolver(formSchema),
+      defaultValues: {
+        budgetMonth: format(date, 'yyyy-MM'),
+        actualDate: date,
+        type: 'expense',
+        accountId: accounts[0]?.id,
+        fromAccountId: undefined,
+        toAccountId: undefined,
+        categoryId: undefined,
+        amount: item.amount,
+        note: item.description,
+        tags: [],
+      },
+    });
+
+    useImperativeHandle(ref, () => ({ getValues: () => form.getValues() }));
+
+    return (
+      <Form {...form}>
+        <div className="space-y-4">
+          <TransactionFields
+            form={form}
+            accounts={accounts}
+            categories={categories}
+            contentRef={contentRef}
+          />
+        </div>
+      </Form>
+    );
+  }
+);
+OcrItemForm.displayName = 'OcrItemForm';
 
 interface Props {
   open: boolean;
@@ -21,7 +76,8 @@ interface Props {
   items: OcrItem[];
   accounts: Account[];
   categories: Category[];
-  onSave: (items: ReviewItem[]) => Promise<void>;
+  date: Date;
+  onSave: (items: TransactionFormValues[]) => Promise<void>;
 }
 
 export default function OcrReviewDialog({
@@ -30,85 +86,39 @@ export default function OcrReviewDialog({
   items,
   accounts,
   categories,
+  date,
   onSave,
 }: Props) {
-  const [rows, setRows] = useState<ReviewItem[]>([]);
+  const contentRef = useRef<HTMLDivElement | null>(null);
+  const itemRefs = useRef<ItemFormHandle[]>([]);
 
   useEffect(() => {
-    setRows(
-      items.map((it) => ({
-        description: it.description,
-        amount: it.amount,
-        accountId: accounts[0]?.id,
-        categoryId: undefined,
-        note: '',
-      }))
-    );
-  }, [items, accounts]);
-
-  const updateRow = (index: number, field: keyof ReviewItem, value: any) => {
-    setRows((prev) => prev.map((row, i) => (i === index ? { ...row, [field]: value } : row)));
-  };
+    itemRefs.current = itemRefs.current.slice(0, items.length);
+  }, [items]);
 
   const handleSave = async () => {
-    await onSave(rows);
+    const values = itemRefs.current.map((ref) => ref.getValues());
+    await onSave(values);
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-3xl">
+      <DialogContent className="sm:max-w-3xl" ref={contentRef}>
         <DialogHeader>
           <DialogTitle>Review Receipt</DialogTitle>
         </DialogHeader>
-        <div className="space-y-4 max-h-[60vh] overflow-y-auto">
-          {rows.map((row, idx) => (
-            <div key={idx} className="grid grid-cols-1 md:grid-cols-6 gap-2 items-center">
-              <Input
-                value={row.description}
-                onChange={(e) => updateRow(idx, 'description', e.target.value)}
-                placeholder="Description"
-                className="md:col-span-2"
-              />
-              <Input
-                type="number"
-                value={row.amount}
-                onChange={(e) => updateRow(idx, 'amount', Number(e.target.value))}
-                placeholder="Amount"
-              />
-              <Select
-                value={row.accountId || ''}
-                onValueChange={(val) => updateRow(idx, 'accountId', val)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Account" />
-                </SelectTrigger>
-                <SelectContent>
-                  {accounts.map((a) => (
-                    <SelectItem key={a.id} value={a.id}>
-                      {a.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select
-                value={row.categoryId || ''}
-                onValueChange={(val) => updateRow(idx, 'categoryId', val)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>
-                      {c.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Input
-                value={row.note || ''}
-                onChange={(e) => updateRow(idx, 'note', e.target.value)}
-                placeholder="Note"
+        <div className="space-y-6 max-h-[60vh] overflow-y-auto">
+          {items.map((item, idx) => (
+            <div key={idx} className="p-4 border rounded">
+              <OcrItemForm
+                ref={(el) => {
+                  if (el) itemRefs.current[idx] = el;
+                }}
+                item={item}
+                accounts={accounts}
+                categories={categories}
+                date={date}
+                contentRef={contentRef}
               />
             </div>
           ))}
