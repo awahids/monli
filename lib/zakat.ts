@@ -4,7 +4,9 @@ export const GOLD_NISAB_GRAMS = 85;
 export const SILVER_NISAB_GRAMS = 595;
 
 export function calcNisab(idrPerGram: number, grams: number) {
-  return (idrPerGram || 0) * grams;
+  const price = Number.isFinite(idrPerGram) ? idrPerGram : 0;
+  const weight = Number.isFinite(grams) ? grams : 0;
+  return price * weight;
 }
 
 export function calcZakat(zakatable: number, nisab: number, rate = ZAKAT_RATE) {

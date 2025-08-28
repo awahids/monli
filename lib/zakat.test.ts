@@ -35,3 +35,10 @@ test('integration with MetalpriceAPI sample', () => {
   assert.equal(obligatory, true);
   assert.equal(amount, nisab * 0.025);
 });
+
+test('calcNisab handles invalid values', () => {
+  assert.equal(calcNisab(Infinity, GOLD_NISAB_GRAMS), 0);
+  assert.equal(calcNisab(NaN, GOLD_NISAB_GRAMS), 0);
+  assert.equal(calcNisab(1000, Infinity), 0);
+  assert.equal(calcNisab(1000, NaN), 0);
+});
