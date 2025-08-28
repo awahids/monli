@@ -11,9 +11,10 @@ export function calcNisab(idrPerGram: number, grams: number) {
 
 export function calcZakat(zakatable: number, nisab: number, rate = ZAKAT_RATE) {
   const base = Number.isFinite(zakatable) ? zakatable : 0;
-  const threshold = Number.isFinite(nisab) ? nisab : 0;
+  const threshold = Number.isFinite(nisab) ? nisab : Infinity;
+  const appliedRate = Number.isFinite(rate) ? rate : ZAKAT_RATE;
   const obligatory = base >= threshold;
-  const amount = obligatory ? base * rate : 0;
+  const amount = obligatory ? base * appliedRate : 0;
   return { obligatory, amount };
 }
 
