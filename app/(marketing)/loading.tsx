@@ -1,14 +1,36 @@
-import { Skeleton } from '@/components/ui/skeleton';
+"use client";
+
+import { useEffect, useRef } from "react";
+import { gsap } from "gsap";
 
 export default function Loading() {
+  const barRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      gsap.fromTo(
+        barRef.current,
+        { scaleX: 0 },
+        {
+          scaleX: 1,
+          transformOrigin: "left",
+          ease: "power1.inOut",
+          duration: 1,
+          repeat: -1,
+          yoyo: true,
+        },
+      );
+    }, barRef);
+
+    return () => ctx.revert();
+  }, []);
+
   return (
-    <div className="space-y-10">
-      <Skeleton className="mx-auto h-10 w-3/4" />
-      <div className="space-y-4">
-        {Array.from({ length: 3 }).map((_, i) => (
-          <Skeleton key={i} className="h-6 w-full" />
-        ))}
-      </div>
+    <div className="flex h-screen w-full items-center justify-center">
+      <div
+        ref={barRef}
+        className="h-1 w-40 bg-primary rounded-full"
+      />
     </div>
   );
 }

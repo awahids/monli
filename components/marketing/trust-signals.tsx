@@ -1,54 +1,87 @@
-import { Wallet, Shield, Server, Moon } from 'lucide-react';
+"use client";
+
+import { useEffect, useRef } from "react";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { Wallet, Shield, Server, Moon } from "lucide-react";
+
+gsap.registerPlugin(ScrollTrigger);
 
 const items = [
-  { 
-    icon: Wallet, 
-    text: 'Manual Input',
-    description: 'Enter transactions manually - no bank account connection required',
-    color: 'from-blue-500 to-cyan-500'
+  {
+    icon: Wallet,
+    text: "Manual Input",
+    description:
+      "Enter transactions manually - no bank account connection required",
+    color: "from-blue-500 to-cyan-500",
   },
-  { 
-    icon: Shield, 
-    text: 'Private & Secure',
-    description: 'Your financial data stays safe and is never shared with third parties',
-    color: 'from-green-500 to-emerald-500'
+  {
+    icon: Shield,
+    text: "Private & Secure",
+    description:
+      "Your financial data stays safe and is never shared with third parties",
+    color: "from-green-500 to-emerald-500",
   },
-  { 
-    icon: Server, 
-    text: 'Access Anywhere',
-    description: 'Monitor your personal finances from any device',
-    color: 'from-purple-500 to-violet-500'
+  {
+    icon: Server,
+    text: "Access Anywhere",
+    description: "Monitor your personal finances from any device",
+    color: "from-purple-500 to-violet-500",
   },
-  { 
-    icon: Moon, 
-    text: 'Simple Design',
-    description: 'Clean and intuitive interface that\'s easy to use',
-    color: 'from-gray-600 to-gray-800'
+  {
+    icon: Moon,
+    text: "Simple Design",
+    description: "Clean and intuitive interface that's easy to use",
+    color: "from-gray-600 to-gray-800",
   },
 ];
 
 export function TrustSignals() {
+  const sectionRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      gsap.from(".trust-item", {
+        opacity: 0,
+        y: 40,
+        duration: 0.8,
+        stagger: 0.2,
+        ease: "power2.out",
+        scrollTrigger: {
+          trigger: sectionRef.current,
+          start: "top 80%",
+        },
+      });
+    }, sectionRef);
+
+    return () => ctx.revert();
+  }, []);
+
   return (
-    <section className="py-16 relative">
+    <section ref={sectionRef} className="py-16 relative">
       <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-primary/5" />
 
       <div className="relative mx-auto max-w-6xl px-4">
         <div className="text-center mb-12">
-          <h3 className="text-2xl font-bold text-foreground mb-4">Trusted by users worldwide</h3>
-          <p className="text-muted-foreground">Built with security, privacy, and user experience in mind</p>
+          <h3 className="text-2xl font-bold text-foreground mb-4">
+            Trusted by users worldwide
+          </h3>
+          <p className="text-muted-foreground">
+            Built with security, privacy, and user experience in mind
+          </p>
         </div>
 
         <div className="responsive-grid">
           {items.map(({ icon: Icon, text, description, color }, index) => (
             <div
               key={index}
-              className="group relative card-enhanced p-8 hover:shadow-xl hover:-translate-y-2 transition-all duration-500 cursor-default overflow-hidden"
+              className="trust-item group relative card-enhanced p-8 hover:shadow-xl hover:-translate-y-2 transition-all duration-500 cursor-default overflow-hidden"
             >
               {/* Background gradient effect */}
               <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-              
+
               <div className="relative flex flex-col items-center text-center space-y-6">
-                <div 
+                <div
                   className={`flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br ${color} shadow-lg group-hover:shadow-xl group-hover:scale-110 transition-all duration-500 relative`}
                 >
                   <Icon className="h-8 w-8 sm:h-10 sm:w-10 text-white drop-shadow-sm" />
@@ -65,8 +98,9 @@ export function TrustSignals() {
               </div>
             </div>
           ))}
-</div>
+        </div>
       </div>
     </section>
   );
 }
+
