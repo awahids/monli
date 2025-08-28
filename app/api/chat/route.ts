@@ -38,14 +38,52 @@ export async function POST(req: Request) {
       );
     }
     await logAiUsage(supabase, user.email, 'chat');
+
+    const { data: accounts } = await supabase
+      .from('accounts')
+      .select('name, type, currency, current_balance, opening_balance, archived, account_number')
+      .eq('user_id', user.id);
+
+    const { data: categories } = await supabase
+      .from('categories')
+      .select('name, type, color, icon')
+      .eq('user_id', user.id);
+
+    const { data: budgets } = await supabase
+      .from('budgets')
+      .select('id, month, total_amount')
+      .eq('user_id', user.id);
+
+    let budgetItems: any[] = [];
+    if (budgets && budgets.length > 0) {
+      const budgetIds = budgets.map((b) => b.id);
+      const { data } = await supabase
+        .from('budget_items')
+        .select('budget_id, category_id, amount, rollover')
+        .in('budget_id', budgetIds);
+      budgetItems = data || [];
+    }
+
     const { data: transactions } = await supabase
       .from('transactions')
-      .select('date, amount, note')
+      .select('date, amount, type, account_id, category_id, note, tags')
       .eq('user_id', user.id)
-      .order('date', { ascending: false })
-      .limit(10);
+      .order('date', { ascending: false });
 
-    const context = JSON.stringify({ profile, transactions });
+    const { data: payments } = await supabase
+      .from('payments')
+      .select('order_id, product_name, amount, status, created_at')
+      .eq('user_id', user.id);
+
+    const context = JSON.stringify({
+      profile,
+      accounts,
+      categories,
+      budgets,
+      budget_items: budgetItems,
+      transactions,
+      payments,
+    });
 
     const client = createSumopodClient();
     const model = getSumopodModel();
