@@ -1,11 +1,4 @@
-"use client";
-
-import { useEffect, useRef } from "react";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Wallet, Shield, Server, Moon } from "lucide-react";
-
-gsap.registerPlugin(ScrollTrigger);
 
 const items = [
   {
@@ -37,28 +30,8 @@ const items = [
 ];
 
 export function TrustSignals() {
-  const sectionRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const ctx = gsap.context(() => {
-      gsap.from(".trust-item", {
-        opacity: 0,
-        y: 40,
-        duration: 0.8,
-        stagger: 0.2,
-        ease: "power2.out",
-        scrollTrigger: {
-          trigger: sectionRef.current,
-          start: "top 80%",
-        },
-      });
-    }, sectionRef);
-
-    return () => ctx.revert();
-  }, []);
-
   return (
-    <section ref={sectionRef} className="py-16 relative">
+    <section className="py-16 relative">
       <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-primary/5" />
 
       <div className="relative mx-auto max-w-6xl px-4">
@@ -75,7 +48,7 @@ export function TrustSignals() {
           {items.map(({ icon: Icon, text, description, color }, index) => (
             <div
               key={index}
-              className="trust-item group relative card-enhanced p-8 hover:shadow-xl hover:-translate-y-2 transition-all duration-500 cursor-default overflow-hidden"
+              className="group relative card-enhanced p-8 hover:shadow-xl hover:-translate-y-2 transition-all duration-500 cursor-default overflow-hidden"
             >
               {/* Background gradient effect */}
               <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
