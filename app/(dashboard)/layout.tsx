@@ -11,6 +11,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { OfflineBanner } from "@/components/ui/offline-banner";
 import { OnboardingTour } from "@/components/onboarding-tour";
 import { cn } from "@/lib/utils";
+import ChatWidget from "@/components/chat/chat-widget";
 
 export default function DashboardLayout({
   children,
@@ -66,6 +67,7 @@ export default function DashboardLayout({
       </div>
       <Toaster />
       <OnboardingTour />
+      {user?.plan === 'PRO' && <ChatWidget />}
     </div>
   );
 }
