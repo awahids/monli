@@ -63,7 +63,6 @@ import { useOffline } from '@/hooks/use-offline';
 import OcrReviewDialog, {
   OcrItem,
 } from '@/components/transactions/ocr-review-dialog';
-import { TransactionFormValues } from '@/components/transactions/transaction-form';
 
 const toCamel = (str: string) =>
   str.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
