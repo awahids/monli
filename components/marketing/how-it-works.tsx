@@ -1,21 +1,49 @@
+"use client";
+
+import { useEffect, useRef } from "react";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+gsap.registerPlugin(ScrollTrigger);
+
 const steps = [
   {
-    title: 'Create account',
-    description: 'Sign up in seconds.',
+    title: "Create account",
+    description: "Sign up in seconds.",
   },
   {
-    title: 'Add accounts & categories',
-    description: 'Connect banks and set spending buckets.',
+    title: "Add accounts & categories",
+    description: "Connect banks and set spending buckets.",
   },
   {
-    title: 'Set budget & log transactions',
-    description: 'Stay on top every day.',
+    title: "Set budget & log transactions",
+    description: "Stay on top every day.",
   },
 ];
 
 export function HowItWorks() {
+  const sectionRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      gsap.from(".hiw-step", {
+        opacity: 0,
+        y: 40,
+        duration: 0.8,
+        stagger: 0.2,
+        ease: "power2.out",
+        scrollTrigger: {
+          trigger: sectionRef.current,
+          start: "top 80%",
+        },
+      });
+    }, sectionRef);
+
+    return () => ctx.revert();
+  }, []);
+
   return (
-    <section className="py-24 relative">
+    <section ref={sectionRef} className="py-24 relative">
       {/* Background decoration */}
       <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-primary/5" />
       
@@ -43,7 +71,10 @@ export function HowItWorks() {
           </div>
           
           {steps.map((step, i) => (
-            <li key={step.title} className="relative flex flex-col items-center">
+            <li
+              key={step.title}
+              className="hiw-step relative flex flex-col items-center"
+            >
               <div className="group mb-8">
                 <div className="relative">
                   {/* Step number with enhanced styling */}

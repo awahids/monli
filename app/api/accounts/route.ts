@@ -59,6 +59,25 @@ export async function POST(req: Request) {
   }
   try {
     const user = await getUser();
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("plan")
+      .eq("id", user.id)
+      .single();
+
+    if (profile?.plan === "FREE") {
+      const { count } = await supabase
+        .from("accounts")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id);
+      if ((count ?? 0) >= 1) {
+        return NextResponse.json(
+          { error: "Free plan limited to one account" },
+          { status: 403 },
+        );
+      }
+    }
+
     const { data, error } = await supabase
       .from("accounts")
       .insert({
