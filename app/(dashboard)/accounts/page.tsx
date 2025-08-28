@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import Link from 'next/link';
 import { MoreHorizontal, Plus, Copy } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -68,6 +69,7 @@ export default function AccountsPage() {
   const [page, setPage] = useState(1);
   const pageSize = 20;
   const [total, setTotal] = useState(0);
+  const disableAdd = user?.plan === 'FREE' && accounts.length >= 1;
 
   const fetchAccounts = useCallback(async () => {
     if (!user) return;
@@ -128,18 +130,29 @@ export default function AccountsPage() {
           <h2 className="text-3xl font-bold tracking-tight">Accounts</h2>
           <p className="text-muted-foreground">View and manage your accounts.</p>
         </div>
-        <div className="hidden md:block">
-          <Button
-            onClick={() => {
-              setEditingAccount(null);
-              setDialogOpen(true);
-            }}
-            className="transition-transform hover:scale-105"
-          >
-            Add Account
-          </Button>
-        </div>
+        {!disableAdd && (
+          <div className="hidden md:block">
+            <Button
+              onClick={() => {
+                setEditingAccount(null);
+                setDialogOpen(true);
+              }}
+              className="transition-transform hover:scale-105"
+            >
+              Add Account
+            </Button>
+          </div>
+        )}
       </div>
+      {disableAdd && (
+        <p className="text-sm text-muted-foreground">
+          Free plan limited to one account.{' '}
+          <Link href="/upgrade" className="text-primary underline">
+            Upgrade
+          </Link>{' '}
+          to add more.
+        </p>
+      )}
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {accounts.map((account) => {
@@ -294,15 +307,17 @@ export default function AccountsPage() {
         </Pagination>
       )}
 
-      <Button
-        onClick={() => {
-          setEditingAccount(null);
-          setDialogOpen(true);
-        }}
-        className="md:hidden fixed right-6 bottom-[calc(5rem+env(safe-area-inset-bottom))] h-12 w-12 rounded-full p-0 shadow-lg transition-transform hover:scale-105"
-      >
-        <Plus className="h-6 w-6" />
-      </Button>
+      {!disableAdd && (
+        <Button
+          onClick={() => {
+            setEditingAccount(null);
+            setDialogOpen(true);
+          }}
+          className="md:hidden fixed right-6 bottom-[calc(5rem+env(safe-area-inset-bottom))] h-12 w-12 rounded-full p-0 shadow-lg transition-transform hover:scale-105"
+        >
+          <Plus className="h-6 w-6" />
+        </Button>
+      )}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-md w-full h-full sm:h-auto sm:max-h-[90vh] overflow-y-auto p-0 sm:p-6">
           <DialogHeader className="px-4 pt-4 sm:px-0 sm:pt-0">

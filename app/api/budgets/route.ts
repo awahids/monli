@@ -67,6 +67,34 @@ export async function POST(req: Request) {
   }
   try {
     const user = await getUser();
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("plan")
+      .eq("id", user.id)
+      .single();
+
+    if (profile?.plan === "FREE") {
+      const { count } = await supabase
+        .from("budgets")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id);
+
+      if ((count ?? 0) >= 2) {
+        const { data: existing } = await supabase
+          .from("budgets")
+          .select("id")
+          .eq("user_id", user.id)
+          .eq("month", body.month)
+          .single();
+        if (!existing) {
+          return NextResponse.json(
+            { error: "Free plan limited to two budgets" },
+            { status: 403 },
+          );
+        }
+      }
+    }
+
     const { data: budget, error } = await supabase
       .from("budgets")
       .upsert(
