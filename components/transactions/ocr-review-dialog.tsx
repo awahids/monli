@@ -23,7 +23,7 @@ interface ItemFormProps {
   accounts: Account[];
   categories: Category[];
   date: Date;
-  contentRef: React.RefObject<HTMLDivElement> | null;
+  contentEl: HTMLDivElement | null;
 }
 
 export interface ItemFormHandle {
@@ -31,7 +31,7 @@ export interface ItemFormHandle {
 }
 
 const OcrItemForm = forwardRef<ItemFormHandle, ItemFormProps>(
-  ({ item, accounts, categories, date, contentRef }, ref) => {
+  ({ item, accounts, categories, date, contentEl }, ref) => {
     const form = useForm<
       z.input<typeof formSchema>,
       any,
@@ -61,7 +61,7 @@ const OcrItemForm = forwardRef<ItemFormHandle, ItemFormProps>(
             form={form}
             accounts={accounts}
             categories={categories}
-            contentRef={contentRef}
+            contentEl={contentEl}
           />
         </div>
       </Form>
@@ -118,7 +118,7 @@ export default function OcrReviewDialog({
                 accounts={accounts}
                 categories={categories}
                 date={date}
-                contentRef={contentRef}
+                contentEl={contentRef.current}
               />
             </div>
           ))}
