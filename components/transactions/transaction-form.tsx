@@ -151,12 +151,12 @@ export function TransactionFields({
         render={({ field }) => (
           <FormItem className="flex flex-col">
             <FormLabel>Actual Date</FormLabel>
-            <Popover>
-              <PopoverTrigger asChild>
-                <FormControl>
-                  <Button
-                    variant="outline"
-                    type="button"
+              <Popover>
+                <PopoverTrigger asChild>
+                  <FormControl>
+                    <Button
+                      variant="outline"
+                      type="button"
                     className={cn(
                       'w-full justify-start text-left font-normal',
                       !field.value && 'text-muted-foreground'
@@ -170,13 +170,17 @@ export function TransactionFields({
                     <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                   </Button>
                 </FormControl>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={field.value}
-                  onSelect={(date) => {
-                    field.onChange(date);
+                </PopoverTrigger>
+                <PopoverContent
+                  className="w-auto p-0"
+                  align="start"
+                  container={contentRef?.current}
+                >
+                  <Calendar
+                    mode="single"
+                    selected={field.value}
+                    onSelect={(date) => {
+                      field.onChange(date);
                     if (date) {
                       form.setValue('budgetMonth', formatDate(date).slice(0, 7));
                     }
