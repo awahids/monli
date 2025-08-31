@@ -4,6 +4,8 @@ import { createClient } from '@/lib/supabase/server';
 import { createSumopodClient, getSumopodModel } from '@/lib/sumopod';
 import { getAiUsageCount, logAiUsage } from '@/lib/ai-usage';
 
+export const maxDuration = 60;
+
 export async function POST(req: Request) {
   try {
     const { message } = await req.json();
@@ -39,20 +41,38 @@ export async function POST(req: Request) {
     }
     await logAiUsage(supabase, user.email, 'chat');
 
-    const { data: accounts } = await supabase
-      .from('accounts')
-      .select('name, type, currency, current_balance, opening_balance, archived, account_number')
-      .eq('user_id', user.id);
+    const [accountsRes, categoriesRes, budgetsRes, transactionsRes, paymentsRes] =
+      await Promise.all([
+        supabase
+          .from('accounts')
+          .select(
+            'name, type, currency, current_balance, opening_balance, archived, account_number'
+          )
+          .eq('user_id', user.id),
+        supabase
+          .from('categories')
+          .select('name, type, color, icon')
+          .eq('user_id', user.id),
+        supabase
+          .from('budgets')
+          .select('id, month, total_amount')
+          .eq('user_id', user.id),
+        supabase
+          .from('transactions')
+          .select('date, amount, type, account_id, category_id, note, tags')
+          .eq('user_id', user.id)
+          .order('date', { ascending: false }),
+        supabase
+          .from('payments')
+          .select('order_id, product_name, amount, status, created_at')
+          .eq('user_id', user.id),
+      ]);
 
-    const { data: categories } = await supabase
-      .from('categories')
-      .select('name, type, color, icon')
-      .eq('user_id', user.id);
-
-    const { data: budgets } = await supabase
-      .from('budgets')
-      .select('id, month, total_amount')
-      .eq('user_id', user.id);
+    const accounts = accountsRes.data;
+    const categories = categoriesRes.data;
+    const budgets = budgetsRes.data;
+    const transactions = transactionsRes.data;
+    const payments = paymentsRes.data;
 
     let budgetItems: any[] = [];
     if (budgets && budgets.length > 0) {
@@ -63,17 +83,6 @@ export async function POST(req: Request) {
         .in('budget_id', budgetIds);
       budgetItems = data || [];
     }
-
-    const { data: transactions } = await supabase
-      .from('transactions')
-      .select('date, amount, type, account_id, category_id, note, tags')
-      .eq('user_id', user.id)
-      .order('date', { ascending: false });
-
-    const { data: payments } = await supabase
-      .from('payments')
-      .select('order_id, product_name, amount, status, created_at')
-      .eq('user_id', user.id);
 
     const context = JSON.stringify({
       profile,
