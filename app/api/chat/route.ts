@@ -110,7 +110,8 @@ export async function POST(req: Request) {
         },
       ],
       temperature: 0.7,
-      max_tokens: 300,
+      // Allow longer responses so summaries aren't truncated
+      max_tokens: 600,
     });
 
     const answer = completion.choices[0]?.message?.content || '';
