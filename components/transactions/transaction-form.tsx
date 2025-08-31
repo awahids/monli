@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm, UseFormReturn } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -114,14 +114,14 @@ interface FieldsProps {
   form: UseFormReturn<z.input<typeof formSchema>, any, TransactionFormValues>;
   accounts: Account[];
   categories: Category[];
-  contentRef: React.RefObject<HTMLDivElement> | null;
+  contentEl: HTMLDivElement | null;
 }
 
 export function TransactionFields({
   form,
   accounts,
   categories,
-  contentRef,
+  contentEl,
 }: FieldsProps) {
   const currentType = form.watch('type');
   const [tagInput, setTagInput] = useState('');
@@ -174,7 +174,7 @@ export function TransactionFields({
                 <PopoverContent
                   className="w-auto p-0"
                   align="start"
-                  container={contentRef?.current}
+                  container={contentEl ?? undefined}
                 >
                   <Calendar
                     mode="single"
@@ -231,7 +231,7 @@ export function TransactionFields({
                     <SelectValue placeholder="Select account" />
                   </SelectTrigger>
                 </FormControl>
-                <SelectContent container={contentRef?.current ?? undefined}>
+                <SelectContent container={contentEl ?? undefined}>
                   {accounts.map((a) => (
                     <SelectItem key={a.id} value={a.id}>
                       {a.name}
@@ -257,7 +257,7 @@ export function TransactionFields({
                       <SelectValue placeholder="Select account" />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent container={contentRef?.current ?? undefined}>
+                  <SelectContent container={contentEl ?? undefined}>
                     {accounts.map((a) => (
                       <SelectItem key={a.id} value={a.id}>
                         {a.name}
@@ -281,7 +281,7 @@ export function TransactionFields({
                       <SelectValue placeholder="Select account" />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent container={contentRef?.current ?? undefined}>
+                  <SelectContent container={contentEl ?? undefined}>
                     {accounts.map((a) => (
                       <SelectItem key={a.id} value={a.id}>
                         {a.name}
@@ -309,7 +309,7 @@ export function TransactionFields({
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
                 </FormControl>
-                <SelectContent container={contentRef?.current ?? undefined}>
+                <SelectContent container={contentEl ?? undefined}>
                   {categories
                     .filter((c) => c.type === currentType)
                     .map((c) => (
@@ -504,13 +504,13 @@ export function TransactionForm({
     });
   };
 
-  const contentRef = useRef<HTMLDivElement | null>(null);
+  const [contentEl, setContentEl] = useState<HTMLDivElement | null>(null);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         id={id}
-        ref={contentRef}
+        ref={setContentEl}
         className="fixed top-auto bottom-0 left-0 right-0 w-full h-[90vh] overflow-y-auto p-0 rounded-t-xl sm:h-auto sm:max-h-[90vh] sm:max-w-md sm:rounded-xl sm:p-6"
       >
         <DialogHeader className="px-4 sm:px-0 pt-4 sm:pt-0">
@@ -525,7 +525,7 @@ export function TransactionForm({
               form={form}
               accounts={accounts}
               categories={categories}
-              contentRef={contentRef}
+              contentEl={contentEl}
             />
 
             <DialogFooter
