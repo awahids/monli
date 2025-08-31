@@ -174,8 +174,8 @@ export default function DashboardPage() {
             category:categories(name, color, icon)
           `)
           .eq('user_id', user.id)
-          .gte('date', formatDate(threeMonthsAgo))
-          .order('date', { ascending: false });
+          .gte('actual_date', formatDate(threeMonthsAgo))
+          .order('actual_date', { ascending: false });
 
         // Fetch budgets (current month)
         const currentMonth = new Date().toISOString().slice(0, 7);
