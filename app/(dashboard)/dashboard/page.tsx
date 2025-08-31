@@ -313,7 +313,7 @@ export default function DashboardPage() {
 
     transactions
       .filter(
-        t => t.type === 'expense' && t.budgetMonth === currentMonth
+        t => t.type === 'expense' && t.actualDate.startsWith(currentMonth)
       )
       .forEach(t => {
         if (!t.categoryId || !t.category) return;
