@@ -41,6 +41,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
+import { formatDate } from '@/lib/date';
 import { CalendarIcon, X } from 'lucide-react';
 import { formatIDR, parseIDR } from '@/lib/currency';
 
@@ -174,7 +175,12 @@ export function TransactionFields({
                 <Calendar
                   mode="single"
                   selected={field.value}
-                  onSelect={field.onChange}
+                  onSelect={(date) => {
+                    field.onChange(date);
+                    if (date) {
+                      form.setValue('budgetMonth', formatDate(date).slice(0, 7));
+                    }
+                  }}
                   initialFocus
                 />
               </PopoverContent>
