@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm, UseFormReturn } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -41,6 +41,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
+import { formatDate } from '@/lib/date';
 import { CalendarIcon, X } from 'lucide-react';
 import { formatIDR, parseIDR } from '@/lib/currency';
 
@@ -113,14 +114,14 @@ interface FieldsProps {
   form: UseFormReturn<z.input<typeof formSchema>, any, TransactionFormValues>;
   accounts: Account[];
   categories: Category[];
-  contentRef: React.RefObject<HTMLDivElement> | null;
+  contentEl: HTMLDivElement | null;
 }
 
 export function TransactionFields({
   form,
   accounts,
   categories,
-  contentRef,
+  contentEl,
 }: FieldsProps) {
   const currentType = form.watch('type');
   const [tagInput, setTagInput] = useState('');
@@ -150,12 +151,12 @@ export function TransactionFields({
         render={({ field }) => (
           <FormItem className="flex flex-col">
             <FormLabel>Actual Date</FormLabel>
-            <Popover>
-              <PopoverTrigger asChild>
-                <FormControl>
-                  <Button
-                    variant="outline"
-                    type="button"
+              <Popover>
+                <PopoverTrigger asChild>
+                  <FormControl>
+                    <Button
+                      variant="outline"
+                      type="button"
                     className={cn(
                       'w-full justify-start text-left font-normal',
                       !field.value && 'text-muted-foreground'
@@ -169,12 +170,21 @@ export function TransactionFields({
                     <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                   </Button>
                 </FormControl>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={field.value}
-                  onSelect={field.onChange}
+                </PopoverTrigger>
+                <PopoverContent
+                  className="w-auto p-0"
+                  align="start"
+                  container={contentEl ?? undefined}
+                >
+                  <Calendar
+                    mode="single"
+                    selected={field.value}
+                    onSelect={(date) => {
+                      field.onChange(date);
+                    if (date) {
+                      form.setValue('budgetMonth', formatDate(date).slice(0, 7));
+                    }
+                  }}
                   initialFocus
                 />
               </PopoverContent>
@@ -221,7 +231,7 @@ export function TransactionFields({
                     <SelectValue placeholder="Select account" />
                   </SelectTrigger>
                 </FormControl>
-                <SelectContent container={contentRef?.current ?? undefined}>
+                <SelectContent container={contentEl ?? undefined}>
                   {accounts.map((a) => (
                     <SelectItem key={a.id} value={a.id}>
                       {a.name}
@@ -247,7 +257,7 @@ export function TransactionFields({
                       <SelectValue placeholder="Select account" />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent container={contentRef?.current ?? undefined}>
+                  <SelectContent container={contentEl ?? undefined}>
                     {accounts.map((a) => (
                       <SelectItem key={a.id} value={a.id}>
                         {a.name}
@@ -271,7 +281,7 @@ export function TransactionFields({
                       <SelectValue placeholder="Select account" />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent container={contentRef?.current ?? undefined}>
+                  <SelectContent container={contentEl ?? undefined}>
                     {accounts.map((a) => (
                       <SelectItem key={a.id} value={a.id}>
                         {a.name}
@@ -299,7 +309,7 @@ export function TransactionFields({
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
                 </FormControl>
-                <SelectContent container={contentRef?.current ?? undefined}>
+                <SelectContent container={contentEl ?? undefined}>
                   {categories
                     .filter((c) => c.type === currentType)
                     .map((c) => (
@@ -494,13 +504,13 @@ export function TransactionForm({
     });
   };
 
-  const contentRef = useRef<HTMLDivElement | null>(null);
+  const [contentEl, setContentEl] = useState<HTMLDivElement | null>(null);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         id={id}
-        ref={contentRef}
+        ref={setContentEl}
         className="fixed top-auto bottom-0 left-0 right-0 w-full h-[90vh] overflow-y-auto p-0 rounded-t-xl sm:h-auto sm:max-h-[90vh] sm:max-w-md sm:rounded-xl sm:p-6"
       >
         <DialogHeader className="px-4 sm:px-0 pt-4 sm:pt-0">
@@ -515,7 +525,7 @@ export function TransactionForm({
               form={form}
               accounts={accounts}
               categories={categories}
-              contentRef={contentRef}
+              contentEl={contentEl}
             />
 
             <DialogFooter

@@ -33,8 +33,8 @@ export async function GET(req: Request) {
       .select('amount, category_id, category:categories(name, color)')
       .eq('user_id', user.id)
       .eq('type', 'expense')
-      .gte('date', start.toISOString())
-      .lt('date', end.toISOString())
+      .gte('actual_date', start.toISOString())
+      .lt('actual_date', end.toISOString())
       .returns<TxRow[]>();
 
     if (error) {
