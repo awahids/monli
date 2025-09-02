@@ -39,9 +39,9 @@ export function ChatWidget() {
   };
 
   return (
-    <div className="fixed bottom-4 right-4 z-50">
+    <div className="fixed right-4 bottom-20 z-50 sm:bottom-4">
       {open ? (
-        <div className="w-80 h-96 rounded-lg border bg-background shadow-lg flex flex-col">
+        <div className="w-[calc(100vw-2rem)] h-[calc(100vh-8rem)] max-w-sm rounded-lg border bg-background shadow-lg flex flex-col sm:w-80 sm:h-96">
           <div className="flex items-center justify-between p-2 border-b">
             <span className="font-medium">Chat</span>
             <Button variant="ghost" size="icon" onClick={() => setOpen(false)}>
