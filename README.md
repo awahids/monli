@@ -28,4 +28,4 @@ Untuk mengaktifkan pembayaran Midtrans, siapkan variabel lingkungan berikut:
 Fitur pemindaian struk (OCR) untuk pembuatan transaksi tersedia untuk pengguna PRO. Tambahkan variabel lingkungan berikut:
 
 - `SUMOPOD_API_KEY` – API key untuk [SumoPod AI](https://ai.sumopod.com)
-- `SUMOPOD_MODEL` – ID model SumoPod AI (default `gpt-4o-mini`)
+- `SUMOPOD_MODEL` – ID model SumoPod AI (`gpt-4o-mini` default; supports `gpt-4o`)

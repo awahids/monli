@@ -16,11 +16,13 @@ test('createSumopodClient returns client when API key is set', () => {
   assert.ok(client);
 });
 
-test('getSumopodModel reads env or falls back to default', () => {
+test('getSumopodModel validates supported models', () => {
   delete process.env.SUMOPOD_MODEL;
   assert.equal(getSumopodModel(), 'gpt-4o-mini');
+  process.env.SUMOPOD_MODEL = 'gpt-4o';
+  assert.equal(getSumopodModel(), 'gpt-4o');
   process.env.SUMOPOD_MODEL = 'deepseek-chat';
-  assert.equal(getSumopodModel(), 'deepseek-chat');
+  assert.equal(getSumopodModel(), 'gpt-4o-mini');
 });
 
 test.after(() => {
