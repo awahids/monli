@@ -2,11 +2,12 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
-import { MoreHorizontal, Plus, Copy } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import Image from 'next/image';
+import { Plus } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { useAppStore } from '@/lib/store';
-import { supabase } from '@/lib/supabase';
 import { formatCurrency } from '@/lib/currency';
 import { Account } from '@/types';
 import { Card } from '@/components/ui/card';
@@ -18,24 +19,6 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { AccountForm } from '@/components/accounts/account-form';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
-import { Badge } from '@/components/ui/badge';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import {
   Pagination,
@@ -46,14 +29,6 @@ import {
   PaginationPrevious,
 } from '@/components/ui/pagination';
 
-const typeLabels: Record<Account['type'], string> = {
-  bank: 'Bank Account',
-  ewallet: 'E-Wallet',
-  cash: 'Cash',
-};
-
-const formatAccountNumber = (num: string) =>
-  num.replace(/(\d{4})(?=\d)/g, '$1 ');
 
 export default function AccountsPage() {
   const {
@@ -63,6 +38,8 @@ export default function AccountsPage() {
     loading,
     setLoading,
   } = useAppStore();
+
+  const router = useRouter();
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
@@ -92,33 +69,6 @@ export default function AccountsPage() {
     fetchAccounts();
   }, [fetchAccounts]);
 
-  const handleDelete = async (id: string) => {
-    try {
-      const { error } = await supabase.from('accounts').delete().eq('id', id);
-      if (error) throw error;
-      toast.success('Account deleted');
-      await fetchAccounts();
-    } catch (err) {
-      console.error('Failed to delete account:', err);
-      toast.error('Failed to delete account');
-    }
-  };
-
-  const handleArchive = async (id: string, archived: boolean) => {
-    try {
-      const { error } = await supabase
-        .from('accounts')
-        .update({ archived })
-        .eq('id', id);
-      if (error) throw error;
-      toast.success(archived ? 'Account archived' : 'Account unarchived');
-      await fetchAccounts();
-    } catch (err) {
-      console.error('Failed to update account:', err);
-      toast.error('Failed to update account');
-    }
-  };
-
   if (loading) {
     return <LoadingSpinner />;
   }
@@ -126,10 +76,7 @@ export default function AccountsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">Accounts</h2>
-          <p className="text-muted-foreground">View and manage your accounts.</p>
-        </div>
+        <h2 className="text-3xl font-bold tracking-tight">Cards</h2>
         {!disableAdd && (
           <div className="hidden md:block">
             <Button
@@ -139,7 +86,7 @@ export default function AccountsPage() {
               }}
               className="transition-transform hover:scale-105"
             >
-              Add Account
+              Add Card
             </Button>
           </div>
         )}
@@ -160,111 +107,32 @@ export default function AccountsPage() {
           return (
             <Card
               key={account.id}
-              className="relative h-56 overflow-hidden rounded-xl text-white shadow hover:shadow-lg transition-transform hover:scale-105"
+              onClick={() =>
+                router.push(`/transactions?accountId=${account.id}`)
+              }
+              className="relative h-56 overflow-hidden rounded-xl text-white shadow hover:shadow-lg transition-transform hover:scale-105 cursor-pointer"
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-gray-800 to-gray-900" />
-              <div className="relative z-10 flex h-full flex-col justify-between p-5">
-                <div className="flex items-start justify-between">
-                  <span className="text-sm uppercase tracking-wide">
-                    {typeLabels[account.type]}
+              <Image
+                src="/card-bg.svg"
+                alt=""
+                fill
+                className="object-cover"
+                priority
+              />
+              <div className="relative z-10 flex h-full flex-col justify-between p-6">
+                <div className="flex justify-between text-sm tracking-widest">
+                  <span>
+                    **** {account.accountNumber?.slice(-4) || '0000'}
                   </span>
-                  <div className="flex items-center space-x-2">
-                    <span className="text-sm">{account.name}</span>
-                    {account.archived && (
-                      <Badge
-                        variant="secondary"
-                        className="bg-white/20 text-white"
-                      >
-                        Archived
-                      </Badge>
-                    )}
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="text-white hover:bg-white/20"
-                        >
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onClick={() => {
-                            setEditingAccount(account);
-                            setDialogOpen(true);
-                          }}
-                        >
-                          Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() =>
-                            handleArchive(account.id, !account.archived)
-                          }
-                        >
-                          {account.archived ? 'Unarchive' : 'Archive'}
-                        </DropdownMenuItem>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <DropdownMenuItem className="text-destructive">
-                              Delete
-                            </DropdownMenuItem>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>
-                                Delete account?
-                              </AlertDialogTitle>
-                              <AlertDialogDescription>
-                                This action cannot be undone.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => handleDelete(account.id)}
-                              >
-                                Delete
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
+                  <span className="uppercase">
+                    {account.type === 'bank' ? 'visa' : account.type}
+                  </span>
                 </div>
-                {account.accountNumber && (
-                  <div className="relative mt-6">
-                    <div className="flex items-center">
-                      <div className="mr-4 h-8 w-12 rounded-sm bg-gradient-to-br from-yellow-300 to-yellow-500" />
-                      <div className="font-mono text-xl tracking-widest">
-                        {formatAccountNumber(account.accountNumber)}
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="ml-auto h-6 w-6 text-white hover:bg-white/20"
-                        onClick={() => {
-                          navigator.clipboard.writeText(account.accountNumber!);
-                          toast.success('Account number copied');
-                        }}
-                      >
-                        <Copy className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    <div className="absolute left-16 top-full mt-1 text-xs font-mono">
-                      {account.accountNumber.slice(0, 4)}
-                    </div>
-                  </div>
-                )}
-                <div className="flex items-end justify-between">
-                  <span className="text-sm">{user?.name}</span>
-                  <div className="text-right">
-                    <p className="text-[10px] uppercase">Balance</p>
-                    <p className="font-mono text-sm">
-                      {formatCurrency(balance, account.currency)}
-                    </p>
-                  </div>
+                <div>
+                  <p className="text-xs">Balance</p>
+                  <p className="text-2xl font-bold">
+                    {formatCurrency(balance, account.currency)}
+                  </p>
                 </div>
               </div>
             </Card>

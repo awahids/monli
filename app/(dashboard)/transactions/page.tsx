@@ -9,6 +9,7 @@ import {
   useRef,
   ChangeEvent,
 } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { format, parseISO } from 'date-fns';
 import * as LucideIcons from 'lucide-react';
 import { Plus, Pencil, Trash, Calendar as CalendarIcon } from 'lucide-react';
@@ -92,6 +93,9 @@ export default function TransactionsPage() {
     setTransactions,
   } = useAppStore();
 
+  const searchParams = useSearchParams();
+  const initialAccountFilter = searchParams.get('accountId') ?? 'all';
+
   const [dateRange, setDateRange] = useState<DateRange>({
     from: undefined,
     to: undefined,
@@ -101,7 +105,7 @@ export default function TransactionsPage() {
     setDateRange(range ?? { from: undefined, to: undefined });
     setPage(1);
   };
-  const [accountFilter, setAccountFilter] = useState('all');
+  const [accountFilter, setAccountFilter] = useState(initialAccountFilter);
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
   const [search, setSearch] = useState('');
