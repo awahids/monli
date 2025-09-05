@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { MoreHorizontal, Plus, Copy } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -63,6 +64,8 @@ export default function AccountsPage() {
     loading,
     setLoading,
   } = useAppStore();
+
+  const router = useRouter();
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
@@ -160,7 +163,10 @@ export default function AccountsPage() {
           return (
             <Card
               key={account.id}
-              className="relative h-56 overflow-hidden rounded-xl text-white shadow hover:shadow-lg transition-transform hover:scale-105"
+              onClick={() =>
+                router.push(`/transactions?accountId=${account.id}`)
+              }
+              className="relative h-56 overflow-hidden rounded-xl text-white shadow hover:shadow-lg transition-transform hover:scale-105 cursor-pointer"
             >
               <div className="absolute inset-0 bg-gradient-to-br from-gray-800 to-gray-900" />
               <div className="relative z-10 flex h-full flex-col justify-between p-5">
@@ -184,6 +190,7 @@ export default function AccountsPage() {
                           variant="ghost"
                           size="icon"
                           className="text-white hover:bg-white/20"
+                          onClick={(e) => e.stopPropagation()}
                         >
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
@@ -244,7 +251,8 @@ export default function AccountsPage() {
                         variant="ghost"
                         size="icon"
                         className="ml-auto h-6 w-6 text-white hover:bg-white/20"
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.stopPropagation();
                           navigator.clipboard.writeText(account.accountNumber!);
                           toast.success('Account number copied');
                         }}
