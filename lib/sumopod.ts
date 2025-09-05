@@ -8,7 +8,11 @@ export function createSumopodClient() {
   return new OpenAI({ apiKey, baseURL: 'https://ai.sumopod.com/v1' });
 }
 
+const FALLBACK_MODEL = 'gpt-4o-mini';
+const SUPPORTED_MODELS = new Set([FALLBACK_MODEL, 'gpt-4o']);
+
 export function getSumopodModel() {
-  return process.env.SUMOPOD_MODEL || 'gpt-4o-mini';
+  const model = process.env.SUMOPOD_MODEL;
+  return model && SUPPORTED_MODELS.has(model) ? model : FALLBACK_MODEL;
 }
 

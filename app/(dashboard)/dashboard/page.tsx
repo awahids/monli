@@ -307,49 +307,80 @@ export default function DashboardPage() {
       monthlyExpenses: prevMonthlyExpenses,
       savings: prevSavings,
     });
+    const mergeBudget = (categoryMap: Map<string, CategorySpend>) => {
+      currentBudgets.forEach(b =>
+        (b.items || []).forEach(item => {
+          const existing = categoryMap.get(item.categoryId);
+          if (existing) {
+            existing.budgeted = item.amount;
+          } else {
+            categoryMap.set(item.categoryId, {
+              categoryId: item.categoryId,
+              categoryName: item.category?.name || 'Unknown',
+              amount: 0,
+              budgeted: item.amount,
+              color: item.category?.color || '#6B7280',
+            });
+          }
+        })
+      );
+    };
 
-    // Category spending from transactions
-    const categoryMap = new Map<string, CategorySpend>();
+    const buildLocalCategories = () => {
+      const categoryMap = new Map<string, CategorySpend>();
+      transactions
+        .filter(
+          t => t.type === 'expense' && t.actualDate.startsWith(currentMonth)
+        )
+        .forEach(t => {
+          if (!t.categoryId || !t.category) return;
+          const existing = categoryMap.get(t.categoryId);
+          if (existing) {
+            existing.amount += t.amount;
+          } else {
+            categoryMap.set(t.categoryId, {
+              categoryId: t.categoryId,
+              categoryName: t.category.name,
+              amount: t.amount,
+              budgeted: 0,
+              color: t.category.color || '#6B7280',
+            });
+          }
+        });
+      mergeBudget(categoryMap);
+      return categoryMap;
+    };
 
-    transactions
-      .filter(
-        t => t.type === 'expense' && t.actualDate.startsWith(currentMonth)
-      )
-      .forEach(t => {
-        if (!t.categoryId || !t.category) return;
-        const existing = categoryMap.get(t.categoryId);
-        if (existing) {
-          existing.amount += t.amount;
-        } else {
-          categoryMap.set(t.categoryId, {
-            categoryId: t.categoryId,
-            categoryName: t.category.name,
-            amount: t.amount,
+    const fetchCategories = async () => {
+      try {
+        const res = await fetch(`/api/dashboard?month=${currentMonth}`);
+        if (!res.ok) throw new Error('Failed to fetch categories');
+        const data = await res.json();
+        const categoryMap = new Map<string, CategorySpend>();
+        (data.categories || []).forEach((c: any) => {
+          categoryMap.set(c.categoryId, {
+            categoryId: c.categoryId,
+            categoryName: c.name,
+            amount: c.amount,
             budgeted: 0,
-            color: t.category.color || '#6B7280',
+            color: c.color || '#6B7280',
           });
-        }
-      });
+        });
+        mergeBudget(categoryMap);
+        setCategorySpends(Array.from(categoryMap.values()));
+      } catch {
+        const categoryMap = buildLocalCategories();
+        setCategorySpends(Array.from(categoryMap.values()));
+      }
+    };
 
-    currentBudgets.forEach(b =>
-      (b.items || []).forEach(item => {
-        const existing = categoryMap.get(item.categoryId);
-        if (existing) {
-          existing.budgeted = item.amount;
-        } else {
-          categoryMap.set(item.categoryId, {
-            categoryId: item.categoryId,
-            categoryName: item.category?.name || 'Unknown',
-            amount: 0,
-            budgeted: item.amount,
-            color: item.category?.color || '#6B7280',
-          });
-        }
-      })
-    );
-
-    setCategorySpends(Array.from(categoryMap.values()));
-  }, [accounts, transactions, budgets]);
+    if (isOnline) {
+      fetchCategories();
+    } else {
+      const categoryMap = buildLocalCategories();
+      setCategorySpends(Array.from(categoryMap.values()));
+    }
+  }, [accounts, transactions, budgets, isOnline]);
 
   if (loading) {
     return <LoadingSpinner />;
