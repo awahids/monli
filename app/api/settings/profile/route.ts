@@ -10,7 +10,7 @@ export async function GET() {
     const user = await getUser();
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, email, name, default_currency, created_at, updated_at')
+      .select('id, email, name, default_currency, budget_cutoff_day, created_at, updated_at')
       .eq('id', user.id)
       .single();
     if (error || !data) {
@@ -37,12 +37,15 @@ export async function PATCH(req: Request) {
       ...(body.defaultCurrency !== undefined
         ? { default_currency: body.defaultCurrency }
         : {}),
+      ...(body.budgetCutoffDay !== undefined
+        ? { budget_cutoff_day: body.budgetCutoffDay }
+        : {}),
     };
     const { data, error } = await supabase
       .from('profiles')
       .update(update)
       .eq('id', user.id)
-      .select('id, email, name, default_currency, created_at, updated_at')
+      .select('id, email, name, default_currency, budget_cutoff_day, created_at, updated_at')
       .single();
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
