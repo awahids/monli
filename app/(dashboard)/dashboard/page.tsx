@@ -211,7 +211,7 @@ export default function DashboardPage() {
   ]);
 
   useEffect(() => {
-    if (!accounts.length || !transactions.length) return;
+    if (!accounts.length) return;
 
     // Calculate KPIs
     const currentMonth = new Date().toISOString().slice(0, 7);
@@ -219,60 +219,11 @@ export default function DashboardPage() {
     prevMonthDate.setMonth(prevMonthDate.getMonth() - 1);
     const prevMonth = prevMonthDate.toISOString().slice(0, 7);
 
-    // Total balance
-    let totalBalance = 0;
-    let prevTotalBalance = 0;
-    const prevMonthEnd = new Date();
-    prevMonthEnd.setDate(0);
-    const prevMonthEndStr = formatDate(prevMonthEnd);
-
-    accounts.forEach(account => {
-      const accountTransactions = transactions.filter(
-        t =>
-          (t.accountId === account.id ||
-            t.fromAccountId === account.id ||
-            t.toAccountId === account.id) &&
-          t.actualDate <= prevMonthEndStr
-      );
-      const currentTransactions = transactions.filter(
-        t =>
-          t.accountId === account.id ||
-          t.fromAccountId === account.id ||
-          t.toAccountId === account.id
-      );
-
-      let balance = account.openingBalance;
-      currentTransactions.forEach(t => {
-        if (t.type === 'income' && t.accountId === account.id) {
-          balance += t.amount;
-        } else if (t.type === 'expense' && t.accountId === account.id) {
-          balance -= t.amount;
-        } else if (t.type === 'transfer') {
-          if (t.fromAccountId === account.id) {
-            balance -= t.amount;
-          } else if (t.toAccountId === account.id) {
-            balance += t.amount;
-          }
-        }
-      });
-      totalBalance += balance;
-
-      let prevBalance = account.openingBalance;
-      accountTransactions.forEach(t => {
-        if (t.type === 'income' && t.accountId === account.id) {
-          prevBalance += t.amount;
-        } else if (t.type === 'expense' && t.accountId === account.id) {
-          prevBalance -= t.amount;
-        } else if (t.type === 'transfer') {
-          if (t.fromAccountId === account.id) {
-            prevBalance -= t.amount;
-          } else if (t.toAccountId === account.id) {
-            prevBalance += t.amount;
-          }
-        }
-      });
-      prevTotalBalance += prevBalance;
-    });
+    // Total balance taken from accounts to avoid missing older transactions
+    const totalBalance = accounts.reduce(
+      (sum, acc) => sum + (acc.currentBalance ?? acc.openingBalance),
+      0
+    );
 
     // Monthly budget and actual
     const currentBudgets = budgets.filter(b => b.month === currentMonth);
@@ -294,6 +245,10 @@ export default function DashboardPage() {
       .filter(t => t.type === 'expense' && t.budgetMonth === prevMonth)
       .reduce((sum, t) => sum + t.amount, 0);
     const prevSavings = prevMonthlyIncome - prevMonthlyExpenses;
+
+    // Previous total balance is current balance minus this month's net change
+    const prevTotalBalance =
+      totalBalance - (monthlyIncome - monthlyExpenses);
 
     setKpis({
       totalBalance,
