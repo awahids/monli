@@ -9,6 +9,7 @@ import {
   useRef,
   ChangeEvent,
 } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { format, parseISO } from 'date-fns';
 import * as LucideIcons from 'lucide-react';
 import { Plus, Pencil, Trash, Calendar as CalendarIcon } from 'lucide-react';
@@ -92,6 +93,9 @@ export default function TransactionsPage() {
     setTransactions,
   } = useAppStore();
 
+  const searchParams = useSearchParams();
+  const initialAccountFilter = searchParams.get('accountId') ?? 'all';
+
   const [dateRange, setDateRange] = useState<DateRange>({
     from: undefined,
     to: undefined,
@@ -101,7 +105,7 @@ export default function TransactionsPage() {
     setDateRange(range ?? { from: undefined, to: undefined });
     setPage(1);
   };
-  const [accountFilter, setAccountFilter] = useState('all');
+  const [accountFilter, setAccountFilter] = useState(initialAccountFilter);
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
   const [search, setSearch] = useState('');
@@ -120,6 +124,16 @@ export default function TransactionsPage() {
   const [ocrOpen, setOcrOpen] = useState(false);
   const [ocrItems, setOcrItems] = useState<OcrItem[]>([]);
   const [ocrDate, setOcrDate] = useState<Date>(new Date());
+
+  const refreshAccounts = useCallback(async () => {
+    if (!user || !isOnline) return;
+    const { data: accountsData } = await supabase
+      .from('accounts')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('archived', false);
+    if (accountsData) setAccounts(keysToCamel<Account[]>(accountsData));
+  }, [user, isOnline, setAccounts]);
 
   const groupedTransactions = useMemo(() => {
     const groups: Record<string, Transaction[]> = {};
@@ -272,6 +286,7 @@ export default function TransactionsPage() {
         setTransactions([tempTx, ...transactions]);
         await addOfflineChange('create', 'transactions', payload);
       }
+      await refreshAccounts();
       toast.success(isEditing ? 'Transaction updated offline' : 'Transaction added offline');
       setFormOpen(false);
       setEditing(undefined);
@@ -302,6 +317,7 @@ export default function TransactionsPage() {
 
     toast.success(isEditing ? 'Transaction updated' : 'Transaction added');
     await fetchTransactions();
+    await refreshAccounts();
     setFormOpen(false);
     setEditing(undefined);
     setInitialValues(undefined);
@@ -319,6 +335,7 @@ export default function TransactionsPage() {
     }
     toast.success('Transaction deleted');
     await fetchTransactions();
+    await refreshAccounts();
     setFormOpen(false);
     setEditing(undefined);
   };
@@ -334,6 +351,7 @@ export default function TransactionsPage() {
     }
     toast.success('Transaction deleted');
     await fetchTransactions();
+    await refreshAccounts();
   };
 
   const handleOcrFile = async (e: ChangeEvent<HTMLInputElement>) => {
@@ -403,6 +421,7 @@ export default function TransactionsPage() {
     toast.success('Transactions saved');
     setOcrOpen(false);
     await fetchTransactions();
+    await refreshAccounts();
   };
 
   const openNew = () => {
