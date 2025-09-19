@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { MoreHorizontal, Plus, Copy } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -63,6 +64,7 @@ export default function AccountsPage() {
     loading,
     setLoading,
   } = useAppStore();
+  const router = useRouter();
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
@@ -70,6 +72,12 @@ export default function AccountsPage() {
   const pageSize = 20;
   const [total, setTotal] = useState(0);
   const disableAdd = user?.plan === 'FREE' && accounts.length >= 1;
+  const userInitials =
+    user?.name
+      ?.split(' ')
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase() || '';
 
   const fetchAccounts = useCallback(async () => {
     if (!user) return;
@@ -127,8 +135,8 @@ export default function AccountsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Accounts</h2>
-          <p className="text-muted-foreground">View and manage your accounts.</p>
+          <h2 className="text-3xl font-bold tracking-tight">Cards</h2>
+          <p className="text-muted-foreground">View and manage your cards.</p>
         </div>
         {!disableAdd && (
           <div className="hidden md:block">
@@ -139,14 +147,14 @@ export default function AccountsPage() {
               }}
               className="transition-transform hover:scale-105"
             >
-              Add Account
+              Add Card
             </Button>
           </div>
         )}
       </div>
       {disableAdd && (
         <p className="text-sm text-muted-foreground">
-          Free plan limited to one account.{' '}
+          Free plan limited to one card.{' '}
           <Link href="/upgrade" className="text-primary underline">
             Upgrade
           </Link>{' '}
@@ -160,9 +168,12 @@ export default function AccountsPage() {
           return (
             <Card
               key={account.id}
-              className="relative h-56 overflow-hidden rounded-xl text-white shadow hover:shadow-lg transition-transform hover:scale-105"
+              onClick={() =>
+                router.push(`/transactions?accountId=${account.id}`)
+              }
+              className="relative h-56 overflow-hidden rounded-xl text-white shadow hover:shadow-lg transition-transform hover:scale-105 cursor-pointer"
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-gray-800 to-gray-900" />
+              <div className="absolute inset-0 bg-gradient-to-br from-[#0B1324] to-[#1B2537]" />
               <div className="relative z-10 flex h-full flex-col justify-between p-5">
                 <div className="flex items-start justify-between">
                   <span className="text-sm uppercase tracking-wide">
@@ -184,11 +195,12 @@ export default function AccountsPage() {
                           variant="ghost"
                           size="icon"
                           className="text-white hover:bg-white/20"
+                          onClick={(e) => e.stopPropagation()}
                         >
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
+                      <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
                         <DropdownMenuItem
                           onClick={() => {
                             setEditingAccount(account);
@@ -244,7 +256,8 @@ export default function AccountsPage() {
                         variant="ghost"
                         size="icon"
                         className="ml-auto h-6 w-6 text-white hover:bg-white/20"
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.stopPropagation();
                           navigator.clipboard.writeText(account.accountNumber!);
                           toast.success('Account number copied');
                         }}
@@ -258,7 +271,7 @@ export default function AccountsPage() {
                   </div>
                 )}
                 <div className="flex items-end justify-between">
-                  <span className="text-sm">{user?.name}</span>
+                  <span className="text-sm">{userInitials}</span>
                   <div className="text-right">
                     <p className="text-[10px] uppercase">Balance</p>
                     <p className="font-mono text-sm">
@@ -322,7 +335,7 @@ export default function AccountsPage() {
         <DialogContent className="sm:max-w-md w-full h-full sm:h-auto sm:max-h-[90vh] overflow-y-auto p-0 sm:p-6">
           <DialogHeader className="px-4 pt-4 sm:px-0 sm:pt-0">
             <DialogTitle>
-              {editingAccount ? 'Edit Account' : 'Add Account'}
+              {editingAccount ? 'Edit Card' : 'Add Card'}
             </DialogTitle>
           </DialogHeader>
           <div className="px-4 sm:px-0">
