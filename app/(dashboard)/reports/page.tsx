@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -28,6 +29,7 @@ import {
 import { formatIDR } from '@/lib/currency';
 import { Download, Filter } from 'lucide-react';
 import CategoryMovementChart from '@/components/reports/category-movement-chart';
+import { useAppStore } from '@/lib/store';
 
 interface TrendRow {
   month: string;
@@ -52,6 +54,7 @@ export default function ReportsPage() {
   const defaultMonth = now.toISOString().slice(0, 7);
   const defaultYear = String(now.getUTCFullYear());
 
+  const { user } = useAppStore();
   const [month, setMonth] = useState(defaultMonth);
   const [year, setYear] = useState(defaultYear);
   const [summary, setSummary] = useState<SummaryResponse>({
@@ -82,11 +85,29 @@ export default function ReportsPage() {
   }, [year]);
 
   useEffect(() => {
+    if (user?.plan !== "PRO") {
+      setCategoryData([]);
+      return;
+    }
     fetch(`/api/reports/category?month=${month}`)
       .then((res) => res.json())
       .then((res) => setCategoryData(res.data || []))
       .catch(() => setCategoryData([]));
-  }, [month]);
+  }, [month, user]);
+
+  if (user?.plan !== "PRO") {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 px-4 text-center space-y-4">
+        <h2 className="text-2xl font-bold">Reports are a Pro feature</h2>
+        <p className="text-muted-foreground">
+          Upgrade to access detailed financial reports and insights.
+        </p>
+        <Button asChild size="lg" className="mt-2 w-full sm:w-auto shadow-lg">
+          <Link href="/upgrade">Upgrade to Pro</Link>
+        </Button>
+      </div>
+    );
+  }
 
   const exportCSV = (
     rows: Record<string, unknown>[],

@@ -8,6 +8,7 @@ export interface Database {
           name: string;
           default_currency: string;
           plan: 'FREE' | 'PRO';
+          ai_unlimited: boolean;
           live_price_used_at: string | null;
           created_at: string;
           updated_at: string;
@@ -18,6 +19,7 @@ export interface Database {
           name: string;
           default_currency?: string;
           plan?: 'FREE' | 'PRO';
+          ai_unlimited?: boolean;
           live_price_used_at?: string | null;
           created_at?: string;
           updated_at?: string;
@@ -28,6 +30,7 @@ export interface Database {
           name?: string;
           default_currency?: string;
           plan?: 'FREE' | 'PRO';
+          ai_unlimited?: boolean;
           live_price_used_at?: string | null;
           updated_at?: string;
         };
@@ -196,6 +199,54 @@ export interface Database {
           note?: string;
           tags?: string[];
           updated_at?: string;
+        };
+      };
+
+      payments: {
+        Row: {
+          id: string;
+          user_id: string;
+          order_id: string;
+          product_name: string;
+          amount: number;
+          status: string;
+          token: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          order_id: string;
+          product_name: string;
+          amount: number;
+          status?: string;
+          token: string;
+          created_at?: string;
+        };
+        Update: {
+          product_name?: string;
+          amount?: number;
+          status?: string;
+          token?: string;
+        };
+      };
+      ai_logs: {
+        Row: {
+          id: string;
+          email: string;
+          feature: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          email: string;
+          feature: string;
+          created_at?: string;
+        };
+        Update: {
+          email?: string;
+          feature?: string;
+          created_at?: string;
         };
       };
     };

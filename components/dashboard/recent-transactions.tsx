@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import Link from 'next/link';
 import { LazyMotion, m } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -69,6 +70,11 @@ export function RecentTransactions({
     });
   }, [transactions, filters]);
 
+  const displayedTransactions = useMemo(
+    () => filteredTransactions.slice(0, 5),
+    [filteredTransactions]
+  );
+
   const loadMotionFeatures = () =>
     import('framer-motion').then((res) => res.domAnimation);
   const getTransactionIcon = (type: string) => {
@@ -121,12 +127,11 @@ export function RecentTransactions({
                 }
               />
               <Select
-                value={filters.accountId || 'all' || 'all'}
+                value={filters.accountId || 'all'}
                 onValueChange={(value) =>
                   setFilters((f) => ({
                     ...f,
-                    accountId:
-                      value === 'all' ? '' : value === 'all' ? '' : value,
+                    accountId: value === 'all' ? '' : value,
                   }))
                 }
               >
@@ -176,7 +181,7 @@ export function RecentTransactions({
                   <SelectValue placeholder="Type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="allall">All Types</SelectItem>
+                  <SelectItem value="all">All Types</SelectItem>
                   <SelectItem value="income">Income</SelectItem>
                   <SelectItem value="expense">Expense</SelectItem>
                   <SelectItem value="transfer">Transfer</SelectItem>
@@ -200,14 +205,14 @@ export function RecentTransactions({
           </CollapsibleContent>
         </CardHeader>
         <CardContent>
-          {filteredTransactions.length === 0 ? (
+          {displayedTransactions.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-4">
               No transactions found.
             </p>
           ) : (
             <LazyMotion features={loadMotionFeatures}>
               <div className="divide-y rounded-md border">
-                {filteredTransactions.map((transaction) => (
+                {displayedTransactions.map((transaction) => (
                   <m.div
                     key={transaction.id}
                     className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-4 hover:bg-muted/50 transition-colors"
@@ -292,11 +297,16 @@ export function RecentTransactions({
                         {formatIDR(transaction.amount)}
                       </p>
                     </div>
-                  </m.div>
-                ))}
-              </div>
-            </LazyMotion>
+                    </m.div>
+                  ))}
+                </div>
+              </LazyMotion>
           )}
+          <div className="mt-4 flex justify-center">
+            <Button asChild variant="outline" size="sm">
+              <Link href="/transactions">View all transactions</Link>
+            </Button>
+          </div>
         </CardContent>
       </Collapsible>
     </Card>

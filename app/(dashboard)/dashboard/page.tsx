@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useAppStore } from '@/lib/store';
 import { supabase } from '@/lib/supabase';
 import { formatIDR } from '@/lib/currency';
@@ -86,6 +86,16 @@ export default function DashboardPage() {
   const [formOpen, setFormOpen] = useState(false);
   const { isOnline, addOfflineChange } = useOffline();
 
+  const refreshAccounts = useCallback(async () => {
+    if (!user || !isOnline) return;
+    const { data: accountsData } = await supabase
+      .from('accounts')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('archived', false);
+    if (accountsData) setAccounts(keysToCamel<Account[]>(accountsData));
+  }, [user, isOnline, setAccounts]);
+
   const handleSave = async (values: TransactionFormValues) => {
     const payload = {
       budgetMonth: values.budgetMonth,
@@ -120,6 +130,7 @@ export default function DashboardPage() {
       setTransactions([tempTx, ...transactions]);
       await addOfflineChange('create', 'transactions', payload);
       toast.success('Transaction saved offline');
+      await refreshAccounts();
       setFormOpen(false);
       return;
     }
@@ -134,6 +145,7 @@ export default function DashboardPage() {
       if (!res.ok) throw new Error(data.error || 'Failed to create transaction');
       const tx = keysToCamel<Transaction>(data);
       setTransactions([tx, ...transactions]);
+      await refreshAccounts();
       toast.success('Transaction created');
       setFormOpen(false);
     } catch (e) {
@@ -174,8 +186,8 @@ export default function DashboardPage() {
             category:categories(name, color, icon)
           `)
           .eq('user_id', user.id)
-          .gte('date', formatDate(threeMonthsAgo))
-          .order('date', { ascending: false });
+          .gte('actual_date', formatDate(threeMonthsAgo))
+          .order('actual_date', { ascending: false });
 
         // Fetch budgets (current month)
         const currentMonth = new Date().toISOString().slice(0, 7);
@@ -211,7 +223,7 @@ export default function DashboardPage() {
   ]);
 
   useEffect(() => {
-    if (!accounts.length || !transactions.length) return;
+    if (!accounts.length) return;
 
     // Calculate KPIs
     const currentMonth = new Date().toISOString().slice(0, 7);
@@ -219,60 +231,11 @@ export default function DashboardPage() {
     prevMonthDate.setMonth(prevMonthDate.getMonth() - 1);
     const prevMonth = prevMonthDate.toISOString().slice(0, 7);
 
-    // Total balance
-    let totalBalance = 0;
-    let prevTotalBalance = 0;
-    const prevMonthEnd = new Date();
-    prevMonthEnd.setDate(0);
-    const prevMonthEndStr = formatDate(prevMonthEnd);
-
-    accounts.forEach(account => {
-      const accountTransactions = transactions.filter(
-        t =>
-          (t.accountId === account.id ||
-            t.fromAccountId === account.id ||
-            t.toAccountId === account.id) &&
-          t.actualDate <= prevMonthEndStr
-      );
-      const currentTransactions = transactions.filter(
-        t =>
-          t.accountId === account.id ||
-          t.fromAccountId === account.id ||
-          t.toAccountId === account.id
-      );
-
-      let balance = account.openingBalance;
-      currentTransactions.forEach(t => {
-        if (t.type === 'income' && t.accountId === account.id) {
-          balance += t.amount;
-        } else if (t.type === 'expense' && t.accountId === account.id) {
-          balance -= t.amount;
-        } else if (t.type === 'transfer') {
-          if (t.fromAccountId === account.id) {
-            balance -= t.amount;
-          } else if (t.toAccountId === account.id) {
-            balance += t.amount;
-          }
-        }
-      });
-      totalBalance += balance;
-
-      let prevBalance = account.openingBalance;
-      accountTransactions.forEach(t => {
-        if (t.type === 'income' && t.accountId === account.id) {
-          prevBalance += t.amount;
-        } else if (t.type === 'expense' && t.accountId === account.id) {
-          prevBalance -= t.amount;
-        } else if (t.type === 'transfer') {
-          if (t.fromAccountId === account.id) {
-            prevBalance -= t.amount;
-          } else if (t.toAccountId === account.id) {
-            prevBalance += t.amount;
-          }
-        }
-      });
-      prevTotalBalance += prevBalance;
-    });
+    // Total balance taken from accounts to avoid missing older transactions
+    const totalBalance = accounts.reduce(
+      (sum, acc) => sum + (acc.currentBalance ?? acc.openingBalance),
+      0
+    );
 
     // Monthly budget and actual
     const currentBudgets = budgets.filter(b => b.month === currentMonth);
@@ -295,6 +258,10 @@ export default function DashboardPage() {
       .reduce((sum, t) => sum + t.amount, 0);
     const prevSavings = prevMonthlyIncome - prevMonthlyExpenses;
 
+    // Previous total balance is current balance minus this month's net change
+    const prevTotalBalance =
+      totalBalance - (monthlyIncome - monthlyExpenses);
+
     setKpis({
       totalBalance,
       monthlyIncome,
@@ -307,49 +274,80 @@ export default function DashboardPage() {
       monthlyExpenses: prevMonthlyExpenses,
       savings: prevSavings,
     });
+    const mergeBudget = (categoryMap: Map<string, CategorySpend>) => {
+      currentBudgets.forEach(b =>
+        (b.items || []).forEach(item => {
+          const existing = categoryMap.get(item.categoryId);
+          if (existing) {
+            existing.budgeted = item.amount;
+          } else {
+            categoryMap.set(item.categoryId, {
+              categoryId: item.categoryId,
+              categoryName: item.category?.name || 'Unknown',
+              amount: 0,
+              budgeted: item.amount,
+              color: item.category?.color || '#6B7280',
+            });
+          }
+        })
+      );
+    };
 
-    // Category spending from transactions
-    const categoryMap = new Map<string, CategorySpend>();
+    const buildLocalCategories = () => {
+      const categoryMap = new Map<string, CategorySpend>();
+      transactions
+        .filter(
+          t => t.type === 'expense' && t.actualDate.startsWith(currentMonth)
+        )
+        .forEach(t => {
+          if (!t.categoryId || !t.category) return;
+          const existing = categoryMap.get(t.categoryId);
+          if (existing) {
+            existing.amount += t.amount;
+          } else {
+            categoryMap.set(t.categoryId, {
+              categoryId: t.categoryId,
+              categoryName: t.category.name,
+              amount: t.amount,
+              budgeted: 0,
+              color: t.category.color || '#6B7280',
+            });
+          }
+        });
+      mergeBudget(categoryMap);
+      return categoryMap;
+    };
 
-    transactions
-      .filter(
-        t => t.type === 'expense' && t.budgetMonth === currentMonth
-      )
-      .forEach(t => {
-        if (!t.categoryId || !t.category) return;
-        const existing = categoryMap.get(t.categoryId);
-        if (existing) {
-          existing.amount += t.amount;
-        } else {
-          categoryMap.set(t.categoryId, {
-            categoryId: t.categoryId,
-            categoryName: t.category.name,
-            amount: t.amount,
+    const fetchCategories = async () => {
+      try {
+        const res = await fetch(`/api/dashboard?month=${currentMonth}`);
+        if (!res.ok) throw new Error('Failed to fetch categories');
+        const data = await res.json();
+        const categoryMap = new Map<string, CategorySpend>();
+        (data.categories || []).forEach((c: any) => {
+          categoryMap.set(c.categoryId, {
+            categoryId: c.categoryId,
+            categoryName: c.name,
+            amount: c.amount,
             budgeted: 0,
-            color: t.category.color || '#6B7280',
+            color: c.color || '#6B7280',
           });
-        }
-      });
+        });
+        mergeBudget(categoryMap);
+        setCategorySpends(Array.from(categoryMap.values()));
+      } catch {
+        const categoryMap = buildLocalCategories();
+        setCategorySpends(Array.from(categoryMap.values()));
+      }
+    };
 
-    currentBudgets.forEach(b =>
-      (b.items || []).forEach(item => {
-        const existing = categoryMap.get(item.categoryId);
-        if (existing) {
-          existing.budgeted = item.amount;
-        } else {
-          categoryMap.set(item.categoryId, {
-            categoryId: item.categoryId,
-            categoryName: item.category?.name || 'Unknown',
-            amount: 0,
-            budgeted: item.amount,
-            color: item.category?.color || '#6B7280',
-          });
-        }
-      })
-    );
-
-    setCategorySpends(Array.from(categoryMap.values()));
-  }, [accounts, transactions, budgets]);
+    if (isOnline) {
+      fetchCategories();
+    } else {
+      const categoryMap = buildLocalCategories();
+      setCategorySpends(Array.from(categoryMap.values()));
+    }
+  }, [accounts, transactions, budgets, isOnline]);
 
   if (loading) {
     return <LoadingSpinner />;

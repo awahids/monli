@@ -10,7 +10,7 @@ export async function GET() {
     const user = await getUser();
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, email, name, default_currency, onboarding_completed')
+        .select('id, email, name, default_currency, onboarding_completed, plan')
         .eq('id', user.id)
         .single();
     if (error) {
@@ -22,6 +22,7 @@ export async function GET() {
         name: data.name,
         defaultCurrency: data.default_currency,
         onboardingCompleted: data.onboarding_completed,
+        plan: data.plan,
       });
   } catch (e) {
     return NextResponse.json({ error: (e as Error).message }, { status: 401 });
@@ -45,7 +46,7 @@ export async function PATCH(req: Request) {
           default_currency: body.defaultCurrency,
         })
         .eq('id', user.id)
-        .select('id, email, name, default_currency, onboarding_completed')
+        .select('id, email, name, default_currency, onboarding_completed, plan')
         .single();
     if (error || !data) {
       return NextResponse.json({ error: error?.message || 'Not found' }, { status: 404 });
@@ -56,6 +57,7 @@ export async function PATCH(req: Request) {
         name: data.name,
         defaultCurrency: data.default_currency,
         onboardingCompleted: data.onboarding_completed,
+        plan: data.plan,
       });
   } catch (e) {
     return NextResponse.json({ error: (e as Error).message }, { status: 401 });

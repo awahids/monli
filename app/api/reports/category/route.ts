@@ -9,6 +9,14 @@ export async function GET(req: Request) {
   const supabase = createServerClient();
   try {
     const user = await getUser();
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('plan')
+      .eq('id', user.id)
+      .single();
+    if (profile?.plan !== 'PRO') {
+      return NextResponse.json({ error: 'Upgrade to access category reports' }, { status: 403 });
+    }
     const { searchParams } = new URL(req.url);
     const month = searchParams.get('month');
     if (!month) {
@@ -25,8 +33,8 @@ export async function GET(req: Request) {
       .select('amount, category_id, category:categories(name, color)')
       .eq('user_id', user.id)
       .eq('type', 'expense')
-      .gte('date', start.toISOString())
-      .lt('date', end.toISOString())
+      .gte('actual_date', start.toISOString())
+      .lt('actual_date', end.toISOString())
       .returns<TxRow[]>();
 
     if (error) {

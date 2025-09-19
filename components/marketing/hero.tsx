@@ -2,11 +2,46 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useRef } from "react";
+import { gsap } from "gsap";
+import { TextPlugin } from "gsap/TextPlugin";
+
 import { Button } from "@/components/ui/button";
 
 export function Hero() {
+  const sectionRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLSpanElement>(null);
+
+  useEffect(() => {
+    gsap.registerPlugin(TextPlugin);
+
+    const ctx = gsap.context(() => {
+      gsap.from(".hero-animate", {
+        y: 40,
+        opacity: 0,
+        duration: 1,
+        stagger: 0.2,
+        ease: "power2.out",
+      });
+
+      if (trackRef.current) {
+        const finalText = trackRef.current.textContent || "";
+        gsap.fromTo(
+          trackRef.current,
+          { text: "" },
+          { text: finalText, duration: 1.2, ease: "power2.out" },
+        );
+      }
+    }, sectionRef);
+
+    return () => ctx.revert();
+  }, []);
+
   return (
-    <section className="relative overflow-hidden py-12 sm:py-20 lg:py-32">
+    <section
+      ref={sectionRef}
+      className="relative overflow-hidden py-12 sm:py-20 lg:py-32"
+    >
       {/* Enhanced Background Effects */}
       <div className="absolute inset-0 bg-gradient-to-br from-primary/15 via-primary/8 to-transparent" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,hsl(var(--primary)/0.2),transparent_60%)]" />
@@ -42,15 +77,18 @@ export function Hero() {
       <div className="relative mx-auto max-w-7xl px-4 text-center">
         <div className="mx-auto max-w-4xl">
           {/* Badge */}
-          <div className="mb-8 inline-flex items-center gap-2 rounded-full bg-primary/10 border border-primary/20 px-4 py-2 text-sm font-medium text-primary backdrop-blur-sm">
+          <div className="hero-animate mb-8 inline-flex items-center gap-2 rounded-full bg-primary/10 border border-primary/20 px-4 py-2 text-sm font-medium text-primary backdrop-blur-sm">
             <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
             Now in Beta - Join early adopters
           </div>
 
-          <h1 className="text-4xl font-extrabold tracking-tight text-foreground sm:text-6xl lg:text-7xl leading-tight">
+          <h1 className="hero-animate text-4xl font-extrabold tracking-tight text-foreground sm:text-6xl lg:text-7xl leading-tight">
             <span className="block mb-2">Budget monthly,</span>
             <span className="relative block">
-              <span className="bg-gradient-to-r from-primary via-primary to-primary/70 bg-clip-text text-transparent animate-pulse">
+              <span
+                ref={trackRef}
+                className="bg-gradient-to-r from-primary via-primary to-primary/70 bg-clip-text text-transparent animate-pulse"
+              >
                 track daily
               </span>
               <svg
@@ -69,12 +107,12 @@ export function Hero() {
             </span>
           </h1>
 
-          <p className="mx-auto mt-8 max-w-2xl text-xl leading-8 text-muted-foreground/90">
+          <p className="hero-animate mx-auto mt-8 max-w-2xl text-xl leading-8 text-muted-foreground/90">
             Take control of your finances with intelligent budgeting, real-time
             tracking, and insights across all your accounts.
           </p>
 
-          <div className="mt-10 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-4">
+          <div className="hero-animate mt-10 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-4">
             <Button
               asChild
               size="lg"
@@ -124,7 +162,7 @@ export function Hero() {
           </div>
 
           {/* Trust Indicators */}
-          <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-8 text-sm text-muted-foreground pt-8">
+          <div className="hero-animate flex flex-wrap items-center justify-center gap-6 sm:gap-8 text-sm text-muted-foreground pt-8">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 bg-green-500 rounded-full"></div>
               <span>No bank connection required</span>

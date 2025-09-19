@@ -1,5 +1,13 @@
+"use client";
+
 import Image from "next/image";
+import { useEffect, useRef } from "react";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { TextPlugin } from "gsap/TextPlugin";
 import { Wallet, ReceiptText, LayoutDashboard, TrendingUp } from "lucide-react";
+
+gsap.registerPlugin(ScrollTrigger, TextPlugin);
 
 const features = [
   {
@@ -42,8 +50,65 @@ const features = [
 ];
 
 export function Features() {
+  const sectionRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      gsap.utils.toArray<HTMLElement>(".feature-card").forEach((card) => {
+        gsap.from(card, {
+          opacity: 0,
+          y: 50,
+          duration: 0.8,
+          ease: "power2.out",
+          scrollTrigger: {
+            trigger: card,
+            start: "top 80%",
+          },
+        });
+
+        const title = card.querySelector(".feature-title");
+        if (title) {
+          const finalText = title.textContent || "";
+          gsap.fromTo(
+            title,
+            { text: "" },
+            {
+              text: finalText,
+              duration: 0.8,
+              ease: "power2.out",
+              scrollTrigger: {
+                trigger: card,
+                start: "top 80%",
+              },
+            },
+          );
+        }
+
+        const image = card.querySelector(".feature-image");
+        if (image) {
+          gsap.fromTo(
+            image,
+            { yPercent: 10 },
+            {
+              yPercent: -10,
+              ease: "none",
+              scrollTrigger: {
+                trigger: card,
+                start: "top bottom",
+                end: "bottom top",
+                scrub: true,
+              },
+            },
+          );
+        }
+      });
+    }, sectionRef);
+
+    return () => ctx.revert();
+  }, []);
+
   return (
-    <section className="py-24 relative overflow-hidden">
+    <section ref={sectionRef} className="py-24 relative overflow-hidden">
       {/* Enhanced Background decoration */}
       <div className="absolute inset-0 bg-gradient-to-b from-muted/20 via-muted/10 to-transparent" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,hsl(var(--primary)/0.1),transparent_70%)]" />
@@ -69,13 +134,9 @@ export function Features() {
 
         {/* Refactored Feature Grid */}
         <div className="grid gap-10 md:gap-12 md:grid-cols-2 lg:grid-cols-2 mt-20">
-          {features.map((feature, index) => (
-            <div
-              key={feature.title}
-              className={`group relative animate-fade-in`}
-              style={{ animationDelay: `${index * 0.1}s` }}
-            >
-              <div className="feature-card overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-500">
+          {features.map((feature) => (
+            <div key={feature.title} className="group relative feature-card">
+              <div className="overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-500">
                 <div className="aspect-video relative overflow-hidden rounded-xl mb-6">
                   <div
                     className={`absolute inset-0 ${feature.bgPattern} ${feature.darkBgPattern} opacity-80`}
@@ -85,7 +146,7 @@ export function Features() {
                     alt={feature.title}
                     width={600}
                     height={400}
-                    className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-105"
+                    className="feature-image object-cover w-full h-full transition-transform duration-500 group-hover:scale-105"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
                   <div className="absolute top-4 right-4">
@@ -97,7 +158,7 @@ export function Features() {
                   </div>
                 </div>
                 <div className="p-8">
-                  <h3 className="text-2xl font-bold text-foreground mb-4 group-hover:text-primary transition-colors duration-300">
+                  <h3 className="feature-title text-2xl font-bold text-foreground mb-4 group-hover:text-primary transition-colors duration-300">
                     {feature.title}
                   </h3>
                   <p className="text-muted-foreground text-lg leading-relaxed">

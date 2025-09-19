@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
@@ -10,6 +10,8 @@ import { useAppStore } from "@/lib/store";
 import { getCurrentUser } from "@/lib/auth";
 import { OfflineBanner } from "@/components/ui/offline-banner";
 import { OnboardingTour } from "@/components/onboarding-tour";
+import { cn } from "@/lib/utils";
+import ChatWidget from "@/components/chat/chat-widget";
 
 export default function DashboardLayout({
   children,
@@ -18,6 +20,7 @@ export default function DashboardLayout({
 }) {
   const router = useRouter();
   const { user, setUser } = useAppStore();
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   useEffect(() => {
     if (user) return;
@@ -45,8 +48,16 @@ export default function DashboardLayout({
 
       {/* Desktop Layout */}
       <div className="hidden md:flex min-h-screen">
-        <Sidebar />
-        <div className="flex-1 md:ml-64">
+        <Sidebar
+          collapsed={sidebarCollapsed}
+          onToggle={() => setSidebarCollapsed((c) => !c)}
+        />
+        <div
+          className={cn(
+            "flex-1 transition-all", 
+            sidebarCollapsed ? "md:ml-16" : "md:ml-64"
+          )}
+        >
           <Header />
           <main className="p-6 space-y-6">
             <OfflineBanner />
@@ -56,6 +67,7 @@ export default function DashboardLayout({
       </div>
       <Toaster />
       <OnboardingTour />
+      {user?.plan === 'PRO' && <ChatWidget />}
     </div>
   );
 }
