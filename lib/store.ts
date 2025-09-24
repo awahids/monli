@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { User, Account, Category, Transaction, Budget } from '@/types';
+import { isTransactionInMonth } from './transactions';
 
 // Check if we're in browser environment
 const isBrowser = typeof window !== 'undefined';
@@ -93,10 +94,10 @@ export const useAppStore = create<AppState>((set, get) => ({
     const { transactions } = get();
     return transactions
       .filter(
-        (t) =>
+        t =>
           t.categoryId === categoryId &&
           t.type === 'expense' &&
-          t.budgetMonth === month
+          isTransactionInMonth(t, month)
       )
       .reduce((sum, t) => sum + t.amount, 0);
   },
@@ -104,9 +105,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   getMonthlySpending: (month: string) => {
     const { transactions } = get();
     return transactions
-      .filter(
-        (t) => t.type === 'expense' && t.budgetMonth === month
-      )
+      .filter(t => t.type === 'expense' && isTransactionInMonth(t, month))
       .reduce((sum, t) => sum + t.amount, 0);
   },
 }));

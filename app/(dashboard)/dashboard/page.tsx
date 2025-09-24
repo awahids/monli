@@ -38,6 +38,7 @@ import {
 } from 'lucide-react';
 import { formatDate } from '@/lib/date';
 import { useOffline } from '@/hooks/use-offline';
+import { isTransactionInMonth } from '@/lib/transactions';
 
 const toCamel = (str: string) =>
   str.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
@@ -241,20 +242,24 @@ export default function DashboardPage() {
     const currentBudgets = budgets.filter(b => b.month === currentMonth);
 
     const monthlyIncome = transactions
-      .filter(t => t.type === 'income' && t.budgetMonth === currentMonth)
+      .filter(
+        t => t.type === 'income' && isTransactionInMonth(t, currentMonth)
+      )
       .reduce((sum, t) => sum + t.amount, 0);
 
     const monthlyExpenses = transactions
-      .filter(t => t.type === 'expense' && t.budgetMonth === currentMonth)
+      .filter(
+        t => t.type === 'expense' && isTransactionInMonth(t, currentMonth)
+      )
       .reduce((sum, t) => sum + t.amount, 0);
 
     const savings = monthlyIncome - monthlyExpenses;
 
     const prevMonthlyIncome = transactions
-      .filter(t => t.type === 'income' && t.budgetMonth === prevMonth)
+      .filter(t => t.type === 'income' && isTransactionInMonth(t, prevMonth))
       .reduce((sum, t) => sum + t.amount, 0);
     const prevMonthlyExpenses = transactions
-      .filter(t => t.type === 'expense' && t.budgetMonth === prevMonth)
+      .filter(t => t.type === 'expense' && isTransactionInMonth(t, prevMonth))
       .reduce((sum, t) => sum + t.amount, 0);
     const prevSavings = prevMonthlyIncome - prevMonthlyExpenses;
 
