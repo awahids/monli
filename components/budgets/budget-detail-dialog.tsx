@@ -37,6 +37,7 @@ import { supabase } from '@/lib/supabase';
 import { useAppStore } from '@/lib/store';
 import { formatIDR } from '@/lib/currency';
 import { Budget, BudgetItem, Category, Transaction } from '@/types';
+import { isTransactionInMonth } from '@/lib/transactions';
 
 function toCamel(str: string) {
   return str.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
@@ -78,7 +79,6 @@ export function BudgetDetailDialog({
     loading,
     setLoading,
     getCategorySpending,
-    getMonthlySpending,
   } = useAppStore();
 
   const [budget, setBudget] = useState<Budget | null>(null);
@@ -165,8 +165,39 @@ export function BudgetDetailDialog({
     isPro,
   ]);
 
+  const budgetCategoryIds = useMemo(
+    () =>
+      new Set(
+        items
+          .map((item) => item.categoryId)
+          .filter((id): id is string => Boolean(id))
+      ),
+    [items]
+  );
+  const budgetMonth = budget?.month;
+  const categorizedSpent = budget
+    ? (budget.items ?? []).reduce(
+        (sum, item) =>
+          sum +
+          (item.categoryId
+            ? getCategorySpending(item.categoryId, budget.month)
+            : 0),
+        0
+      )
+    : 0;
+  const unbudgetedSpent = useMemo(() => {
+    if (!budgetMonth) return 0;
+    return transactions
+      .filter(
+        t =>
+          t.type === 'expense' &&
+          isTransactionInMonth(t, budgetMonth) &&
+          (!t.categoryId || !budgetCategoryIds.has(t.categoryId))
+      )
+      .reduce((sum, t) => sum + t.amount, 0);
+  }, [transactions, budgetMonth, budgetCategoryIds]);
   const totalBudget = budget?.totalAmount ?? 0;
-  const totalSpent = budget ? getMonthlySpending(budget.month) : 0;
+  const totalSpent = categorizedSpent + unbudgetedSpent;
   const progress = totalBudget ? (totalSpent / totalBudget) * 100 : 0;
   const overallIndicatorColor =
     progress < 70
@@ -304,6 +335,12 @@ export function BudgetDetailDialog({
                     <span>Spent</span>
                     <span className="font-medium">{formatIDR(totalSpent)}</span>
                   </div>
+                  {unbudgetedSpent > 0 && (
+                    <p className="text-xs text-muted-foreground text-right sm:text-left">
+                      Termasuk {formatIDR(unbudgetedSpent)} di luar kategori
+                      anggaran
+                    </p>
+                  )}
                   <Progress
                     value={Math.min(progress, 100)}
                     indicatorClassName={overallIndicatorColor}
@@ -410,6 +447,21 @@ export function BudgetDetailDialog({
                           </TableRow>
                         );
                       })}
+                      {unbudgetedSpent > 0 && (
+                        <TableRow>
+                          <TableCell>
+                            <span className="text-sm text-muted-foreground">
+                              Pengeluaran di luar kategori anggaran
+                            </span>
+                          </TableCell>
+                          <TableCell />
+                          <TableCell className="text-right">
+                            {formatIDR(unbudgetedSpent)}
+                          </TableCell>
+                          <TableCell />
+                          {isEditing ? <TableCell /> : null}
+                        </TableRow>
+                      )}
                       {isEditing ? (
                         <TableRow>
                           <TableCell>
@@ -537,6 +589,21 @@ export function BudgetDetailDialog({
                     </Card>
                   );
                 })}
+                {unbudgetedSpent > 0 && (
+                  <Card className="bg-muted/50 w-full">
+                    <CardHeader>
+                      <CardTitle className="text-base sm:text-lg break-words">
+                        Pengeluaran di luar kategori anggaran
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                      <div className="flex flex-col gap-1 xs:flex-row xs:justify-between text-sm">
+                        <span>Spent</span>
+                        <span>{formatIDR(unbudgetedSpent)}</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
                 {isEditing ? (
                   <Card className="bg-muted/50 w-full">
                     <CardContent className="flex flex-col gap-2 pt-6">
