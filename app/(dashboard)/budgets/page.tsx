@@ -58,7 +58,7 @@ export default function BudgetsPage() {
     setTransactions,
     loading,
     setLoading,
-    getMonthlySpending,
+    getCategorySpending,
   } = useAppStore();
 
   const [year, setYear] = useState('all');
@@ -115,7 +115,28 @@ export default function BudgetsPage() {
 
   const getBudgetTotals = (budget: Budget) => {
     const planned = budget.totalAmount;
-    const actual = getMonthlySpending(budget.month);
+    const categoryIds = new Set(
+      (budget.items ?? [])
+        .map((item) => item.categoryId)
+        .filter((id): id is string => Boolean(id))
+    );
+    const categorizedActual = (budget.items ?? []).reduce(
+      (sum, item) =>
+        sum +
+        (item.categoryId
+          ? getCategorySpending(item.categoryId, budget.month)
+          : 0),
+      0
+    );
+    const unbudgeted = transactions
+      .filter(
+        (t) =>
+          t.type === 'expense' &&
+          t.budgetMonth === budget.month &&
+          (!t.categoryId || !categoryIds.has(t.categoryId))
+      )
+      .reduce((sum, t) => sum + t.amount, 0);
+    const actual = categorizedActual + unbudgeted;
     const progress = planned ? (actual / planned) * 100 : 0;
     const indicatorColor =
       progress < 70
@@ -123,7 +144,7 @@ export default function BudgetsPage() {
         : progress <= 100
         ? 'bg-orange-500'
         : 'bg-red-500';
-    return { planned, actual, progress, indicatorColor };
+    return { planned, actual, progress, indicatorColor, unbudgeted };
   };
 
   const openBudgetDetail = (id: string) => {
@@ -132,7 +153,7 @@ export default function BudgetsPage() {
 
   // Card versi mobile/tablet, dengan tombol view lebih besar dan mudah diakses
   const renderBudgetCard = (budget: Budget) => {
-    const { planned, actual, progress, indicatorColor } =
+    const { planned, actual, progress, indicatorColor, unbudgeted } =
       getBudgetTotals(budget);
 
     return (
@@ -166,6 +187,11 @@ export default function BudgetsPage() {
             <span>Terpakai</span>
             <span>{formatIDR(actual)}</span>
           </div>
+          {unbudgeted > 0 && (
+            <p className="text-xs text-muted-foreground text-right">
+              Termasuk {formatIDR(unbudgeted)} di luar kategori anggaran
+            </p>
+          )}
           <Progress value={progress} indicatorClassName={indicatorColor} />
           <div className="text-right text-xs text-muted-foreground">
             {progress.toFixed(0)}%
@@ -247,7 +273,7 @@ export default function BudgetsPage() {
           </TableHeader>
           <TableBody>
             {filteredBudgets.map((b) => {
-              const { planned, actual, progress, indicatorColor } =
+              const { planned, actual, progress, indicatorColor, unbudgeted } =
                 getBudgetTotals(b);
               return (
                 <TableRow key={b.id}>
@@ -258,7 +284,14 @@ export default function BudgetsPage() {
                     {formatIDR(planned)}
                   </TableCell>
                   <TableCell className="text-right">
-                    {formatIDR(actual)}
+                    <div className="space-y-1">
+                      <div>{formatIDR(actual)}</div>
+                      {unbudgeted > 0 && (
+                        <div className="text-xs text-muted-foreground">
+                          Termasuk {formatIDR(unbudgeted)} di luar kategori
+                        </div>
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
