@@ -66,6 +66,8 @@ export default function AccountsPage() {
   } = useAppStore();
   const router = useRouter();
 
+  const router = useRouter();
+
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
   const [page, setPage] = useState(1);
