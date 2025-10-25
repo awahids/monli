@@ -109,7 +109,7 @@ export async function POST(req: Request) {
           content: `User data: ${context}\n\n${message}`,
         },
       ],
-      temperature: 0.7,
+      temperature: 1,
       // Allow longer responses so summaries aren't truncated
       max_tokens: 600,
     });
