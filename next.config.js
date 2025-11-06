@@ -1,3 +1,7 @@
+if (!process.env.NEXT_DISABLE_SWC_DOWNLOAD) {
+  process.env.NEXT_DISABLE_SWC_DOWNLOAD = '1';
+}
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // output: 'export',

@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
+    "dev": "cross-env NEXT_DISABLE_SWC_DOWNLOAD=1 next dev",
+    "build": "cross-env NEXT_DISABLE_SWC_DOWNLOAD=1 next build",
+    "start": "cross-env NEXT_DISABLE_SWC_DOWNLOAD=1 next start",
     "lint": "next lint",
     "seed": "node scripts/seed-user.mjs",
     "test": "tsx --test",
@@ -84,6 +84,7 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.44.0",
+    "cross-env": "^7.0.3",
     "dotenv": "^16.3.1",
     "tsx": "^4.7.0"
   }
