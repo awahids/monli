@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { Home, Receipt, Plus, PieChart, Settings } from "lucide-react";
+import { Home, Receipt, Plus, PieChart, Settings, FileText } from "lucide-react";
 import TransactionForm, {
   TransactionFormValues,
 } from "@/components/transactions/transaction-form";
@@ -36,10 +36,10 @@ function keysToCamel<T>(obj: any): T {
 const links = [
   { href: "/dashboard", icon: Home, label: "Dashboard" },
   { href: "/transactions", icon: Receipt, label: "Transactions" },
-  // index 2 akan diisi tombol Plus
+  { href: "/invoices", icon: FileText, label: "Invoices" },
   { href: "/budgets", icon: PieChart, label: "Budgets" },
   { href: "/settings", icon: Settings, label: "Settings" },
-];
+] as const;
 
 export function MobileNav() {
   const pathname = usePathname();
@@ -117,13 +117,12 @@ export function MobileNav() {
   };
 
   // Sisipkan tombol Plus pada index ke-2 (0-based)
-  const navWithPlus = [
+  const navWithPlus: (typeof links[number] | "PLUS")[] = [
     links[0],
     links[1],
     "PLUS", // marker untuk tombol tambah
-    links[2],
-    links[3],
-  ] as const;
+    ...links.slice(2),
+  ];
 
   return (
     <>
