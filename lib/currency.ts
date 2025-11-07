@@ -18,12 +18,10 @@ export function formatCurrency(amount: number, currency = 'IDR'): string {
   if (currency === 'IDR') {
     return formatIDR(amount);
   }
-  
+
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency: currency,
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
+    currency,
   }).format(amount);
 }
 
