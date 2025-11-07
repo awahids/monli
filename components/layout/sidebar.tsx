@@ -16,6 +16,7 @@ import {
   Package2,
   ChevronLeft,
   ChevronRight,
+  FileText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -23,6 +24,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "Budgets", href: "/budgets", icon: Wallet },
+  { name: "Invoices", href: "/invoices", icon: FileText },
   { name: "Transactions", href: "/transactions", icon: Receipt },
   { name: "Accounts", href: "/accounts", icon: CreditCard },
   { name: "Reports", href: "/reports", icon: BarChart3 },
@@ -35,6 +37,7 @@ const mobileNavigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "Transactions", href: "/transactions", icon: Receipt },
   { name: "Budgets", href: "/budgets", icon: Wallet },
+  { name: "Invoices", href: "/invoices", icon: FileText },
   { name: "Accounts", href: "/accounts", icon: CreditCard },
   // { name: "Settings", href: "/settings", icon: Settings },
 ];
