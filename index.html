@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="theme-color" content="#0B5E48" />
+  <title>Monli</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+<div class="app-shell">
+
+  <!-- ── Header ─────────────────────────────── -->
+  <header class="app-header">
+    <div class="header-left">
+      <div class="app-wordmark">monli</div>
+      <div class="app-sub">Keuangan Pribadi</div>
+    </div>
+    <div class="month-nav">
+      <button class="month-nav-btn" onclick="prevMonth()" aria-label="Bulan sebelumnya">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="m15 18-6-6 6-6"/></svg>
+      </button>
+      <span class="month-label" id="monthLabel"></span>
+      <button class="month-nav-btn" onclick="nextMonth()" aria-label="Bulan berikutnya">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="m9 18 6-6-6-6"/></svg>
+      </button>
+    </div>
+    <button id="syncBtn" class="sync-btn" onclick="syncToSheets()" title="Sync ke Google Sheets" aria-label="Sync ke Google Sheets">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+      Sync
+    </button>
+  </header>
+
+  <!-- ── Scroll Area ─────────────────────────── -->
+  <div class="scroll-area">
+
+    <!-- Hero card -->
+    <div class="hero-card">
+      <div class="hero-label">Gaji Bulan Ini</div>
+      <div class="hero-amount" id="heroGaji">—</div>
+      <div class="hero-pills">
+        <div class="hero-pill">
+          <div class="hero-pill-label">Pengeluaran</div>
+          <div class="hero-pill-val warn" id="pillExp">—</div>
+        </div>
+        <div class="hero-pill">
+          <div class="hero-pill-label">Tabungan</div>
+          <div class="hero-pill-val good" id="pillSav">—</div>
+        </div>
+        <div class="hero-pill">
+          <div class="hero-pill-label">Sisa</div>
+          <div class="hero-pill-val good" id="pillSisa">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab strip -->
+    <div class="tab-strip">
+      <button class="tab-pill active" id="tp-all"     onclick="setTab('all')">Semua</button>
+      <button class="tab-pill"        id="tp-expense" onclick="setTab('expense')">Pengeluaran</button>
+      <button class="tab-pill"        id="tp-saving"  onclick="setTab('saving')">Tabungan</button>
+    </div>
+
+    <!-- Categories -->
+    <div id="catList"></div>
+
+    <!-- Transactions -->
+    <div id="txSection"></div>
+
+  </div><!-- /scroll-area -->
+
+  <!-- ── Bottom Tab Bar ─────────────────────── -->
+  <nav class="tab-bar" aria-label="Navigasi utama">
+    <button class="tab-item active" id="nav-home" onclick="setNavTab('home')" aria-label="Beranda">
+      <div class="tab-item-icon" id="iconHome"></div>
+      <span class="tab-item-label">Beranda</span>
+    </button>
+    <button class="tab-item tab-add" id="nav-add" onclick="openSheet(null)" aria-label="Catat transaksi">
+      <div class="tab-item-icon" id="iconPlus"></div>
+      <span class="tab-item-label">Catat</span>
+    </button>
+    <a class="tab-item" href="dashboard.html" aria-label="Laporan">
+      <div class="tab-item-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 16l3-4 3 3 3-5"/></svg>
+      </div>
+      <span class="tab-item-label">Laporan</span>
+    </a>
+  </nav>
+
+</div><!-- /app-shell -->
+
+<!-- ── Bottom Sheet ───────────────────────── -->
+<div class="sheet-backdrop" id="backdrop">
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+    <div class="sheet-handle"></div>
+
+    <div class="sheet-header">
+      <span class="sheet-title" id="sheetTitle">Catat Transaksi</span>
+      <button class="sheet-close" onclick="closeSheet()" aria-label="Tutup">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <div class="sheet-body">
+      <div class="form-group">
+        <label class="form-label" for="fCat">Kategori</label>
+        <select class="form-select" id="fCat">
+          <option value="">Pilih kategori</option>
+        </select>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="fAmount">Nominal</label>
+          <input class="form-input" type="text" id="fAmount"
+                 placeholder="0" inputmode="numeric" autocomplete="off" />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="fDate">Tanggal</label>
+          <input class="form-input" type="date" id="fDate" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="fNote">Catatan</label>
+        <input class="form-input" type="text" id="fNote"
+               placeholder="Opsional" maxlength="80" />
+      </div>
+
+      <button class="btn-primary" onclick="submitTx()">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Toast ──────────────────────────────── -->
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="js/app.js"></script>
+</body>
+</html>

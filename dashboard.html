@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="theme-color" content="#0B5E48" />
+  <title>Monli — Laporan</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    /* ── Dashboard-specific styles ── */
+    .dash-scroll { padding-bottom: 90px; }
+
+    /* Summary strip */
+    .summary-strip {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      padding: 14px 16px 0;
+    }
+    .sum-card {
+      background: #fff;
+      border-radius: 14px;
+      padding: 13px 14px;
+      border-left: 3px solid transparent;
+    }
+    .sum-card.c-green { border-color: var(--brand); }
+    .sum-card.c-coral { border-color: #C94028; }
+    .sum-card.c-blue  { border-color: #1456A3; }
+    .sum-card.c-amber { border-color: #9E5B09; }
+    .sum-card.c-red   { border-color: #C94028; }
+    .sum-label { font-size: 10px; font-weight: 600; color: var(--n-400); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 3px; }
+    .sum-val   { font-size: 17px; font-weight: 700; line-height: 1.1; }
+    .sum-val.green { color: var(--brand); }
+    .sum-val.coral { color: #C94028; }
+    .sum-val.blue  { color: #1456A3; }
+    .sum-val.amber { color: #9E5B09; }
+    .sum-pct   { font-size: 10px; color: var(--n-300); margin-top: 2px; }
+
+    /* Month chips */
+    .chip-row {
+      display: flex;
+      gap: 8px;
+      padding: 12px 16px 4px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .chip-row::-webkit-scrollbar { display: none; }
+    .m-chip {
+      flex-shrink: 0;
+      padding: 5px 14px;
+      border-radius: 99px;
+      border: 1.5px solid var(--n-100);
+      background: #fff;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--n-500);
+      cursor: pointer;
+    }
+    .m-chip.active { background: var(--brand); border-color: var(--brand); color: #fff; }
+
+    /* Section label */
+    .dash-section { margin: 14px 0 0; }
+    .dash-section-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--brand);
+      text-transform: uppercase;
+      letter-spacing: .6px;
+      padding: 0 16px;
+      margin-bottom: 8px;
+    }
+
+    /* Chart card */
+    .chart-card {
+      background: #fff;
+      border-radius: 16px;
+      margin: 0 16px 10px;
+      padding: 14px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.06);
+    }
+    .chart-card-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--n-600);
+      margin-bottom: 10px;
+    }
+    .chart-wrap { position: relative; height: 200px; }
+    .chart-wrap-tall { position: relative; height: 280px; }
+
+    /* Cat rows */
+    .cat-list {
+      background: #fff;
+      border-radius: 16px;
+      margin: 0 16px 10px;
+      overflow: hidden;
+      box-shadow: 0 1px 4px rgba(0,0,0,.06);
+    }
+    .dash-cat-row {
+      display: flex;
+      align-items: center;
+      padding: 11px 14px;
+      gap: 10px;
+      border-bottom: 1px solid var(--n-50);
+    }
+    .dash-cat-row:last-child { border-bottom: none; }
+    .dash-cat-row.stripe { background: var(--n-50); }
+    .dcat-left { flex: 1; min-width: 0; }
+    .dcat-name { font-size: 13px; font-weight: 500; color: var(--n-800); }
+    .dcat-bar-wrap { height: 3px; background: var(--n-100); border-radius: 99px; margin-top: 5px; overflow: hidden; }
+    .dcat-bar-fill { height: 100%; border-radius: 99px; background: var(--brand); }
+    .dcat-bar-fill.near { background: #9E5B09; }
+    .dcat-bar-fill.over { background: #C94028; }
+    .dcat-right { text-align: right; flex-shrink: 0; }
+    .dcat-val  { font-size: 13px; font-weight: 600; color: var(--n-800); }
+    .dcat-pct  { font-size: 11px; margin-top: 1px; }
+    .dcat-pct.ok   { color: var(--brand); }
+    .dcat-pct.near { color: #9E5B09; }
+    .dcat-pct.over { color: #C94028; }
+
+    .cat-total-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 14px;
+      background: var(--brand-light, #E6F4F0);
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--brand);
+    }
+
+    /* Trend table */
+    .trend-scroll-wrap {
+      margin: 0 16px 10px;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 1px 4px rgba(0,0,0,.06);
+    }
+    .trend-scroll-inner { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .trend-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+      background: #fff;
+    }
+    .trend-table th {
+      background: var(--brand);
+      color: #fff;
+      padding: 8px 10px;
+      text-align: right;
+      white-space: nowrap;
+      font-weight: 600;
+    }
+    .trend-table th:first-child { text-align: left; min-width: 120px; }
+    .trend-table td { padding: 7px 10px; text-align: right; border-bottom: 1px solid var(--n-50); white-space: nowrap; }
+    .trend-table td:first-child { text-align: left; font-weight: 500; color: var(--n-700); }
+    .trend-table tr:nth-child(even) td { background: var(--n-50); }
+    .trend-table .grp-hdr td { background: #E6F4F0; font-weight: 700; color: var(--brand); padding: 5px 10px; }
+    .trend-table .total-row td { background: #E6F4F0; font-weight: 700; color: var(--brand); border-top: 1.5px solid var(--brand); }
+    .trend-table .total-row td:first-child { color: var(--n-800); }
+    .trend-table .sisa-row td { background: var(--n-100); font-weight: 700; }
+    .trend-table .neg { color: #C94028; }
+
+    /* Empty */
+    .dash-empty { text-align: center; padding: 60px 24px; color: var(--n-300); }
+    .dash-empty-icon { font-size: 44px; margin-bottom: 12px; }
+    .dash-empty-title { font-size: 15px; font-weight: 600; color: var(--n-500); margin-bottom: 6px; }
+    .dash-empty-sub { font-size: 13px; }
+
+    /* Bottom nav — override for <a> tag */
+    .tab-bar a.tab-item { text-decoration: none; color: inherit; }
+    .tab-bar a.tab-item.active { color: var(--brand); }
+  </style>
+</head>
+<body>
+<div class="app-shell">
+
+  <!-- Header -->
+  <header class="app-header">
+    <div class="header-left">
+      <div class="app-wordmark">monli</div>
+      <div class="app-sub" id="headerSub">Laporan</div>
+    </div>
+    <div class="month-nav" style="opacity:0;pointer-events:none">
+      <!-- placeholder for spacing -->
+      <span style="width:120px;display:inline-block"></span>
+    </div>
+  </header>
+
+  <!-- Scroll area -->
+  <div class="scroll-area dash-scroll" id="dashContent">
+    <!-- rendered by JS -->
+  </div>
+
+  <!-- Bottom nav -->
+  <nav class="tab-bar" aria-label="Navigasi utama">
+    <a class="tab-item" href="index.html" aria-label="Beranda">
+      <div class="tab-item-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      </div>
+      <span class="tab-item-label">Beranda</span>
+    </a>
+    <a class="tab-item tab-add" href="index.html#catat" aria-label="Catat">
+      <div class="tab-item-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </div>
+      <span class="tab-item-label">Catat</span>
+    </a>
+    <a class="tab-item active" href="dashboard.html" aria-label="Laporan">
+      <div class="tab-item-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 16l3-4 3 3 3-5"/></svg>
+      </div>
+      <span class="tab-item-label">Laporan</span>
+    </a>
+  </nav>
+
+</div>
+
+<script>
+const GAJI = 11_000_000;
+const CATEGORIES = [
+  { id:'istri',     name:'Uang Istri',         budget:2_000_000, type:'expense' },
+  { id:'kontrakan', name:'Kontrakan & Listrik', budget:2_000_000, type:'expense' },
+  { id:'spp',       name:'SPP',                budget:600_000,   type:'expense' },
+  { id:'ojek',      name:'Ojek Harian',        budget:900_000,   type:'expense' },
+  { id:'transport', name:'Transport CI–BDG',   budget:900_000,   type:'expense' },
+  { id:'makan',     name:'Makan & Harian',     budget:350_000,   type:'expense' },
+  { id:'internet',  name:'Internet & Pulsa',   budget:150_000,   type:'expense' },
+  { id:'jajan',     name:'Jajan Pribadi',      budget:800_000,   type:'expense' },
+  { id:'langganan', name:'Langganan Digital',  budget:500_000,   type:'expense' },
+  { id:'darurat',   name:'Dana Darurat',       budget:800_000,   type:'saving'  },
+  { id:'liburan',   name:'Liburan Triwulan',   budget:200_000,   type:'saving'  },
+  { id:'mudik',     name:'Mudik Maret–Sumbawa',budget:1_200_000, type:'saving'  },
+  { id:'saham',     name:'Investasi Saham',    budget:300_000,   type:'saving'  },
+];
+const BULAN   = ['','Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+const BULAN_S = ['','Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+const COLORS  = ['#0B5E48','#157A5F','#1456A3','#5040B0','#9E5B09','#C94028','#2E8B6E','#1A7ACC','#7B5EA7','#B85C12'];
+
+let allMonths = [], selKey = 'all';
+let cPie, cBar, cLine;
+
+function collectAll() {
+  const txs = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (!k.startsWith('monli_') || k.includes('Config')) continue;
+    const p = k.replace('monli_','').split('_');
+    if (p.length !== 2) continue;
+    const year = +p[0], month = +p[1];
+    (JSON.parse(localStorage.getItem(k))||[]).forEach(tx => txs.push({...tx, year, month}));
+  }
+  return txs;
+}
+
+function getMonths(txs) {
+  const seen = new Set(), months = [];
+  txs.forEach(tx => {
+    const key = `${tx.year}_${String(tx.month).padStart(2,'0')}`;
+    if (!seen.has(key)) { seen.add(key); months.push({year:tx.year, month:tx.month, key}); }
+  });
+  return months.sort((a,b) => a.key.localeCompare(b.key));
+}
+
+function calcSpent(txs, year, month) {
+  const m = {};
+  txs.forEach(tx => {
+    if (year  !== undefined && tx.year  !== year)  return;
+    if (month !== undefined && tx.month !== month) return;
+    m[tx.catId] = (m[tx.catId]||0) + tx.amount;
+  });
+  return m;
+}
+
+function fmtS(n) {
+  const abs = Math.abs(n);
+  if (abs >= 1_000_000) { const v = abs/1_000_000; return 'Rp '+(Number.isInteger(v)?v:v.toFixed(1))+' jt'; }
+  if (abs >= 1_000) return 'Rp '+Math.round(abs/1000)+' rb';
+  return 'Rp '+abs;
+}
+
+function init() {
+  const all = collectAll();
+  allMonths = getMonths(all);
+
+  // Build chips
+  const chipRow = document.createElement('div');
+  chipRow.className = 'chip-row';
+  const allChip = chip('all','Semua', true);
+  chipRow.appendChild(allChip);
+  allMonths.forEach(m => chipRow.appendChild(chip(m.key, `${BULAN_S[m.month]} ${m.year}`, false)));
+
+  document.getElementById('dashContent').appendChild(chipRow);
+  render(all);
+}
+
+function chip(key, label, active) {
+  const btn = document.createElement('button');
+  btn.className = 'm-chip'+(active?' active':'');
+  btn.textContent = label;
+  btn.onclick = () => {
+    selKey = key;
+    document.querySelectorAll('.m-chip').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    render(collectAll());
+  };
+  return btn;
+}
+
+function render(allTxs) {
+  let txs = allTxs, period = 'Semua Bulan';
+  if (selKey !== 'all') {
+    const [y,m] = selKey.split('_').map(Number);
+    txs = allTxs.filter(t => t.year===y && t.month===m);
+    period = `${BULAN[m]} ${y}`;
+  }
+  document.getElementById('headerSub').textContent = period;
+
+  // Remove old content (keep chips)
+  const cont = document.getElementById('dashContent');
+  [...cont.children].forEach(el => { if (!el.classList.contains('chip-row')) el.remove(); });
+
+  if (!allTxs.length) {
+    cont.insertAdjacentHTML('beforeend', `
+      <div class="dash-empty">
+        <div class="dash-empty-icon">📭</div>
+        <div class="dash-empty-title">Belum ada transaksi</div>
+        <div class="dash-empty-sub">Catat transaksi di Beranda dulu ya</div>
+      </div>`);
+    return;
+  }
+
+  const spent    = calcSpent(txs);
+  const expCats  = CATEGORIES.filter(c => c.type==='expense');
+  const savCats  = CATEGORIES.filter(c => c.type==='saving');
+  const totalExp = expCats.reduce((s,c) => s+(spent[c.id]||0), 0);
+  const totalSav = savCats.reduce((s,c) => s+(spent[c.id]||0), 0);
+  const sisa     = GAJI - totalExp - totalSav;
+
+  // ── Summary strip ──
+  cont.insertAdjacentHTML('beforeend', `
+    <div class="summary-strip">
+      <div class="sum-card c-green">
+        <div class="sum-label">Gaji</div>
+        <div class="sum-val green">${fmtS(GAJI)}</div>
+        <div class="sum-pct">100%</div>
+      </div>
+      <div class="sum-card c-coral">
+        <div class="sum-label">Pengeluaran</div>
+        <div class="sum-val coral">${fmtS(totalExp)}</div>
+        <div class="sum-pct">${Math.round(totalExp/GAJI*100)}% dari gaji</div>
+      </div>
+      <div class="sum-card c-blue">
+        <div class="sum-label">Tabungan</div>
+        <div class="sum-val blue">${fmtS(totalSav)}</div>
+        <div class="sum-pct">${Math.round(totalSav/GAJI*100)}% dari gaji</div>
+      </div>
+      <div class="sum-card ${sisa<0?'c-red':'c-amber'}">
+        <div class="sum-label">Sisa</div>
+        <div class="sum-val ${sisa<0?'coral':'amber'}">${sisa<0?'-':''}${fmtS(Math.abs(sisa))}</div>
+        <div class="sum-pct">${Math.round(Math.abs(sisa)/GAJI*100)}% dari gaji</div>
+      </div>
+    </div>`);
+
+  // ── Charts ──
+  cont.insertAdjacentHTML('beforeend', `
+    <div class="dash-section">
+      <div class="dash-section-label">Grafik</div>
+      <div class="chart-card">
+        <div class="chart-card-title">Komposisi Pengeluaran</div>
+        <div class="chart-wrap"><canvas id="cPie"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-card-title">Anggaran vs Realisasi</div>
+        <div class="chart-wrap-tall"><canvas id="cBar"></canvas></div>
+      </div>
+      ${allMonths.length>=2?`
+      <div class="chart-card">
+        <div class="chart-card-title">Tren Bulanan</div>
+        <div class="chart-wrap"><canvas id="cLine"></canvas></div>
+      </div>`:''}
+    </div>`);
+
+  buildPie(expCats, spent);
+  buildBar(spent);
+  if (allMonths.length >= 2) buildLine(allTxs);
+
+  // ── Pengeluaran table ──
+  cont.insertAdjacentHTML('beforeend', `
+    <div class="dash-section">
+      <div class="dash-section-label">Pengeluaran Rutin</div>
+      <div class="cat-list">${catRows(expCats,spent)}</div>
+    </div>`);
+
+  // ── Tabungan table ──
+  cont.insertAdjacentHTML('beforeend', `
+    <div class="dash-section">
+      <div class="dash-section-label">Tabungan & Investasi</div>
+      <div class="cat-list">${catRows(savCats,spent)}</div>
+    </div>`);
+
+  // ── Trend table ──
+  if (allMonths.length >= 2) {
+    cont.insertAdjacentHTML('beforeend', `
+      <div class="dash-section">
+        <div class="dash-section-label">Tren Bulanan</div>
+        <div class="trend-scroll-wrap">
+          <div class="trend-scroll-inner">${trendTable(allTxs)}</div>
+        </div>
+      </div>`);
+  }
+}
+
+function catRows(cats, spent) {
+  const rows = cats.map((cat,i) => {
+    const s = spent[cat.id]||0;
+    const pct = cat.budget>0 ? s/cat.budget : 0;
+    const over = s>cat.budget, near = !over && pct>=0.8;
+    const barCls = over?'over':near?'near':'';
+    const pctCls = over?'over':near?'near':'ok';
+    const rem = cat.budget - s;
+    const remTxt = over ? `Lebih ${fmtS(s-cat.budget)}` : `Sisa ${fmtS(rem)}`;
+    return `
+      <div class="dash-cat-row ${i%2===1?'stripe':''}">
+        <div class="dcat-left">
+          <div class="dcat-name">${cat.name}</div>
+          <div class="dcat-bar-wrap"><div class="dcat-bar-fill ${barCls}" style="width:${Math.min(pct*100,100)}%"></div></div>
+        </div>
+        <div class="dcat-right">
+          <div class="dcat-val">${s>0?fmtS(s):'—'}</div>
+          <div class="dcat-pct ${pctCls}">${Math.round(pct*100)}% · ${remTxt}</div>
+        </div>
+      </div>`;
+  }).join('');
+  const tb = cats.reduce((s,c)=>s+c.budget,0);
+  const ts = cats.reduce((s,c)=>s+(spent[c.id]||0),0);
+  return rows + `<div class="cat-total-row"><span>Total</span><span>${fmtS(ts)} / ${fmtS(tb)}</span></div>`;
+}
+
+function trendTable(allTxs) {
+  const expCats = CATEGORIES.filter(c=>c.type==='expense');
+  const savCats = CATEGORIES.filter(c=>c.type==='saving');
+  const hdrs = allMonths.map(m=>`<th>${BULAN_S[m.month]}<br>${m.year}</th>`).join('');
+
+  function rows(cats) {
+    return cats.map(cat => {
+      const cells = allMonths.map(m => {
+        const v = calcSpent(allTxs,m.year,m.month)[cat.id]||0;
+        return `<td>${v>0?fmtS(v):'—'}</td>`;
+      }).join('');
+      return `<tr><td>${cat.name}</td>${cells}</tr>`;
+    }).join('');
+  }
+  function totalRow(label, cats) {
+    const cells = allMonths.map(m => {
+      const sp = calcSpent(allTxs,m.year,m.month);
+      return `<td>${fmtS(cats.reduce((s,c)=>s+(sp[c.id]||0),0))}</td>`;
+    }).join('');
+    return `<tr class="total-row"><td>${label}</td>${cells}</tr>`;
+  }
+  const sisaCells = allMonths.map(m => {
+    const sp = calcSpent(allTxs,m.year,m.month);
+    const tot = CATEGORIES.reduce((s,c)=>s+(sp[c.id]||0),0);
+    const sisa = GAJI-tot;
+    return `<td class="${sisa<0?'neg':''}">${fmtS(Math.abs(sisa))}</td>`;
+  }).join('');
+
+  return `<table class="trend-table">
+    <thead><tr><th>Kategori</th>${hdrs}</tr></thead>
+    <tbody>
+      <tr class="grp-hdr"><td colspan="${allMonths.length+1}">Pengeluaran Rutin</td></tr>
+      ${rows(expCats)}${totalRow('Total Pengeluaran',expCats)}
+      <tr class="grp-hdr"><td colspan="${allMonths.length+1}">Tabungan & Investasi</td></tr>
+      ${rows(savCats)}${totalRow('Total Tabungan',savCats)}
+      <tr class="sisa-row"><td>Sisa Gaji</td>${sisaCells}</tr>
+    </tbody>
+  </table>`;
+}
+
+function buildPie(expCats, spent) {
+  if (cPie) cPie.destroy();
+  const data   = expCats.map(c=>spent[c.id]||0).filter(v=>v>0);
+  const labels = expCats.filter(c=>(spent[c.id]||0)>0).map(c=>c.name);
+  if (!data.length) return;
+  cPie = new Chart(document.getElementById('cPie'), {
+    type:'doughnut',
+    data:{ labels, datasets:[{ data, backgroundColor:COLORS, borderWidth:2, borderColor:'#fff' }] },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{ position:'right', labels:{ font:{size:10}, boxWidth:10, padding:6 } },
+        tooltip:{ callbacks:{ label: ctx => ` ${fmtS(ctx.raw)}` } }
+      },
+      cutout:'58%'
+    }
+  });
+}
+
+function buildBar(spent) {
+  if (cBar) cBar.destroy();
+  const labels  = CATEGORIES.map(c => c.name);
+  const budgets = CATEGORIES.map(c => c.budget);
+  const reals   = CATEGORIES.map(c => spent[c.id]||0);
+  cBar = new Chart(document.getElementById('cBar'), {
+    type:'bar',
+    data:{
+      labels,
+      datasets:[
+        { label:'Anggaran', data:budgets, backgroundColor:'rgba(11,94,72,.2)', borderColor:'#0B5E48', borderWidth:1.5 },
+        { label:'Realisasi', data:reals, backgroundColor:'rgba(201,64,40,.65)', borderColor:'#C94028', borderWidth:1.5 }
+      ]
+    },
+    options:{
+      indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{ position:'top', labels:{ font:{size:10}, boxWidth:10 } },
+        tooltip:{ callbacks:{ label: ctx => ` ${fmtS(ctx.raw)}` } }
+      },
+      scales:{
+        x:{ ticks:{ callback:v=>fmtS(v), font:{size:9} }, grid:{color:'#F0EEE9'} },
+        y:{ ticks:{ font:{size:10} } }
+      }
+    }
+  });
+}
+
+function buildLine(allTxs) {
+  if (cLine) cLine.destroy();
+  const expCats = CATEGORIES.filter(c=>c.type==='expense');
+  const savCats = CATEGORIES.filter(c=>c.type==='saving');
+  const labels  = allMonths.map(m=>`${BULAN_S[m.month]} ${m.year}`);
+  const expData = allMonths.map(m => expCats.reduce((s,c)=>s+(calcSpent(allTxs,m.year,m.month)[c.id]||0),0));
+  const savData = allMonths.map(m => savCats.reduce((s,c)=>s+(calcSpent(allTxs,m.year,m.month)[c.id]||0),0));
+  cLine = new Chart(document.getElementById('cLine'), {
+    type:'line',
+    data:{
+      labels,
+      datasets:[
+        { label:'Pengeluaran', data:expData, borderColor:'#C94028', backgroundColor:'rgba(201,64,40,.08)', fill:true, tension:.3, pointRadius:4 },
+        { label:'Tabungan',    data:savData, borderColor:'#1456A3', backgroundColor:'rgba(20,86,163,.08)',  fill:true, tension:.3, pointRadius:4 }
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{ position:'top', labels:{ font:{size:10}, boxWidth:10 } },
+        tooltip:{ callbacks:{ label: ctx => ` ${fmtS(ctx.raw)}` } }
+      },
+      scales:{
+        y:{ ticks:{ callback:v=>fmtS(v), font:{size:9} }, grid:{color:'#F0EEE9'} },
+        x:{ ticks:{ font:{size:10} } }
+      }
+    }
+  });
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
