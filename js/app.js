@@ -6,8 +6,10 @@ const GAJI = 11_000_000;
 
 // ── Google Sheets Sync Config ─────────────────
 // Paste URL Web App kamu di sini setelah deploy Apps Script:
-const DEFAULT_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbz301tB6_kX1iMrBNuB6DyZo5gDy4Zgv8bR9ZPrrpl3CvRMfOJqzXzlKVsO8G37324t/exec';
-let SHEETS_URL = localStorage.getItem('monliConfig_sheets_url') || DEFAULT_SHEETS_URL;
+const DEFAULT_SHEETS_URL =
+  'https://script.google.com/macros/s/AKfycbzZrR7zYqs8RbzVKBolUZ0xastcGVmo0deICwP2j5diUMryMaPIh5Ctsbu_CKcHWVJo/exec';
+let SHEETS_URL =
+  localStorage.getItem('monliConfig_sheets_url') || DEFAULT_SHEETS_URL;
 const SYNC_DIRTY_KEY = 'monliSync_dirty';
 const SYNC_LAST_KEY = 'monliSync_last';
 let syncInFlight = false;
@@ -15,10 +17,10 @@ let autoSyncTimer = null;
 
 // ── Design tokens untuk setiap kategori ──────
 const CAT_TOKENS = {
-  coral:  { color: '#C94028', bg: '#FAEDEB', text: '#7A1F14' },
-  amber:  { color: '#9E5B09', bg: '#FDF3E3', text: '#5A3205' },
-  green:  { color: '#0B5E48', bg: '#E6F4F0', text: '#073D30' },
-  blue:   { color: '#1456A3', bg: '#EAF1FB', text: '#0B3568' },
+  coral: { color: '#C94028', bg: '#FAEDEB', text: '#7A1F14' },
+  amber: { color: '#9E5B09', bg: '#FDF3E3', text: '#5A3205' },
+  green: { color: '#0B5E48', bg: '#E6F4F0', text: '#073D30' },
+  blue: { color: '#1456A3', bg: '#EAF1FB', text: '#0B3568' },
   purple: { color: '#5040B0', bg: '#EEEAFB', text: '#2E2570' },
 };
 
@@ -146,15 +148,27 @@ const CATEGORIES = [
 
 // ── Bulan ─────────────────────────────────────
 const BULAN = [
-  'Januari','Februari','Maret','April','Mei','Juni',
-  'Juli','Agustus','September','Oktober','November','Desember'
+  'Januari',
+  'Februari',
+  'Maret',
+  'April',
+  'Mei',
+  'Juni',
+  'Juli',
+  'Agustus',
+  'September',
+  'Oktober',
+  'November',
+  'Desember',
 ];
 
 // ── State ─────────────────────────────────────
-let curY, curM, activeTab = 'all';
+let curY,
+  curM,
+  activeTab = 'all';
 
 // ── Storage ───────────────────────────────────
-const storeKey = (y, m) => `monli_${y}_${String(m).padStart(2,'0')}`;
+const storeKey = (y, m) => `monli_${y}_${String(m).padStart(2, '0')}`;
 
 function getTxs() {
   const raw = localStorage.getItem(storeKey(curY, curM));
@@ -176,7 +190,7 @@ function addTx(tx) {
 }
 
 function deleteTx(id) {
-  saveTxs(getTxs().filter(t => t.id !== id));
+  saveTxs(getTxs().filter((t) => t.id !== id));
   render();
   toast('Dihapus');
   markDirtyAndAutoSync();
@@ -184,7 +198,7 @@ function deleteTx(id) {
 
 function spent(catId) {
   return getTxs()
-    .filter(t => t.catId === catId)
+    .filter((t) => t.catId === catId)
     .reduce((s, t) => s + t.amount, 0);
 }
 
@@ -204,7 +218,7 @@ function fmtS(n) {
 
 function fmtDate(iso) {
   const d = new Date(iso);
-  return `${d.getDate()} ${BULAN[d.getMonth()].slice(0,3)} ${d.getFullYear()}`;
+  return `${d.getDate()} ${BULAN[d.getMonth()].slice(0, 3)} ${d.getFullYear()}`;
 }
 
 // ── SVG icons ─────────────────────────────────
@@ -229,13 +243,19 @@ function render() {
 
 function renderHero() {
   const txs = getTxs();
-  const totalExp = CATEGORIES.filter(c => c.type === 'expense').reduce((s,c) => s + spent(c.id), 0);
-  const totalSav = CATEGORIES.filter(c => c.type === 'saving').reduce((s,c) => s + spent(c.id), 0);
+  const totalExp = CATEGORIES.filter((c) => c.type === 'expense').reduce(
+    (s, c) => s + spent(c.id),
+    0,
+  );
+  const totalSav = CATEGORIES.filter((c) => c.type === 'saving').reduce(
+    (s, c) => s + spent(c.id),
+    0,
+  );
   const sisa = GAJI - totalExp - totalSav;
 
   document.getElementById('heroGaji').textContent = fmt(GAJI);
-  document.getElementById('pillExp').textContent  = fmtS(totalExp);
-  document.getElementById('pillSav').textContent  = fmtS(totalSav);
+  document.getElementById('pillExp').textContent = fmtS(totalExp);
+  document.getElementById('pillSav').textContent = fmtS(totalSav);
 
   const sisaEl = document.getElementById('pillSisa');
   sisaEl.textContent = (sisa < 0 ? '-' : '') + fmtS(Math.abs(sisa));
@@ -248,22 +268,28 @@ function renderCats() {
 
   for (const grp of groups) {
     if (activeTab === 'expense' && grp === 'Tabungan & Investasi') continue;
-    if (activeTab === 'saving'  && grp === 'Pengeluaran Rutin') continue;
+    if (activeTab === 'saving' && grp === 'Pengeluaran Rutin') continue;
 
     html += `<div class="section-label">${grp}</div>`;
 
-    for (const cat of CATEGORIES.filter(c => c.group === grp)) {
+    for (const cat of CATEGORIES.filter((c) => c.group === grp)) {
       const s = spent(cat.id);
       const pct = Math.min((s / cat.budget) * 100, 100);
       const rem = cat.budget - s;
-      const over  = s > cat.budget;
-      const near  = !over && pct >= 80;
+      const over = s > cat.budget;
+      const near = !over && pct >= 80;
 
-      const statusCls = over ? 'status-over' : near ? 'status-near' : 'status-ok';
-      const barCls    = over ? 'bar-over'    : near ? 'bar-near'    : 'bar-ok';
-      const remText   = over
+      const statusCls = over
+        ? 'status-over'
+        : near
+          ? 'status-near'
+          : 'status-ok';
+      const barCls = over ? 'bar-over' : near ? 'bar-near' : 'bar-ok';
+      const remText = over
         ? `Lebih ${fmtS(s - cat.budget)}`
-        : rem === 0 ? 'Terpenuhi' : `Sisa ${fmtS(rem)}`;
+        : rem === 0
+          ? 'Terpenuhi'
+          : `Sisa ${fmtS(rem)}`;
 
       html += `
         <div class="cat-card" onclick="openSheet('${cat.id}')">
@@ -294,10 +320,14 @@ function renderCats() {
 
 function renderTxs() {
   const all = getTxs();
-  const filtered = all.filter(t => {
+  const filtered = all.filter((t) => {
     if (activeTab === 'all') return true;
-    const cat = CATEGORIES.find(c => c.id === t.catId);
-    return cat && cat.type === activeTab.replace('saving','saving').replace('expense','expense');
+    const cat = CATEGORIES.find((c) => c.id === t.catId);
+    return (
+      cat &&
+      cat.type ===
+        activeTab.replace('saving', 'saving').replace('expense', 'expense')
+    );
   });
 
   if (filtered.length === 0) {
@@ -311,9 +341,15 @@ function renderTxs() {
     return;
   }
 
-  let rows = filtered.map(tx => {
-    const cat = CATEGORIES.find(c => c.id === tx.catId) || { abbr:'?', name: tx.catId, token: CAT_TOKENS.purple, type:'expense' };
-    return `
+  let rows = filtered
+    .map((tx) => {
+      const cat = CATEGORIES.find((c) => c.id === tx.catId) || {
+        abbr: '?',
+        name: tx.catId,
+        token: CAT_TOKENS.purple,
+        type: 'expense',
+      };
+      return `
       <div class="tx-item">
         <div class="tx-avatar" style="background:${cat.token.bg};color:${cat.token.text}">${cat.abbr}</div>
         <div class="tx-body">
@@ -329,7 +365,8 @@ function renderTxs() {
           </button>
         </div>
       </div>`;
-  }).join('');
+    })
+    .join('');
 
   document.getElementById('txSection').innerHTML = `
     <div class="section-label">Riwayat</div>
@@ -339,8 +376,10 @@ function renderTxs() {
 // ── Bottom Sheet ──────────────────────────────
 function openSheet(catId) {
   if (catId) {
-    const cat = CATEGORIES.find(c => c.id === catId);
-    document.getElementById('sheetTitle').textContent = cat ? cat.name : 'Catat Transaksi';
+    const cat = CATEGORIES.find((c) => c.id === catId);
+    document.getElementById('sheetTitle').textContent = cat
+      ? cat.name
+      : 'Catat Transaksi';
     document.getElementById('fCat').value = catId;
   } else {
     document.getElementById('sheetTitle').textContent = 'Catat Transaksi';
@@ -348,7 +387,9 @@ function openSheet(catId) {
   }
   document.getElementById('fAmount').value = '';
   document.getElementById('fNote').value = '';
-  document.getElementById('fDate').value = new Date().toISOString().slice(0,10);
+  document.getElementById('fDate').value = new Date()
+    .toISOString()
+    .slice(0, 10);
   document.getElementById('backdrop').classList.add('open');
   setTimeout(() => document.getElementById('fAmount').focus(), 350);
 }
@@ -358,15 +399,28 @@ function closeSheet() {
 }
 
 function submitTx() {
-  const catId  = document.getElementById('fCat').value;
-  const rawVal = document.getElementById('fAmount').value.replace(/\./g,'').replace(/,/g,'').replace(/\s/g,'');
+  const catId = document.getElementById('fCat').value;
+  const rawVal = document
+    .getElementById('fAmount')
+    .value.replace(/\./g, '')
+    .replace(/,/g, '')
+    .replace(/\s/g, '');
   const amount = parseInt(rawVal, 10);
-  const note   = document.getElementById('fNote').value.trim();
-  const date   = document.getElementById('fDate').value;
+  const note = document.getElementById('fNote').value.trim();
+  const date = document.getElementById('fDate').value;
 
-  if (!catId)              { toast('Pilih kategori terlebih dahulu'); return; }
-  if (!amount || amount<=0){ toast('Masukkan nominal yang valid'); return; }
-  if (!date)               { toast('Pilih tanggal'); return; }
+  if (!catId) {
+    toast('Pilih kategori terlebih dahulu');
+    return;
+  }
+  if (!amount || amount <= 0) {
+    toast('Masukkan nominal yang valid');
+    return;
+  }
+  if (!date) {
+    toast('Pilih tanggal');
+    return;
+  }
 
   addTx({ catId, amount, note, date });
   closeSheet();
@@ -375,24 +429,36 @@ function submitTx() {
 // ── Tab ───────────────────────────────────────
 function setTab(tab) {
   activeTab = tab;
-  document.querySelectorAll('.tab-pill').forEach(b => b.classList.remove('active'));
+  document
+    .querySelectorAll('.tab-pill')
+    .forEach((b) => b.classList.remove('active'));
   document.getElementById(`tp-${tab}`).classList.add('active');
   render();
 }
 
 function setNavTab(tab) {
-  document.querySelectorAll('.tab-item').forEach(b => b.classList.remove('active'));
+  document
+    .querySelectorAll('.tab-item')
+    .forEach((b) => b.classList.remove('active'));
   document.getElementById(`nav-${tab}`)?.classList.add('active');
 }
 
 // ── Month Nav ─────────────────────────────────
 function prevMonth() {
-  curM--; if (curM < 1) { curM = 12; curY--; }
+  curM--;
+  if (curM < 1) {
+    curM = 12;
+    curY--;
+  }
   render();
 }
 
 function nextMonth() {
-  curM++; if (curM > 12) { curM = 1; curY++; }
+  curM++;
+  if (curM > 12) {
+    curM = 1;
+    curY++;
+  }
   render();
 }
 
@@ -404,12 +470,15 @@ function collectAllTxs() {
     if (!key.startsWith('monli_')) continue;
     const parts = key.replace('monli_', '').split('_');
     if (parts.length !== 2) continue;
-    const year  = parseInt(parts[0], 10);
+    const year = parseInt(parts[0], 10);
     const month = parseInt(parts[1], 10);
-    const raw   = localStorage.getItem(key);
+    const raw = localStorage.getItem(key);
     if (!raw) continue;
-    JSON.parse(raw).forEach(tx => {
-      const cat = CATEGORIES.find(c => c.id === tx.catId) || { name: tx.catId, type: 'expense' };
+    JSON.parse(raw).forEach((tx) => {
+      const cat = CATEGORIES.find((c) => c.id === tx.catId) || {
+        name: tx.catId,
+        type: 'expense',
+      };
       txs.push({ ...tx, year, month, catName: cat.name, type: cat.type });
     });
   }
@@ -447,7 +516,7 @@ function clearMonthStores() {
     const key = localStorage.key(i);
     if (/^monli_\d{4}_\d{2}$/.test(key)) keys.push(key);
   }
-  keys.forEach(key => localStorage.removeItem(key));
+  keys.forEach((key) => localStorage.removeItem(key));
 }
 
 function hasLocalTxs() {
@@ -462,7 +531,7 @@ function replaceLocalTxs(transactions) {
   clearMonthStores();
 
   const grouped = {};
-  transactions.forEach(tx => {
+  transactions.forEach((tx) => {
     const year = Number(tx.year);
     const month = Number(tx.month);
     if (!year || !month || !tx.id || !tx.catId || !tx.date) return;
@@ -474,7 +543,7 @@ function replaceLocalTxs(transactions) {
       catId: tx.catId,
       amount: Number(tx.amount) || 0,
       note: tx.note || '',
-      date: tx.date
+      date: tx.date,
     });
   });
 
@@ -492,11 +561,15 @@ async function fetchSheetsJson(url, options = {}) {
     return JSON.parse(text);
   } catch (_) {
     if (text.includes('accounts.google.com') || text.includes('signin')) {
-      throw new Error('Perlu login Google. Pastikan deployment Apps Script bisa diakses oleh Anyone.');
+      throw new Error(
+        'Perlu login Google. Pastikan deployment Apps Script bisa diakses oleh Anyone.',
+      );
     }
     if (text.includes('<html') || text.includes('<!DOCTYPE')) {
       console.error('[Monli Sync] Response bukan JSON:\n', text.slice(0, 500));
-      throw new Error('Apps Script mengembalikan HTML. Cek deployment Web App.');
+      throw new Error(
+        'Apps Script mengembalikan HTML. Cek deployment Web App.',
+      );
     }
     console.error('[Monli Sync] Raw response:', text);
     throw new Error('Response Apps Script tidak valid.');
@@ -509,7 +582,8 @@ async function pullFromSheets({ silent = false } = {}) {
   try {
     const sep = SHEETS_URL.includes('?') ? '&' : '?';
     const json = await fetchSheetsJson(`${SHEETS_URL}${sep}action=list`);
-    if (json.status !== 'ok') throw new Error(json.message || 'Gagal mengambil data');
+    if (json.status !== 'ok')
+      throw new Error(json.message || 'Gagal mengambil data');
 
     replaceLocalTxs(json.transactions || []);
     setSyncDirty(false);
@@ -539,11 +613,14 @@ async function syncToSheets({ silent = false } = {}) {
 
   const btn = document.getElementById('syncBtn');
   const btnOrigHTML = btn ? btn.innerHTML : '';
-  if (btn) { btn.disabled = true; btn.textContent = 'Menyinkronkan…'; }
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = 'Menyinkronkan…';
+  }
 
   try {
     const wasDirty = isSyncDirty();
-    const txs  = collectAllTxs();
+    const txs = collectAllTxs();
     const json = await fetchSheetsJson(SHEETS_URL, {
       method: 'POST',
       redirect: 'follow',
@@ -552,7 +629,8 @@ async function syncToSheets({ silent = false } = {}) {
 
     if (json.status === 'ok') {
       setSyncDirty(false);
-      if (!silent || wasDirty) toast(`${json.synced} transaksi berhasil disinkronkan`);
+      if (!silent || wasDirty)
+        toast(`${json.synced} transaksi berhasil disinkronkan`);
       return true;
     } else {
       if (!silent) toast('Gagal: ' + (json.message || 'Unknown error'));
@@ -560,7 +638,10 @@ async function syncToSheets({ silent = false } = {}) {
       return false;
     }
   } catch (err) {
-    if (err.message.includes('Failed to fetch') || err.message.includes('NetworkError')) {
+    if (
+      err.message.includes('Failed to fetch') ||
+      err.message.includes('NetworkError')
+    ) {
       if (!silent) toast('Tidak bisa terhubung. Data tetap tersimpan lokal');
     } else {
       if (!silent) toast('Error: ' + err.message);
@@ -568,7 +649,10 @@ async function syncToSheets({ silent = false } = {}) {
     console.error('[Monli Sync] Fetch error:', err);
     return false;
   } finally {
-    if (btn) { btn.disabled = false; btn.innerHTML = btnOrigHTML; }
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = btnOrigHTML;
+    }
     syncInFlight = false;
   }
 }
@@ -590,8 +674,8 @@ function toast(msg) {
 
 // ── Amount input ──────────────────────────────
 function onAmountInput(e) {
-  let v = e.target.value.replace(/\D/g,'');
-  if (v) e.target.value = parseInt(v,10).toLocaleString('id-ID');
+  let v = e.target.value.replace(/\D/g, '');
+  if (v) e.target.value = parseInt(v, 10).toLocaleString('id-ID');
 }
 
 // ── Init ──────────────────────────────────────
@@ -602,10 +686,10 @@ function init() {
 
   // Build select options
   const sel = document.getElementById('fCat');
-  ['Pengeluaran Rutin','Tabungan & Investasi'].forEach(grp => {
+  ['Pengeluaran Rutin', 'Tabungan & Investasi'].forEach((grp) => {
     const og = document.createElement('optgroup');
     og.label = grp;
-    CATEGORIES.filter(c => c.group === grp).forEach(c => {
+    CATEGORIES.filter((c) => c.group === grp).forEach((c) => {
       const o = document.createElement('option');
       o.value = c.id;
       o.textContent = `${c.abbr} — ${c.name}`;
@@ -619,13 +703,13 @@ function init() {
   document.getElementById('iconPlus').innerHTML = ICONS.plus;
 
   // Backdrop click to close
-  document.getElementById('backdrop').addEventListener('click', e => {
+  document.getElementById('backdrop').addEventListener('click', (e) => {
     if (e.target === document.getElementById('backdrop')) closeSheet();
   });
 
   // Amount format
   document.getElementById('fAmount').addEventListener('input', onAmountInput);
-  document.getElementById('fAmount').addEventListener('keydown', e => {
+  document.getElementById('fAmount').addEventListener('keydown', (e) => {
     if (e.key === 'Enter') submitTx();
   });
 

@@ -242,6 +242,9 @@ function _bar(pct) {
 function _buildDashboard(ss, allData) {
   let sh = ss.getSheetByName(DASH_SHEET_NAME);
   if (sh) {
+    sh.setFrozenRows(0);
+    sh.setFrozenColumns(0);
+    sh.getDataRange().breakApart();
     sh.clearContents();
     sh.clearFormats();
     sh.clearConditionalFormatRules();
@@ -522,7 +525,14 @@ function _totalRow(sh, r, label, budget, spent) {
 // ===============================================
 function _buildTrenBulanan(ss, allData) {
   let sh = ss.getSheetByName(TREN_SHEET_NAME);
-  if (sh) { sh.clearContents(); sh.clearFormats(); sh.getCharts().forEach(c => sh.removeChart(c)); }
+  if (sh) {
+    sh.setFrozenRows(0);
+    sh.setFrozenColumns(0);
+    sh.getDataRange().breakApart();
+    sh.clearContents();
+    sh.clearFormats();
+    sh.getCharts().forEach(c => sh.removeChart(c));
+  }
   else     { sh = ss.insertSheet(TREN_SHEET_NAME); }
 
   const months = _getMonths(allData);
@@ -532,17 +542,18 @@ function _buildTrenBulanan(ss, allData) {
   }
 
   // -- Header -----------------------------------
-  sh.getRange(1, 1, 1, months.length + 3).merge()
-    .setValue('TREN BULANAN - MONLI')
+  sh.getRange(1, 1, 1, months.length + 3)
     .setFontSize(16).setFontWeight('bold')
     .setFontColor(C.white).setBackground(C.green)
     .setHorizontalAlignment('center').setVerticalAlignment('middle');
+  sh.getRange(1, 1).setValue('TREN BULANAN - MONLI');
   sh.setRowHeight(1, 40);
 
-  sh.getRange(2, 1, 1, months.length + 3).merge()
-    .setValue(`${months.length} bulan tercatat  ,  Diperbarui: ` +
-              Utilities.formatDate(new Date(), 'Asia/Jakarta', 'dd MMM yyyy'))
+  sh.getRange(2, 1, 1, months.length + 3)
     .setFontColor(C.gray3).setFontSize(9);
+  sh.getRange(2, 1)
+    .setValue(`${months.length} bulan tercatat  ,  Diperbarui: ` +
+              Utilities.formatDate(new Date(), 'Asia/Jakarta', 'dd MMM yyyy'));
 
   // -- Kolom header: Kategori | Jan | Feb | ... | Total | Rata-rata --
   const headerRow = ['Kategori', ...months.map(m => `${BULAN_ID[m.month]} ${m.year}`), 'Total', 'Rata-rata'];
@@ -561,9 +572,9 @@ function _buildTrenBulanan(ss, allData) {
 
   // -- Pengeluaran Rutin -------------------------
   const expHdrRng = sh.getRange(r, 1, 1, headerRow.length);
-  expHdrRng.merge()
-    .setValue('PENGELUARAN RUTIN')
+  expHdrRng
     .setFontWeight('bold').setBackground(C.greenMid).setFontColor(C.white);
+  sh.getRange(r, 1).setValue('PENGELUARAN RUTIN');
   sh.setRowHeight(r, 26); r++;
 
   const expCats = CATEGORIES.filter(c => c.type === 'expense');
@@ -574,9 +585,9 @@ function _buildTrenBulanan(ss, allData) {
   r++;
 
   // -- Tabungan & Investasi ----------------------
-  sh.getRange(r, 1, 1, headerRow.length).merge()
-    .setValue('TABUNGAN & INVESTASI')
+  sh.getRange(r, 1, 1, headerRow.length)
     .setFontWeight('bold').setBackground(C.greenMid).setFontColor(C.white);
+  sh.getRange(r, 1).setValue('TABUNGAN & INVESTASI');
   sh.setRowHeight(r, 26); r++;
 
   const savCats = CATEGORIES.filter(c => c.type === 'saving');
@@ -587,9 +598,9 @@ function _buildTrenBulanan(ss, allData) {
   r++;
 
   // -- Sisa per bulan ----------------------------
-  sh.getRange(r, 1, 1, headerRow.length).merge()
-    .setValue('SISA GAJI')
+  sh.getRange(r, 1, 1, headerRow.length)
     .setFontWeight('bold').setBackground(C.greenMid).setFontColor(C.white);
+  sh.getRange(r, 1).setValue('SISA GAJI');
   sh.setRowHeight(r, 26); r++;
 
   const sisaVals = months.map(m => {
