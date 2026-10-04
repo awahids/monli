@@ -14,8 +14,12 @@ gsap.registerPlugin(ScrollTrigger);
 
 const faqs = [
   {
+    q: "What happened to Monli?",
+    a: "Monli is now Qala Saku, part of the Qala family (qala.digital) alongside Qala Invoice. Your account, data, and the monli.fun address stay the same.",
+  },
+  {
     q: "Can I use with bank & e-wallets?",
-    a: "Yes—Monli works with both bank and e-wallet accounts.",
+    a: "Yes—Qala Saku works with both bank and e-wallet accounts.",
   },
   {
     q: "How do budgets work?",
@@ -29,8 +33,8 @@ const faqs = [
     q: "Do you support dark mode?",
     a: "Absolutely, light and dark themes are built in.",
   },
-  { q: "Mobile support?", a: "Monli is mobile-friendly with a bottom nav on small screens." },
-  { q: "What's the intro pricing?", a: "Monli Pro is free during our intro period." },
+  { q: "Mobile support?", a: "Qala Saku is mobile-friendly with a bottom nav on small screens." },
+  { q: "What's the intro pricing?", a: "Qala Saku Pro is free during our intro period." },
 ];
 
 export function FAQ() {

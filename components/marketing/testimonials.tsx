@@ -9,7 +9,7 @@ gsap.registerPlugin(ScrollTrigger);
 
 const quotes = [
   {
-    quote: "“Monli helps me keep tabs on every rupiah.”",
+    quote: "“Qala Saku helps me keep tabs on every rupiah.”",
     author: "Beta User",
   },
   {

@@ -7,6 +7,7 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 import { Button } from "@/components/ui/button";
+import { BRAND } from "@/lib/brand";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -54,7 +55,7 @@ export function CTABand() {
           <h2 className="cta-animate mb-6 text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
             Take control of your money
             <span className="block mt-2 bg-gradient-to-r from-primary via-primary to-primary/70 bg-clip-text text-transparent">
-              with Monli
+              with {BRAND.name}
             </span>
           </h2>
 

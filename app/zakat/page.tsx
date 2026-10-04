@@ -4,8 +4,8 @@ import { createServerClient } from '@/lib/supabase/server';
 import ZakatCalculator from './zakat-calculator';
 
 export const metadata: Metadata = {
-  title: 'Kalkulator Zakat - Monli',
-  description: 'Hitung kewajiban zakatmu dengan kalkulator zakat Monli.',
+  title: 'Kalkulator Zakat - Qala Saku',
+  description: 'Hitung kewajiban zakatmu dengan kalkulator zakat Qala Saku.',
   robots: { index: false, follow: false },
 };
 

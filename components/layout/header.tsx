@@ -21,6 +21,7 @@ import { toast } from 'sonner';
 import { useTheme } from 'next-themes';
 import { useRouter } from 'next/navigation';
 import { MobileSidebar } from './sidebar';
+import { QalaLogo } from '@/components/brand/qala-mark';
 
 function UserNav() {
   const { user } = useAppStore();
@@ -109,10 +110,8 @@ export function Header() {
       <div className="flex h-16 sm:h-14 items-center justify-between px-4 md:px-6">
         <div className="flex items-center space-x-3 sm:space-x-4">
           <MobileSidebar />
-          <div className="flex items-center">
-            <span className="font-bold text-xl sm:text-lg text-primary">Monli</span>
-            <span className="hidden sm:block ml-2 text-sm text-muted-foreground">Finance</span>
-          </div>
+          {/* The desktop sidebar already shows the logo. */}
+          <QalaLogo className="md:hidden" />
         </div>
         <div className="flex items-center space-x-2 sm:space-x-4">
           <OfflineIndicator />
