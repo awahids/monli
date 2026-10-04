@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { useAppStore } from '@/lib/store';
 import { supabase } from '@/lib/supabase';
 import { formatIDR } from '@/lib/currency';
@@ -36,25 +36,15 @@ import {
   ArrowUpRight,
   ArrowDownRight,
 } from 'lucide-react';
-import { formatDate } from '@/lib/date';
+import { currentMonth, formatDate, shiftMonth } from '@/lib/date';
+import { keysToCamel } from '@/lib/case';
+import {
+  refreshActiveAccounts,
+  saveTransaction,
+  toOfflineTransaction,
+  toTransactionPayload,
+} from '@/lib/transactions-client';
 import { useOffline } from '@/hooks/use-offline';
-
-const toCamel = (str: string) =>
-  str.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
-
-function keysToCamel<T>(obj: any): T {
-  if (Array.isArray(obj)) {
-    return obj.map(v => keysToCamel(v)) as any;
-  }
-  if (obj && typeof obj === 'object' && obj.constructor === Object) {
-    const result: Record<string, any> = {};
-    for (const [key, value] of Object.entries(obj)) {
-      result[toCamel(key)] = keysToCamel(value);
-    }
-    return result as T;
-  }
-  return obj as T;
-}
 
 export default function DashboardPage() {
   const {
@@ -86,71 +76,23 @@ export default function DashboardPage() {
   const [formOpen, setFormOpen] = useState(false);
   const { isOnline, addOfflineChange } = useOffline();
 
-  const refreshAccounts = useCallback(async () => {
-    if (!user || !isOnline) return;
-    const { data: accountsData } = await supabase
-      .from('accounts')
-      .select('*')
-      .eq('user_id', user.id)
-      .eq('archived', false);
-    if (accountsData) setAccounts(keysToCamel<Account[]>(accountsData));
-  }, [user, isOnline, setAccounts]);
-
+  // Throws on failure so the form keeps the user's input and shows the error.
   const handleSave = async (values: TransactionFormValues) => {
-    const payload = {
-      budgetMonth: values.budgetMonth,
-      actualDate: formatDate(values.actualDate),
-      date: formatDate(values.actualDate),
-      type: values.type,
-      accountId: values.accountId ?? null,
-      fromAccountId: values.fromAccountId ?? null,
-      toAccountId: values.toAccountId ?? null,
-      categoryId: values.categoryId ?? null,
-      amount: values.amount,
-      note: values.note || '',
-      tags: values.tags || [],
-    };
+    const payload = toTransactionPayload(values);
 
     if (!isOnline) {
-      const tempTx: Transaction = {
-        id: `offline-${Date.now()}`,
-        userId: user?.id || '',
-        budgetMonth: payload.budgetMonth,
-        actualDate: payload.actualDate,
-        date: payload.date,
-        type: payload.type,
-        accountId: payload.accountId ?? undefined,
-        fromAccountId: payload.fromAccountId ?? undefined,
-        toAccountId: payload.toAccountId ?? undefined,
-        categoryId: payload.categoryId ?? undefined,
-        amount: payload.amount,
-        note: payload.note,
-        tags: payload.tags,
-      };
-      setTransactions([tempTx, ...transactions]);
+      setTransactions([toOfflineTransaction(payload, user?.id || ''), ...transactions]);
       await addOfflineChange('create', 'transactions', payload);
       toast.success('Transaction saved offline');
-      await refreshAccounts();
       setFormOpen(false);
       return;
     }
 
-    try {
-      const res = await fetch('/api/transactions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to create transaction');
-      const tx = keysToCamel<Transaction>(data);
-      setTransactions([tx, ...transactions]);
-      await refreshAccounts();
-      toast.success('Transaction created');
-      setFormOpen(false);
-    } catch (e) {
-      toast.error((e as Error).message);
-    }
+    const tx = await saveTransaction(payload);
+    setTransactions([tx, ...transactions]);
+    if (user) await refreshActiveAccounts(user.id);
+    toast.success('Transaction created');
+    setFormOpen(false);
   };
 
   useEffect(() => {
@@ -190,14 +132,13 @@ export default function DashboardPage() {
           .order('actual_date', { ascending: false });
 
         // Fetch budgets (current month)
-        const currentMonth = new Date().toISOString().slice(0, 7);
         const { data: budgetsData } = await supabase
           .from('budgets')
           .select(
             `*, items:budget_items(*, category:categories(*))`
           )
           .eq('user_id', user.id)
-          .eq('month', currentMonth);
+          .eq('month', currentMonth());
 
         if (accountsData) setAccounts(keysToCamel<Account[]>(accountsData));
         if (categoriesData) setCategories(keysToCamel<Category[]>(categoriesData));
@@ -225,11 +166,12 @@ export default function DashboardPage() {
   useEffect(() => {
     if (!accounts.length) return;
 
-    // Calculate KPIs
-    const currentMonth = new Date().toISOString().slice(0, 7);
-    const prevMonthDate = new Date();
-    prevMonthDate.setMonth(prevMonthDate.getMonth() - 1);
-    const prevMonth = prevMonthDate.toISOString().slice(0, 7);
+    // Calculate KPIs. Timeline rule: months follow actual_date in Jakarta
+    // time, the same as the charts and /api/dashboard.
+    const thisMonth = currentMonth();
+    const prevMonth = shiftMonth(thisMonth, -1);
+    const inMonth = (t: Transaction, month: string) =>
+      t.actualDate.startsWith(month);
 
     // Total balance taken from accounts to avoid missing older transactions
     const totalBalance = accounts.reduce(
@@ -238,23 +180,23 @@ export default function DashboardPage() {
     );
 
     // Monthly budget and actual
-    const currentBudgets = budgets.filter(b => b.month === currentMonth);
+    const currentBudgets = budgets.filter(b => b.month === thisMonth);
 
     const monthlyIncome = transactions
-      .filter(t => t.type === 'income' && t.budgetMonth === currentMonth)
+      .filter(t => t.type === 'income' && inMonth(t, thisMonth))
       .reduce((sum, t) => sum + t.amount, 0);
 
     const monthlyExpenses = transactions
-      .filter(t => t.type === 'expense' && t.budgetMonth === currentMonth)
+      .filter(t => t.type === 'expense' && inMonth(t, thisMonth))
       .reduce((sum, t) => sum + t.amount, 0);
 
     const savings = monthlyIncome - monthlyExpenses;
 
     const prevMonthlyIncome = transactions
-      .filter(t => t.type === 'income' && t.budgetMonth === prevMonth)
+      .filter(t => t.type === 'income' && inMonth(t, prevMonth))
       .reduce((sum, t) => sum + t.amount, 0);
     const prevMonthlyExpenses = transactions
-      .filter(t => t.type === 'expense' && t.budgetMonth === prevMonth)
+      .filter(t => t.type === 'expense' && inMonth(t, prevMonth))
       .reduce((sum, t) => sum + t.amount, 0);
     const prevSavings = prevMonthlyIncome - prevMonthlyExpenses;
 
@@ -297,7 +239,7 @@ export default function DashboardPage() {
       const categoryMap = new Map<string, CategorySpend>();
       transactions
         .filter(
-          t => t.type === 'expense' && t.actualDate.startsWith(currentMonth)
+          t => t.type === 'expense' && inMonth(t, thisMonth)
         )
         .forEach(t => {
           if (!t.categoryId || !t.category) return;
@@ -320,7 +262,7 @@ export default function DashboardPage() {
 
     const fetchCategories = async () => {
       try {
-        const res = await fetch(`/api/dashboard?month=${currentMonth}`);
+        const res = await fetch(`/api/dashboard?month=${thisMonth}`);
         if (!res.ok) throw new Error('Failed to fetch categories');
         const data = await res.json();
         const categoryMap = new Map<string, CategorySpend>();
@@ -396,7 +338,7 @@ export default function DashboardPage() {
           </p>
         </div>
         <Button
-          className="hidden sm:inline-flex"
+          className="hidden md:inline-flex"
           onClick={() => setFormOpen(true)}
         >
           <Plus className="mr-2 h-4 w-4" /> New Transaction

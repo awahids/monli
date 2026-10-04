@@ -15,15 +15,13 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: 'invalid year' }, { status: 400 });
     }
 
-    const start = new Date(Date.UTC(year, 0, 1));
-    const end = new Date(Date.UTC(year + 1, 0, 1));
 
     const { data, error } = await supabase
       .from('transactions')
-      .select('date, type, amount')
+      .select('actual_date, type, amount')
       .eq('user_id', user.id)
-      .gte('date', start.toISOString())
-      .lt('date', end.toISOString());
+      .gte('actual_date', `${year}-01-01`)
+      .lt('actual_date', `${year + 1}-01-01`);
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 400 });
@@ -36,7 +34,7 @@ export async function GET(req: Request) {
     }));
 
     data?.forEach(tx => {
-      const idx = new Date(tx.date).getUTCMonth();
+      const idx = Number(tx.actual_date.slice(5, 7)) - 1;
       if (tx.type === 'income') {
         months[idx].income += tx.amount;
       } else if (tx.type === 'expense') {

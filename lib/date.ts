@@ -18,3 +18,20 @@ export function formatDate(date: Date) {
 }
 
 export { TIMEZONE };
+
+/** Current month (YYYY-MM) in Asia/Jakarta, not UTC. */
+export function currentMonth(now: Date = new Date()): string {
+  return formatDate(now).slice(0, 7);
+}
+
+/** Shifts a YYYY-MM month string by `delta` months. */
+export function shiftMonth(month: string, delta: number): string {
+  const [y, m] = month.split('-').map(Number);
+  const d = new Date(Date.UTC(y, m - 1 + delta, 1));
+  return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
+}
+
+/** First day of the month after `month`, as YYYY-MM-DD (exclusive upper bound). */
+export function nextMonthStart(month: string): string {
+  return `${shiftMonth(month, 1)}-01`;
+}

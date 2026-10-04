@@ -25,9 +25,6 @@ export async function GET(req: Request) {
       );
     }
     const { month } = parse.data;
-    const monthDate = new Date(`${month}-01T00:00:00.000Z`);
-    const start = new Date(Date.UTC(monthDate.getUTCFullYear(), monthDate.getUTCMonth(), 1));
-    const end = new Date(Date.UTC(monthDate.getUTCFullYear(), monthDate.getUTCMonth() + 1, 1));
 
     type BudgetItem = Database['public']['Tables']['budget_items']['Row'] & {
       category: Pick<
@@ -64,24 +61,28 @@ export async function GET(req: Request) {
 
     const { data: txs, error: txErr } = await supabase
       .from('transactions')
-      .select('amount, category_id')
+      .select('amount, category_id, category:categories(name, color)')
       .eq('user_id', user.id)
       .eq('type', 'expense')
-      .gte('date', start.toISOString())
-      .lt('date', end.toISOString());
+      // Budget reports attribute spending by budget_month, not actual date.
+      .eq('budget_month', month)
+      .returns<{ amount: number; category_id: string | null; category: { name: string; color: string | null } | null }[]>();
     if (txErr) {
       return NextResponse.json({ error: txErr.message }, { status: 400 });
     }
 
+    let totalActual = 0;
     txs?.forEach(tx => {
+      // Uncategorized spending still counts towards the month total.
+      totalActual += tx.amount;
       if (tx.category_id) {
         const entry = perCategory.get(tx.category_id);
         if (entry) entry.actual += tx.amount;
         else
           perCategory.set(tx.category_id, {
             categoryId: tx.category_id,
-            name: '',
-            color: '#6B7280',
+            name: tx.category?.name ?? '',
+            color: tx.category?.color ?? '#6B7280',
             planned: 0,
             actual: tx.amount,
           });
@@ -90,7 +91,6 @@ export async function GET(req: Request) {
 
     const data = Array.from(perCategory.values());
     const totalPlanned = data.reduce((sum, c) => sum + c.planned, 0);
-    const totalActual = data.reduce((sum, c) => sum + c.actual, 0);
 
     return NextResponse.json({ data, totalPlanned, totalActual });
   } catch (e) {

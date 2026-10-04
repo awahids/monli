@@ -60,27 +60,20 @@ import TransactionForm, {
   TransactionFormValues,
 } from '@/components/transactions/transaction-form';
 import { formatDate } from '@/lib/date';
+import { keysToCamel } from '@/lib/case';
+import {
+  deleteTransaction,
+  refreshActiveAccounts,
+  saveTransaction,
+  toOfflineTransaction,
+  toTransactionPayload,
+} from '@/lib/transactions-client';
+import { useDebounce } from '@/hooks/use-debounce';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { useOffline } from '@/hooks/use-offline';
 import OcrReviewDialog, {
   OcrItem,
 } from '@/components/transactions/ocr-review-dialog';
-
-const toCamel = (str: string) =>
-  str.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
-
-function keysToCamel<T>(obj: any): T {
-  if (Array.isArray(obj)) {
-    return obj.map((v) => keysToCamel(v)) as any;
-  }
-  if (obj && typeof obj === 'object' && obj.constructor === Object) {
-    const result: Record<string, any> = {};
-    for (const [key, value] of Object.entries(obj)) {
-      result[toCamel(key)] = keysToCamel(value);
-    }
-    return result as T;
-  }
-  return obj as T;
-}
 
 export default function TransactionsPage() {
   const {
@@ -124,16 +117,20 @@ export default function TransactionsPage() {
   const [ocrOpen, setOcrOpen] = useState(false);
   const [ocrItems, setOcrItems] = useState<OcrItem[]>([]);
   const [ocrDate, setOcrDate] = useState<Date>(new Date());
+  const [pendingDelete, setPendingDelete] = useState<Transaction | null>(null);
+  const debouncedSearch = useDebounce(search, 300);
+  const requestIdRef = useRef(0);
+
+  // Follow ?accountId= when navigating here from an account card.
+  useEffect(() => {
+    setAccountFilter(searchParams.get('accountId') ?? 'all');
+    setPage(1);
+  }, [searchParams]);
 
   const refreshAccounts = useCallback(async () => {
     if (!user || !isOnline) return;
-    const { data: accountsData } = await supabase
-      .from('accounts')
-      .select('*')
-      .eq('user_id', user.id)
-      .eq('archived', false);
-    if (accountsData) setAccounts(keysToCamel<Account[]>(accountsData));
-  }, [user, isOnline, setAccounts]);
+    await refreshActiveAccounts(user.id);
+  }, [user, isOnline]);
 
   const groupedTransactions = useMemo(() => {
     const groups: Record<string, Transaction[]> = {};
@@ -169,9 +166,12 @@ export default function TransactionsPage() {
     if (accountFilter !== 'all') params.set('accountId', accountFilter);
     if (categoryFilter !== 'all') params.set('categoryId', categoryFilter);
     if (typeFilter !== 'all') params.set('type', typeFilter);
-    if (search) params.set('search', search);
+    if (debouncedSearch) params.set('search', debouncedSearch);
+    // Ignore responses that arrive after a newer request was sent.
+    const requestId = ++requestIdRef.current;
     const res = await fetch(`/api/transactions?${params.toString()}`);
     const data = await res.json();
+    if (requestId !== requestIdRef.current) return;
     if (!res.ok) {
       toast.error(data.error || 'Failed to load transactions');
       return;
@@ -189,7 +189,7 @@ export default function TransactionsPage() {
     accountFilter,
     categoryFilter,
     typeFilter,
-    search,
+    debouncedSearch,
     setTransactions,
   ]);
 
@@ -231,35 +231,23 @@ export default function TransactionsPage() {
     fetchTransactions,
   ]);
 
+  const closeForm = () => {
+    setFormOpen(false);
+    setEditing(undefined);
+    setInitialValues(undefined);
+  };
+
+  // Throws on failure so the form keeps the user's input and shows the error.
   const handleSave = async (values: TransactionFormValues) => {
     if (!user) return;
-    const payload = {
-      budgetMonth: values.budgetMonth,
-      actualDate: formatDate(values.actualDate),
-      date: formatDate(values.actualDate),
-      type: values.type,
-      accountId: values.accountId ?? null,
-      fromAccountId: values.fromAccountId ?? null,
-      toAccountId: values.toAccountId ?? null,
-      categoryId: values.categoryId ?? null,
-      amount: values.amount,
-      note: values.note || '',
-      tags: values.tags || [],
-    };
+    const payload = toTransactionPayload(values);
     const isEditing = Boolean(editing);
 
     if (!isOnline) {
       if (isEditing) {
         const updated = transactions.map((tx) =>
           tx.id === editing!.id
-            ? {
-                ...tx,
-                ...payload,
-                accountId: payload.accountId ?? undefined,
-                fromAccountId: payload.fromAccountId ?? undefined,
-                toAccountId: payload.toAccountId ?? undefined,
-                categoryId: payload.categoryId ?? undefined,
-              }
+            ? { ...tx, ...toOfflineTransaction(payload, user.id), id: tx.id }
             : tx,
         );
         setTransactions(updated);
@@ -268,90 +256,33 @@ export default function TransactionsPage() {
           ...payload,
         });
       } else {
-        const tempTx: Transaction = {
-          id: `offline-${Date.now()}`,
-          userId: user.id,
-          budgetMonth: payload.budgetMonth,
-          actualDate: payload.actualDate,
-          date: payload.date,
-          type: payload.type,
-          accountId: payload.accountId ?? undefined,
-          fromAccountId: payload.fromAccountId ?? undefined,
-          toAccountId: payload.toAccountId ?? undefined,
-          categoryId: payload.categoryId ?? undefined,
-          amount: payload.amount,
-          note: payload.note,
-          tags: payload.tags,
-        };
-        setTransactions([tempTx, ...transactions]);
+        setTransactions([toOfflineTransaction(payload, user.id), ...transactions]);
         await addOfflineChange('create', 'transactions', payload);
       }
-      await refreshAccounts();
       toast.success(isEditing ? 'Transaction updated offline' : 'Transaction added offline');
-      setFormOpen(false);
-      setEditing(undefined);
-      setInitialValues(undefined);
+      closeForm();
       return;
     }
 
-    let res: Response;
-    if (isEditing) {
-      res = await fetch(`/api/transactions/${editing!.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-    } else {
-      res = await fetch('/api/transactions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-    }
-
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      toast.error(data.error || 'Failed to save transaction');
-      return;
-    }
-
+    await saveTransaction(payload, editing?.id);
     toast.success(isEditing ? 'Transaction updated' : 'Transaction added');
+    closeForm();
     await fetchTransactions();
     await refreshAccounts();
-    setFormOpen(false);
-    setEditing(undefined);
-    setInitialValues(undefined);
   };
 
-  const handleDelete = async () => {
-    if (!editing) return;
-    const res = await fetch(`/api/transactions/${editing.id}`, {
-      method: 'DELETE',
-    });
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      toast.error(data.error || 'Failed to delete transaction');
-      return;
+  const confirmDelete = async () => {
+    if (!pendingDelete) return;
+    try {
+      await deleteTransaction(pendingDelete.id);
+      toast.success('Transaction deleted');
+      if (editing?.id === pendingDelete.id) closeForm();
+      setPendingDelete(null);
+      await fetchTransactions();
+      await refreshAccounts();
+    } catch (e) {
+      toast.error((e as Error).message);
     }
-    toast.success('Transaction deleted');
-    await fetchTransactions();
-    await refreshAccounts();
-    setFormOpen(false);
-    setEditing(undefined);
-  };
-
-  const handleDeleteRow = async (t: Transaction) => {
-    const res = await fetch(`/api/transactions/${t.id}`, {
-      method: 'DELETE',
-    });
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      toast.error(data.error || 'Failed to delete transaction');
-      return;
-    }
-    toast.success('Transaction deleted');
-    await fetchTransactions();
-    await refreshAccounts();
   };
 
   const handleOcrFile = async (e: ChangeEvent<HTMLInputElement>) => {
@@ -393,35 +324,24 @@ export default function TransactionsPage() {
   };
 
   const handleOcrSave = async (items: TransactionFormValues[]) => {
-    for (const values of items) {
-      const payload = {
-        budgetMonth: values.budgetMonth,
-        actualDate: formatDate(values.actualDate),
-        date: formatDate(values.actualDate),
-        type: values.type,
-        accountId: values.accountId ?? null,
-        fromAccountId: values.fromAccountId ?? null,
-        toAccountId: values.toAccountId ?? null,
-        categoryId: values.categoryId ?? null,
-        amount: values.amount,
-        note: values.note || '',
-        tags: values.tags || [],
-      };
-      const res = await fetch('/api/transactions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        toast.error(data.error || 'Failed to save transaction');
-        return;
+    let saved = 0;
+    try {
+      for (const values of items) {
+        await saveTransaction(toTransactionPayload(values));
+        saved += 1;
       }
+      toast.success('Transactions saved');
+      setOcrOpen(false);
+    } catch (e) {
+      // Drop the rows that were already saved so a retry does not duplicate them.
+      setOcrItems((prev) => prev.slice(saved));
+      toast.error(
+        `${(e as Error).message}${saved ? ` (${saved} of ${items.length} saved)` : ''}`,
+      );
+    } finally {
+      await fetchTransactions();
+      await refreshAccounts();
     }
-    toast.success('Transactions saved');
-    setOcrOpen(false);
-    await fetchTransactions();
-    await refreshAccounts();
   };
 
   const openNew = () => {
@@ -461,16 +381,19 @@ export default function TransactionsPage() {
             Track your recent transactions.
           </p>
         </div>
-        <div className="hidden md:flex gap-2">
+        <div className="flex gap-2">
           {user?.plan === 'PRO' && (
             <Button
               variant="outline"
               onClick={() => fileInputRef.current?.click()}
+              aria-label="Scan receipt"
             >
-              <LucideIcons.Camera className="mr-2 h-4 w-4" /> Scan Receipt
+              <LucideIcons.Camera className="h-4 w-4 md:mr-2" />
+              <span className="hidden md:inline">Scan Receipt</span>
             </Button>
           )}
-          <Button onClick={openNew}>
+          {/* On mobile the bottom nav already has the add button. */}
+          <Button onClick={openNew} className="hidden md:inline-flex">
             <Plus className="mr-2 h-4 w-4" /> Add Transaction
           </Button>
         </div>
@@ -694,7 +617,7 @@ export default function TransactionsPage() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => handleDeleteRow(t)}
+                          onClick={() => setPendingDelete(t)}
                         >
                           <Trash className="h-4 w-4" />
                         </Button>
@@ -780,7 +703,7 @@ export default function TransactionsPage() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => handleDeleteRow(t)}
+                        onClick={() => setPendingDelete(t)}
                       >
                         <Trash className="h-4 w-4" />
                       </Button>
@@ -824,23 +747,6 @@ export default function TransactionsPage() {
         </Pagination>
       )}
 
-      {user?.plan === 'PRO' && (
-        <Button
-          variant="outline"
-          onClick={() => fileInputRef.current?.click()}
-          className="md:hidden fixed right-6 bottom-[calc(10rem+env(safe-area-inset-bottom))] rounded-full h-14 w-14 p-0"
-        >
-          <LucideIcons.Camera className="h-6 w-6" />
-        </Button>
-      )}
-
-      <Button
-        onClick={openNew}
-        className="md:hidden fixed right-6 bottom-[calc(5rem+env(safe-area-inset-bottom))] rounded-full h-14 w-14 p-0"
-      >
-        <Plus className="h-6 w-6" />
-      </Button>
-
       <TransactionForm
         open={formOpen}
         onOpenChange={(o) => {
@@ -852,7 +758,19 @@ export default function TransactionsPage() {
         accounts={accounts}
         categories={categories}
         onSubmit={handleSave}
-        onDelete={editing ? handleDelete : undefined}
+        onDelete={editing ? async () => setPendingDelete(editing) : undefined}
+      />
+
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        onOpenChange={(o) => !o && setPendingDelete(null)}
+        title="Delete transaction?"
+        description={
+          pendingDelete
+            ? `${pendingDelete.note || pendingDelete.category?.name || 'This transaction'} (${formatIDR(pendingDelete.amount)}) will be removed and account balances updated. This cannot be undone.`
+            : undefined
+        }
+        onConfirm={confirmDelete}
       />
     </div>
   );

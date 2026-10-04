@@ -44,6 +44,7 @@ import { format } from 'date-fns';
 import { formatDate } from '@/lib/date';
 import { CalendarIcon, X } from 'lucide-react';
 import { formatIDR, parseIDR } from '@/lib/currency';
+import { toast } from 'sonner';
 
 export const getJakartaDate = () => {
   const dateStr = new Intl.DateTimeFormat('en-CA', {
@@ -206,7 +207,14 @@ export function TransactionFields({
             <ToggleGroup
               type="single"
               value={field.value}
-              onValueChange={(val) => val && field.onChange(val)}
+              onValueChange={(val) => {
+                if (!val || val === field.value) return;
+                field.onChange(val);
+                // A category only belongs to one type; drop it so a hidden,
+                // stale value can't block submission or be saved.
+                form.setValue('categoryId', undefined);
+                form.clearErrors();
+              }}
               className="grid grid-cols-3"
             >
               <ToggleGroupItem value="expense">Expense</ToggleGroupItem>
@@ -492,8 +500,15 @@ export function TransactionForm({
     }
   }, [transaction, initialValues, form]);
 
+  // onSubmit throws on failure: keep the input and show the error instead of
+  // resetting the form.
   const handleSubmit = async (values: TransactionFormValues) => {
-    await onSubmit(values);
+    try {
+      await onSubmit(values);
+    } catch (e) {
+      toast.error((e as Error).message || 'Failed to save transaction');
+      return;
+    }
     form.reset({
       budgetMonth: getCurrentMonth(),
       actualDate: getJakartaDate(),
@@ -505,6 +520,7 @@ export function TransactionForm({
   };
 
   const [contentEl, setContentEl] = useState<HTMLDivElement | null>(null);
+  const { isSubmitting } = form.formState;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -537,12 +553,17 @@ export function TransactionForm({
                   type="button"
                   variant="destructive"
                   onClick={() => onDelete()}
+                  disabled={isSubmitting}
                 >
                   Delete
                 </Button>
               )}
-              <Button type="submit">
-                {transaction ? 'Update' : 'Add'}
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting
+                  ? 'Saving...'
+                  : transaction
+                  ? 'Update'
+                  : 'Add'}
               </Button>
             </DialogFooter>
           </form>

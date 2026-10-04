@@ -9,21 +9,26 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const year = searchParams.get("year") || new Date().getFullYear().toString();
   const page = parseInt(searchParams.get("page") || "1", 10);
-  const pageSize = parseInt(searchParams.get("pageSize") || "12", 10);
+  const pageSize = Math.min(parseInt(searchParams.get("pageSize") || "12", 10), 240);
   const offset = (page - 1) * pageSize;
+
+  if (year !== "all" && !/^\d{4}$/.test(year)) {
+    return NextResponse.json({ error: "invalid year" }, { status: 400 });
+  }
 
   try {
     const user = await getUser();
+    let query = supabase
+      .from("budgets")
+      .select("id, month, total_amount", { count: "exact" })
+      .eq("user_id", user.id);
+    if (year !== "all") query = query.like("month", `${year}-%`);
     const {
       data: budgets,
       error,
       count,
-    } = await supabase
-      .from("budgets")
-      .select("id, month, total_amount", { count: "exact" })
-      .eq("user_id", user.id)
-      .like("month", `${year}-%`)
-      .order("month", { ascending: true })
+    } = await query
+      .order("month", { ascending: false })
       .range(offset, offset + pageSize - 1);
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 400 });
@@ -31,12 +36,16 @@ export async function GET(req: Request) {
     if (!budgets || budgets.length === 0) {
       return NextResponse.json({ data: [], total: count || 0 });
     }
+    // Actual spending is attributed by budget_month (the budget rule).
     const { data: tx, error: txError } = await supabase
       .from("transactions")
       .select("amount, budget_month")
       .eq("user_id", user.id)
       .eq("type", "expense")
-      .like("budget_month", `${year}-%`);
+      .in(
+        "budget_month",
+        budgets.map((b) => b.month),
+      );
     if (txError) {
       return NextResponse.json({ error: txError.message }, { status: 400 });
     }

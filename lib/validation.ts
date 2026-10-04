@@ -65,7 +65,7 @@ const transactionBaseSchema = z.object({
   accountId: z.string().uuid().nullable().optional(),
   fromAccountId: z.string().uuid().nullable().optional(),
   toAccountId: z.string().uuid().nullable().optional(),
-  amount: z.number(),
+  amount: z.number().positive(),
   categoryId: z.string().uuid().nullable().optional(),
   note: z.string().optional(),
   tags: z.array(z.string()).optional(),

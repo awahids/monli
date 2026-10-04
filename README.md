@@ -22,6 +22,9 @@ Untuk mengaktifkan pembayaran Midtrans, siapkan variabel lingkungan berikut:
 - `MIDTRANS_SERVER_KEY` – server key dari Midtrans
 - `NEXT_PUBLIC_MIDTRANS_CLIENT_KEY` – client key untuk skrip Snap
 - `NEXT_PUBLIC_MIDTRANS_IS_PRODUCTION` – set ke `true` bila menggunakan mode produksi; biarkan kosong untuk sandbox
+- `SUPABASE_SERVICE_ROLE_KEY` – wajib; status pembayaran dan plan hanya ditulis dari server
+
+Atur **Payment Notification URL** di dashboard Midtrans ke `https://<domain>/api/payments/notify`. Plan user hanya di-upgrade ke PRO setelah status pembayaran diverifikasi langsung ke Midtrans (lewat webhook ini atau saat halaman pembayaran dibuka), tidak pernah dari status yang dikirim browser.
 
 ## Konfigurasi OCR SumoPod
 

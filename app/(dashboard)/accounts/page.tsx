@@ -7,7 +7,6 @@ import { MoreHorizontal, Plus, Copy } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { useAppStore } from '@/lib/store';
-import { supabase } from '@/lib/supabase';
 import { formatCurrency } from '@/lib/currency';
 import { Account } from '@/types';
 import { Card } from '@/components/ui/card';
@@ -38,14 +37,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from '@/components/ui/pagination';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const typeLabels: Record<Account['type'], string> = {
   bank: 'Bank Account',
@@ -57,21 +49,21 @@ const formatAccountNumber = (num: string) =>
   num.replace(/(\d{4})(?=\d)/g, '$1 ');
 
 export default function AccountsPage() {
-  const {
-    user,
-    accounts,
-    setAccounts,
-    loading,
-    setLoading,
-  } = useAppStore();
+  const { user, setAccounts } = useAppStore();
   const router = useRouter();
 
+  const [rows, setRows] = useState<Account[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [tab, setTab] = useState<'active' | 'archived'>('active');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
-  const [page, setPage] = useState(1);
-  const pageSize = 20;
-  const [total, setTotal] = useState(0);
-  const disableAdd = user?.plan === 'FREE' && accounts.length >= 1;
+  // The server's FREE limit counts archived accounts too.
+  const disableAdd = user?.plan === 'FREE' && rows.length >= 1;
+  const activeAccounts = rows.filter((a) => !a.archived);
+  const archivedAccounts = rows.filter((a) => a.archived);
+  // Fall back to the active list once nothing is archived (tabs are hidden).
+  const currentTab = archivedAccounts.length ? tab : 'active';
+  const accounts = currentTab === 'active' ? activeAccounts : archivedAccounts;
   const userInitials =
     user?.name
       ?.split(' ')
@@ -79,52 +71,55 @@ export default function AccountsPage() {
       .join('')
       .toUpperCase() || '';
 
+  // Load archived accounts as well so they can be found and restored; only
+  // active ones go to the shared store used by transaction forms.
   const fetchAccounts = useCallback(async () => {
     if (!user) return;
-    setLoading(true);
     try {
-      const res = await fetch(`/api/accounts?page=${page}&pageSize=${pageSize}`);
+      const res = await fetch('/api/accounts?includeArchived=true&pageSize=100');
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to fetch accounts');
-      setAccounts(data.rows);
-      setTotal(data.total);
+      const all: Account[] = data.rows;
+      setRows(all);
+      setAccounts(all.filter((a) => !a.archived));
     } catch (error) {
       console.error('Failed to fetch accounts:', error);
       toast.error('Failed to fetch accounts');
     } finally {
       setLoading(false);
     }
-  }, [user, page, setAccounts, setLoading]);
+  }, [user, setAccounts]);
 
   useEffect(() => {
     fetchAccounts();
   }, [fetchAccounts]);
 
   const handleDelete = async (id: string) => {
-    try {
-      const { error } = await supabase.from('accounts').delete().eq('id', id);
-      if (error) throw error;
-      toast.success('Account deleted');
-      await fetchAccounts();
-    } catch (err) {
-      console.error('Failed to delete account:', err);
-      toast.error('Failed to delete account');
+    const res = await fetch(`/api/accounts/${id}?permanent=true`, {
+      method: 'DELETE',
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      toast.error(data.error || 'Failed to delete account');
+      return;
     }
+    toast.success('Account deleted');
+    await fetchAccounts();
   };
 
   const handleArchive = async (id: string, archived: boolean) => {
-    try {
-      const { error } = await supabase
-        .from('accounts')
-        .update({ archived })
-        .eq('id', id);
-      if (error) throw error;
-      toast.success(archived ? 'Account archived' : 'Account unarchived');
-      await fetchAccounts();
-    } catch (err) {
-      console.error('Failed to update account:', err);
-      toast.error('Failed to update account');
+    const res = await fetch(`/api/accounts/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ archived }),
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      toast.error(data.error || 'Failed to update account');
+      return;
     }
+    toast.success(archived ? 'Account archived' : 'Account restored');
+    await fetchAccounts();
   };
 
   if (loading) {
@@ -139,17 +134,14 @@ export default function AccountsPage() {
           <p className="text-muted-foreground">View and manage your cards.</p>
         </div>
         {!disableAdd && (
-          <div className="hidden md:block">
-            <Button
-              onClick={() => {
-                setEditingAccount(null);
-                setDialogOpen(true);
-              }}
-              className="transition-transform hover:scale-105"
-            >
-              Add Card
-            </Button>
-          </div>
+          <Button
+            onClick={() => {
+              setEditingAccount(null);
+              setDialogOpen(true);
+            }}
+          >
+            <Plus className="mr-1 h-4 w-4" /> Add Card
+          </Button>
         )}
       </div>
       {disableAdd && (
@@ -159,6 +151,25 @@ export default function AccountsPage() {
             Upgrade
           </Link>{' '}
           to add more.
+        </p>
+      )}
+
+      {archivedAccounts.length > 0 && (
+        <Tabs value={currentTab} onValueChange={(v) => setTab(v as 'active' | 'archived')}>
+          <TabsList>
+            <TabsTrigger value="active">Active ({activeAccounts.length})</TabsTrigger>
+            <TabsTrigger value="archived">
+              Archived ({archivedAccounts.length})
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+      )}
+
+      {accounts.length === 0 && (
+        <p className="text-sm text-muted-foreground">
+          {currentTab === 'active'
+            ? 'No cards yet. Add one to start tracking balances.'
+            : 'No archived cards.'}
         </p>
       )}
 
@@ -228,7 +239,8 @@ export default function AccountsPage() {
                                 Delete account?
                               </AlertDialogTitle>
                               <AlertDialogDescription>
-                                This action cannot be undone.
+                                This cannot be undone. Accounts that still have
+                                transactions can only be archived.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
@@ -285,52 +297,6 @@ export default function AccountsPage() {
         })}
       </div>
 
-      {total > pageSize && (
-        <Pagination className="pt-4">
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                className={page === 1 ? 'pointer-events-none opacity-50' : ''}
-              />
-            </PaginationItem>
-            {Array.from({ length: Math.ceil(total / pageSize) }).map((_, i) => (
-              <PaginationItem key={i}>
-                <PaginationLink
-                  isActive={page === i + 1}
-                  onClick={() => setPage(i + 1)}
-                >
-                  {i + 1}
-                </PaginationLink>
-              </PaginationItem>
-            ))}
-            <PaginationItem>
-              <PaginationNext
-                onClick={() =>
-                  setPage((p) => Math.min(Math.ceil(total / pageSize), p + 1))
-                }
-                className={
-                  page === Math.ceil(total / pageSize)
-                    ? 'pointer-events-none opacity-50'
-                    : ''
-                }
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
-      )}
-
-      {!disableAdd && (
-        <Button
-          onClick={() => {
-            setEditingAccount(null);
-            setDialogOpen(true);
-          }}
-          className="md:hidden fixed right-6 bottom-[calc(5rem+env(safe-area-inset-bottom))] h-12 w-12 rounded-full p-0 shadow-lg transition-transform hover:scale-105"
-        >
-          <Plus className="h-6 w-6" />
-        </Button>
-      )}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-md w-full h-full sm:h-auto sm:max-h-[90vh] overflow-y-auto p-0 sm:p-6">
           <DialogHeader className="px-4 pt-4 sm:px-0 sm:pt-0">

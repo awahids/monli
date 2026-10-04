@@ -1,17 +1,15 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Plus, Eye } from 'lucide-react';
 import { format } from 'date-fns';
+import { toast } from 'sonner';
 
-import { supabase } from '@/lib/supabase/client';
 import { useAppStore } from '@/lib/store';
 import { formatIDR } from '@/lib/currency';
-import { Budget, Transaction } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
 import {
   Select,
   SelectContent,
@@ -32,79 +30,43 @@ import {
   TableRow,
 } from '@/components/ui/table';
 
-const toCamel = (str: string) =>
-  str.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
-
-function keysToCamel<T>(obj: any): T {
-  if (Array.isArray(obj)) {
-    return obj.map((v) => keysToCamel(v)) as any;
-  }
-  if (obj && typeof obj === 'object' && obj.constructor === Object) {
-    const result: Record<string, any> = {};
-    for (const [key, value] of Object.entries(obj)) {
-      result[toCamel(key)] = keysToCamel(value);
-    }
-    return result as T;
-  }
-  return obj as T;
-}
+type BudgetSummary = {
+  id: string;
+  month: string;
+  planned: number;
+  actual: number;
+};
 
 export default function BudgetsPage() {
-  const {
-    user,
-    budgets,
-    transactions,
-    setBudgets,
-    setTransactions,
-    loading,
-    setLoading,
-    getMonthlySpending,
-  } = useAppStore();
+  const { user } = useAppStore();
 
+  const [budgets, setBudgets] = useState<BudgetSummary[]>([]);
+  const [loading, setLoading] = useState(true);
   const [year, setYear] = useState('all');
   const [selectedBudgetId, setSelectedBudgetId] = useState<string | null>(null);
   const [isAdding, setIsAdding] = useState(false);
   const disableAdd = user?.plan === 'FREE' && budgets.length >= 2;
 
-  useEffect(() => {
+  // Planned vs actual is computed on the server (actual by budget_month), so
+  // the numbers no longer depend on which transactions happen to be cached.
+  const fetchBudgets = useCallback(async () => {
     if (!user) return;
+    try {
+      const res = await fetch('/api/budgets?year=all&pageSize=240');
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to fetch budgets');
+      setBudgets(data.data ?? []);
+    } catch (error) {
+      console.error('Failed to fetch budgets:', error);
+      toast.error('Gagal memuat anggaran');
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
 
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const { data: budgetsData } = await supabase
-          .from('budgets')
-          .select(
-            `*, items:budget_items(*, category:categories(*))`
-          )
-          .eq('user_id', user.id);
-        if (budgetsData) setBudgets(keysToCamel<Budget[]>(budgetsData));
-
-        if (!transactions.length) {
-          const { data: transactionsData } = await supabase
-            .from('transactions')
-            .select(
-              `
-              *,
-              account:accounts!transactions_account_id_fkey(name, type),
-              from_account:accounts!transactions_from_account_id_fkey(name, type),
-              to_account:accounts!transactions_to_account_id_fkey(name, type),
-              category:categories(name, color, icon)
-            `
-            )
-            .eq('user_id', user.id);
-          if (transactionsData)
-            setTransactions(keysToCamel<Transaction[]>(transactionsData));
-        }
-      } catch (error) {
-        console.error('Failed to fetch budgets:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [user, setBudgets, setTransactions, transactions.length, setLoading]);
+  useEffect(() => {
+    fetchBudgets();
+  }, [fetchBudgets]);
 
   const years = Array.from(
     new Set(budgets.map((b) => b.month.slice(0, 4)))
@@ -113,9 +75,8 @@ export default function BudgetsPage() {
     (b) => year === 'all' || b.month.startsWith(year)
   );
 
-  const getBudgetTotals = (budget: Budget) => {
-    const planned = budget.totalAmount;
-    const actual = getMonthlySpending(budget.month);
+  const getBudgetTotals = (budget: BudgetSummary) => {
+    const { planned, actual } = budget;
     const progress = planned ? (actual / planned) * 100 : 0;
     const indicatorColor =
       progress < 70
@@ -131,7 +92,7 @@ export default function BudgetsPage() {
   };
 
   // Card versi mobile/tablet, dengan tombol view lebih besar dan mudah diakses
-  const renderBudgetCard = (budget: Budget) => {
+  const renderBudgetCard = (budget: BudgetSummary) => {
     const { planned, actual, progress, indicatorColor } =
       getBudgetTotals(budget);
 
@@ -153,8 +114,7 @@ export default function BudgetsPage() {
             className="mt-2 sm:mt-0 w-full sm:w-auto flex items-center gap-1 transition-transform hover:scale-105"
           >
             <Eye className="h-4 w-4" />
-            <span className="hidden xs:inline">Lihat</span>
-            <span className="inline xs:hidden">Detail</span>
+            <span>Detail</span>
           </Button>
         </CardHeader>
         <CardContent className="space-y-2">
@@ -191,10 +151,10 @@ export default function BudgetsPage() {
           </p>
         </div>
         {!disableAdd && (
-          <div className="hidden md:block">
+          <div>
             <Button
               onClick={() => setIsAdding(true)}
-              className="transition-transform hover:scale-105 flex items-center gap-1"
+              className="flex w-full items-center gap-1 sm:w-auto"
             >
               <Plus className="h-4 w-4" />
               Buat Anggaran
@@ -229,7 +189,23 @@ export default function BudgetsPage() {
       </div>
 
       {/* Responsive grid: 1 kolom di mobile, 2 di sm, 3 di md */}
-      <div className="grid gap-4 grid-cols-1 xs:grid-cols-2 md:hidden">
+      {filteredBudgets.length === 0 && (
+        <Card className="border-dashed">
+          <CardContent className="flex flex-col items-center gap-3 py-10 text-center">
+            <p className="font-medium">Belum ada anggaran</p>
+            <p className="text-sm text-muted-foreground">
+              Buat anggaran bulanan untuk memantau pengeluaranmu.
+            </p>
+            {!disableAdd && (
+              <Button onClick={() => setIsAdding(true)}>
+                <Plus className="mr-1 h-4 w-4" /> Buat Anggaran
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:hidden">
         {filteredBudgets.map((b) => renderBudgetCard(b))}
       </div>
 
@@ -288,27 +264,19 @@ export default function BudgetsPage() {
         </Table>
       </div>
 
-      {/* Tombol tambah di mobile, selalu fixed dan mudah dijangkau */}
-      {!disableAdd && (
-        <Button
-          onClick={() => setIsAdding(true)}
-          className={cn(
-            'md:hidden fixed right-6 bottom-[calc(5rem+env(safe-area-inset-bottom))] h-14 w-14 rounded-full p-0 shadow-lg',
-            'flex items-center justify-center bg-primary text-white transition-transform hover:scale-105'
-          )}
-          aria-label="Buat Anggaran"
-        >
-          <Plus className="h-7 w-7" />
-        </Button>
-      )}
       <BudgetDetailDialog
         budgetId={selectedBudgetId}
         open={selectedBudgetId !== null}
         onOpenChange={(open) => {
           if (!open) setSelectedBudgetId(null);
         }}
+        onChanged={fetchBudgets}
       />
-      <BudgetFormDialog open={isAdding} onOpenChange={setIsAdding} />
+      <BudgetFormDialog
+        open={isAdding}
+        onOpenChange={setIsAdding}
+        onCreated={fetchBudgets}
+      />
     </div>
   );
 }

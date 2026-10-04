@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createServerClient } from '@/lib/supabase/server';
 import { getUser } from '@/lib/auth/server';
+import { nextMonthStart } from '@/lib/date';
 import type { Database } from '@/types/database';
 
 export const revalidate = 60;
@@ -19,11 +20,9 @@ export async function GET(req: Request) {
     }
     const { searchParams } = new URL(req.url);
     const month = searchParams.get('month');
-    if (!month) {
-      return NextResponse.json({ error: 'month is required' }, { status: 400 });
+    if (!month || !/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) {
+      return NextResponse.json({ error: 'month is required (YYYY-MM)' }, { status: 400 });
     }
-    const start = new Date(`${month}-01T00:00:00.000Z`);
-    const end = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth() + 1, 1));
 
     type TxRow = Database['public']['Tables']['transactions']['Row'] & {
       category: Pick<Database['public']['Tables']['categories']['Row'], 'name' | 'color'> | null;
@@ -33,8 +32,8 @@ export async function GET(req: Request) {
       .select('amount, category_id, category:categories(name, color)')
       .eq('user_id', user.id)
       .eq('type', 'expense')
-      .gte('actual_date', start.toISOString())
-      .lt('actual_date', end.toISOString())
+      .gte('actual_date', `${month}-01`)
+      .lt('actual_date', nextMonthStart(month))
       .returns<TxRow[]>();
 
     if (error) {

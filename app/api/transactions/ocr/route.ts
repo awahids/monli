@@ -31,16 +31,14 @@ export async function POST(req: Request) {
     const client = createSumopodClient();
     const model = getSumopodModel();
 
-    if (user.email) {
-      const isUnlimited = profile?.ai_unlimited;
+    if (user.email && !profile?.ai_unlimited) {
       const count = await getAiUsageCount(supabase, user.email, 'ocr');
-      if (!isUnlimited && count >= 30) {
+      if (count >= 30) {
         return NextResponse.json(
           { error: 'OCR usage limit reached' },
           { status: 403 }
         );
       }
-      await logAiUsage(supabase, user.email, 'ocr');
     }
 
     const completion = await client.chat.completions.create({
@@ -72,6 +70,8 @@ export async function POST(req: Request) {
     });
 
     const content = completion.choices[0]?.message?.content || '{}';
+    // Only successful scans count towards the quota.
+    if (user.email) await logAiUsage(supabase, user.email, 'ocr');
     let data: any = {};
     try {
       data = JSON.parse(content);

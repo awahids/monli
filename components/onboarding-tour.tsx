@@ -1,27 +1,48 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Joyride, { CallBackProps, STATUS, Step } from 'react-joyride';
 import { useAppStore } from '@/lib/store';
 
+const TOUR = [
+  {
+    href: '/budgets',
+    content: 'Kelola dan rencanakan pengeluaranmu lewat fitur Budgets.',
+  },
+  {
+    href: '/transactions',
+    content: 'Catat pemasukan dan pengeluaran di halaman Transactions.',
+  },
+  {
+    href: '/settings',
+    content: 'Atur preferensi aplikasi pada halaman Settings.',
+  },
+];
+
+// The same link exists in the desktop sidebar and the mobile bottom nav;
+// only one of them is visible at a time.
+function findVisibleLink(href: string): HTMLElement | null {
+  const links = Array.from(
+    document.querySelectorAll<HTMLElement>(`a[href="${href}"]`),
+  );
+  return links.find((el) => el.getClientRects().length > 0) ?? null;
+}
+
 export function OnboardingTour() {
   const { user, setUser } = useAppStore();
+  const [steps, setSteps] = useState<Step[]>([]);
+  const shouldRun = Boolean(user && !user.onboardingCompleted);
 
-  if (!user || user.onboardingCompleted) return null;
+  useEffect(() => {
+    if (!shouldRun) return;
+    const resolved = TOUR.flatMap(({ href, content }) => {
+      const target = findVisibleLink(href);
+      return target ? [{ target, content }] : [];
+    });
+    setSteps(resolved);
+  }, [shouldRun]);
 
-  const steps: Step[] = [
-    {
-      target: 'a[href="/budgets"]',
-      content: 'Kelola dan rencanakan pengeluaranmu lewat fitur Budgets.',
-    },
-    {
-      target: 'a[href="/transactions"]',
-      content: 'Catat pemasukan dan pengeluaran di halaman Transactions.',
-    },
-    {
-      target: 'a[href="/settings"]',
-      content: 'Atur preferensi aplikasi pada halaman Settings.',
-    },
-  ];
+  if (!user || !shouldRun || steps.length === 0) return null;
 
   const handleCallback = async (data: CallBackProps) => {
     if (data.status === STATUS.FINISHED || data.status === STATUS.SKIPPED) {

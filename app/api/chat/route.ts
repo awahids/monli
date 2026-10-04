@@ -39,8 +39,6 @@ export async function POST(req: Request) {
         { status: 403 }
       );
     }
-    await logAiUsage(supabase, user.email, 'chat');
-
     const [accountsRes, categoriesRes, budgetsRes, transactionsRes, paymentsRes] =
       await Promise.all([
         supabase
@@ -59,9 +57,9 @@ export async function POST(req: Request) {
           .eq('user_id', user.id),
         supabase
           .from('transactions')
-          .select('date, amount, type, account_id, category_id, note, tags')
+          .select('actual_date, budget_month, amount, type, account_id, category_id, note, tags')
           .eq('user_id', user.id)
-          .order('date', { ascending: false }),
+          .order('actual_date', { ascending: false }),
         supabase
           .from('payments')
           .select('order_id, product_name, amount, status, created_at')
@@ -115,6 +113,8 @@ export async function POST(req: Request) {
     });
 
     const answer = completion.choices[0]?.message?.content || '';
+    // Only successful answers count towards the quota.
+    await logAiUsage(supabase, user.email, 'chat');
     return NextResponse.json({ answer });
   } catch (e) {
     console.error(e);

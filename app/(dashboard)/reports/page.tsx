@@ -30,6 +30,7 @@ import { formatIDR } from '@/lib/currency';
 import { Download, Filter } from 'lucide-react';
 import CategoryMovementChart from '@/components/reports/category-movement-chart';
 import { useAppStore } from '@/lib/store';
+import { currentMonth } from '@/lib/date';
 
 interface TrendRow {
   month: string;
@@ -51,8 +52,8 @@ interface SummaryResponse {
 
 export default function ReportsPage() {
   const now = new Date();
-  const defaultMonth = now.toISOString().slice(0, 7);
-  const defaultYear = String(now.getUTCFullYear());
+  const defaultMonth = currentMonth(now);
+  const defaultYear = defaultMonth.slice(0, 4);
 
   const { user } = useAppStore();
   const [month, setMonth] = useState(defaultMonth);

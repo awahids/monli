@@ -114,6 +114,19 @@ class OfflineStorage {
     });
   }
 
+  async removePendingSync(id: string): Promise<void> {
+    if (!this.db) await this.init();
+
+    const transaction = this.db!.transaction(['pendingSync'], 'readwrite');
+    const store = transaction.objectStore('pendingSync');
+
+    return new Promise((resolve, reject) => {
+      const request = store.delete(id);
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject(request.error);
+    });
+  }
+
   async clearPendingSync(): Promise<void> {
     if (!this.db) await this.init();
 

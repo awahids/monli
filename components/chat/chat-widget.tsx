@@ -39,7 +39,7 @@ export function ChatWidget() {
   };
 
   return (
-    <div className="fixed right-4 bottom-20 z-50 sm:bottom-4">
+    <div className="fixed right-4 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] z-50 md:bottom-4">
       {open ? (
         <div className="w-[calc(100vw-2rem)] h-[calc(100vh-8rem)] max-w-sm rounded-lg border bg-background shadow-lg flex flex-col sm:w-80 sm:h-96">
           <div className="flex items-center justify-between p-2 border-b">

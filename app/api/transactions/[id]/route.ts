@@ -101,11 +101,13 @@ export async function PATCH(
         actual_date: body.actualDate,
         budget_month: body.budgetMonth,
         type: newType,
-        account_id: newAccountId,
-        from_account_id: newFrom,
-        to_account_id: newTo,
+        // Clear fields that belong to the other type so balances and
+        // reports never pick up stale accounts or categories.
+        account_id: newType === 'transfer' ? null : newAccountId,
+        from_account_id: newType === 'transfer' ? newFrom : null,
+        to_account_id: newType === 'transfer' ? newTo : null,
         amount: newAmount,
-        category_id: newCategoryId,
+        category_id: newType === 'transfer' ? null : newCategoryId,
         note: body.note,
         tags: body.tags,
       })

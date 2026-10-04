@@ -7,12 +7,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { formatIDR } from '@/lib/currency';
 import { useAppStore } from '@/lib/store';
+import { getCurrentUser } from '@/lib/auth';
 import type { SnapResult } from '@/types/snap';
 
 export default function UpgradePage() {
   const { toast } = useToast();
   const router = useRouter();
-  const { user } = useAppStore();
+  const { user, setUser } = useAppStore();
   const clientKey = process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY || '';
   // Discounted price for a limited time promotion
   const originalPrice = 50000;
@@ -42,39 +43,40 @@ export default function UpgradePage() {
       }
       const { token, orderId } = await res.json();
       if (window.snap) {
+        // The server re-checks every status with Midtrans; the browser only
+        // asks it to refresh.
+        const refresh = async (id: string) => {
+          const r = await fetch(`/api/payments/${id}`);
+          const data = await r.json().catch(() => ({}));
+          if (data.payment?.status === 'success') {
+            const current = await getCurrentUser();
+            if (current) setUser(current);
+          }
+          return data.payment?.status as string | undefined;
+        };
         window.snap.pay(token, {
           onSuccess: async (result: SnapResult) => {
-            await fetch(`/api/payments/${result.order_id}`, {
-              method: 'PATCH',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ status: 'success' }),
+            const status = await refresh(result.order_id);
+            toast({
+              description:
+                status === 'success'
+                  ? 'Payment successful'
+                  : 'Payment received, waiting for confirmation',
             });
-            toast({ description: 'Payment successful' });
             router.push(`/payments/${result.order_id}`);
           },
           onPending: async (result: SnapResult) => {
-            await fetch(`/api/payments/${result.order_id}`, {
-              method: 'PATCH',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ status: 'pending' }),
-            });
+            await refresh(result.order_id);
             toast({ description: 'Payment pending' });
+            router.push(`/payments/${result.order_id}`);
           },
           onError: async (result: SnapResult) => {
-            await fetch(`/api/payments/${result.order_id}`, {
-              method: 'PATCH',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ status: 'failed' }),
-            });
+            await refresh(result.order_id);
             toast({ description: 'Payment failed', variant: 'destructive' });
           },
           onClose: async () => {
-            await fetch(`/api/payments/${orderId}`, {
-              method: 'PATCH',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ status: 'canceled' }),
-            });
-            toast({ description: 'Payment popup closed', variant: 'destructive' });
+            await refresh(orderId);
+            toast({ description: 'Payment popup closed' });
           },
         });
       } else {

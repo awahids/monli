@@ -32,14 +32,9 @@ interface AppState {
 
   addChatMessage: (message: ChatMessage) => void;
   clearChatMessages: () => void;
-  
-  // Computed
-  getCurrentBalance: (accountId: string) => number;
-  getCategorySpending: (categoryId: string, month: string) => number;
-  getMonthlySpending: (month: string) => number;
 }
 
-export const useAppStore = create<AppState>((set, get) => ({
+export const useAppStore = create<AppState>((set) => ({
   user: null,
   accounts: [],
   categories: [],
@@ -60,53 +55,4 @@ export const useAppStore = create<AppState>((set, get) => ({
   addChatMessage: (message) =>
     set(state => ({ chatMessages: [...state.chatMessages, message] })),
   clearChatMessages: () => set({ chatMessages: [] }),
-
-  getCurrentBalance: (accountId: string) => {
-    const { accounts, transactions } = get();
-    const account = accounts.find(a => a.id === accountId);
-    if (!account) return 0;
-
-    const accountTransactions = transactions.filter(t => 
-      t.accountId === accountId || t.fromAccountId === accountId || t.toAccountId === accountId
-    );
-
-    let balance = account.openingBalance;
-    
-    accountTransactions.forEach(t => {
-      if (t.type === 'income' && t.accountId === accountId) {
-        balance += t.amount;
-      } else if (t.type === 'expense' && t.accountId === accountId) {
-        balance -= t.amount;
-      } else if (t.type === 'transfer') {
-        if (t.fromAccountId === accountId) {
-          balance -= t.amount;
-        } else if (t.toAccountId === accountId) {
-          balance += t.amount;
-        }
-      }
-    });
-
-    return balance;
-  },
-
-  getCategorySpending: (categoryId: string, month: string) => {
-    const { transactions } = get();
-    return transactions
-      .filter(
-        (t) =>
-          t.categoryId === categoryId &&
-          t.type === 'expense' &&
-          t.budgetMonth === month
-      )
-      .reduce((sum, t) => sum + t.amount, 0);
-  },
-
-  getMonthlySpending: (month: string) => {
-    const { transactions } = get();
-    return transactions
-      .filter(
-        (t) => t.type === 'expense' && t.budgetMonth === month
-      )
-      .reduce((sum, t) => sum + t.amount, 0);
-  },
 }));

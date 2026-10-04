@@ -3,7 +3,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { useAppStore } from '@/lib/store';
 import { supabase } from '@/lib/supabase';
-import { Budget, Category } from '@/types';
+import { Category } from '@/types';
+import { keysToCamel } from '@/lib/case';
+import { currentMonth } from '@/lib/date';
 import { toast } from 'sonner';
 import { formatIDR, parseIDR } from '@/lib/currency';
 import {
@@ -23,33 +25,18 @@ import {
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 
-const toCamel = (str: string) => str.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
-
-function keysToCamel<T>(obj: any): T {
-  if (Array.isArray(obj)) {
-    return obj.map((v) => keysToCamel(v)) as any;
-  }
-  if (obj && typeof obj === 'object' && obj.constructor === Object) {
-    const result: Record<string, any> = {};
-    for (const [key, value] of Object.entries(obj)) {
-      result[toCamel(key)] = keysToCamel(value);
-    }
-    return result as T;
-  }
-  return obj as T;
-}
-
 type ItemInput = { categoryId: string; amount: string };
 
 type BudgetFormDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onCreated?: () => void;
 };
 
-export function BudgetFormDialog({ open, onOpenChange }: BudgetFormDialogProps) {
-  const { user, budgets, setBudgets } = useAppStore();
+export function BudgetFormDialog({ open, onOpenChange, onCreated }: BudgetFormDialogProps) {
+  const { user } = useAppStore();
   const [categories, setCategories] = useState<Category[]>([]);
-  const [month, setMonth] = useState<string>(() => new Date().toISOString().slice(0, 7));
+  const [month, setMonth] = useState<string>(() => currentMonth());
   const [total, setTotal] = useState(0);
   const [items, setItems] = useState<ItemInput[]>([{ categoryId: '', amount: '' }]);
   const [submitting, setSubmitting] = useState(false);
@@ -105,13 +92,10 @@ export function BudgetFormDialog({ open, onOpenChange }: BudgetFormDialogProps) 
       body: JSON.stringify(payload),
     });
     if (res.ok) {
-      const data = await res.json();
-      const newBudget = keysToCamel<Budget>(data);
-      newBudget.items = [];
-      setBudgets([...budgets, newBudget]);
       toast.success('Budget created');
       onOpenChange(false);
-      setMonth(new Date().toISOString().slice(0, 7));
+      onCreated?.();
+      setMonth(currentMonth());
       setTotal(0);
       setItems([{ categoryId: '', amount: '' }]);
     } else {

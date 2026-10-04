@@ -20,6 +20,7 @@ import { Moon, Sun, Laptop, User, LogOut } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTheme } from 'next-themes';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { MobileSidebar } from './sidebar';
 
 function UserNav() {
@@ -88,10 +89,10 @@ function UserNav() {
           </DropdownMenuSubContent>
         </DropdownMenuSub>
         <DropdownMenuItem asChild>
-          <a href="/settings" className="flex items-center">
+          <Link href="/settings" className="flex items-center">
             <User className="mr-2 h-4 w-4" />
             <span>Settings</span>
-          </a>
+          </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleSignOut}>

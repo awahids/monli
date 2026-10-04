@@ -38,25 +38,20 @@ export async function GET(req: Request) {
     let query = supabase
       .from('transactions')
       .select(
-        `date, type, amount, note, tags,
+        `actual_date, type, amount, note, tags,
         account:accounts!transactions_account_id_fkey(name),
         from_account:accounts!transactions_from_account_id_fkey(name),
         to_account:accounts!transactions_to_account_id_fkey(name),
         category:categories(name)`
       )
       .eq('user_id', user.id)
-      .order('date', { ascending: true });
+      .order('actual_date', { ascending: true });
 
     if (from) {
-      const start = new Date(`${from}T00:00:00.000Z`);
-      query = query.gte('date', start.toISOString());
+      query = query.gte('actual_date', from);
     }
     if (to) {
-      const endDay = new Date(`${to}T00:00:00.000Z`);
-      const end = new Date(
-        Date.UTC(endDay.getUTCFullYear(), endDay.getUTCMonth(), endDay.getUTCDate() + 1)
-      );
-      query = query.lt('date', end.toISOString());
+      query = query.lte('actual_date', to);
     }
     if (type) {
       query = query.eq('type', type);
@@ -91,7 +86,7 @@ export async function GET(req: Request) {
       const note = (tx.note ?? '').replace(/\r?\n/g, ' ');
       const tags = (tx.tags ?? []).join('|');
       const row = [
-        new Date(tx.date).toISOString(),
+        tx.actual_date,
         tx.type,
         tx.account?.name ?? '',
         tx.from_account?.name ?? '',

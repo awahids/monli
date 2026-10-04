@@ -36,137 +36,100 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { supabase } from '@/lib/supabase';
 import { useAppStore } from '@/lib/store';
 import { formatIDR } from '@/lib/currency';
-import { Budget, BudgetItem, Category, Transaction } from '@/types';
-
-function toCamel(str: string) {
-  return str.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
-}
-
-function keysToCamel<T>(obj: any): T {
-  if (Array.isArray(obj)) {
-    return obj.map((v) => keysToCamel(v)) as any;
-  }
-  if (obj && typeof obj === 'object' && obj.constructor === Object) {
-    const result: Record<string, any> = {};
-    for (const [key, value] of Object.entries(obj)) {
-      result[toCamel(key)] = keysToCamel(value);
-    }
-    return result as T;
-  }
-  return obj as T;
-}
+import { Budget, BudgetItem, Category } from '@/types';
+import { keysToCamel } from '@/lib/case';
 
 type BudgetDetailDialogProps = {
   budgetId: string | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** Called after items change so the list can refresh its totals. */
+  onChanged?: () => void;
 };
 
 export function BudgetDetailDialog({
   budgetId,
   open,
   onOpenChange,
+  onChanged,
 }: BudgetDetailDialogProps) {
-  const {
-    user,
-    budgets,
-    categories,
-    transactions,
-    setBudgets,
-    setCategories,
-    setTransactions,
-    loading,
-    setLoading,
-    getCategorySpending,
-    getMonthlySpending,
-  } = useAppStore();
+  const { user, categories, setCategories } = useAppStore();
 
   const [budget, setBudget] = useState<Budget | null>(null);
   const [items, setItems] = useState<BudgetItem[]>([]);
+  const [actuals, setActuals] = useState<Record<string, number>>({});
+  const [totalSpent, setTotalSpent] = useState(0);
+  const [loading, setLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [newCategoryId, setNewCategoryId] = useState('');
   const [newAmount, setNewAmount] = useState('');
   const isPro = user?.plan === 'PRO';
 
+  // Always load the budget fresh (with items) and get spending from the
+  // server, attributed by budget_month. Loading state is local so the page
+  // behind the dialog stays mounted.
   useEffect(() => {
     if (!budgetId || !user || !isPro) return;
+    let cancelled = false;
 
     const fetchData = async () => {
       setLoading(true);
       try {
-        if (!budgets.find((b) => b.id === budgetId)) {
-          const { data: budgetData } = await supabase
-            .from('budgets')
-            .select(`*, items:budget_items(*, category:categories(*))`)
-            .eq('user_id', user.id)
-            .eq('id', budgetId)
-            .single();
-          if (budgetData) {
-            const fetchedBudget = keysToCamel<Budget>(budgetData);
-            const existing = budgets.find((b) => b.id === fetchedBudget.id);
-            const updatedBudgets = existing
-              ? budgets.map((b) =>
-                  b.id === fetchedBudget.id ? fetchedBudget : b
-                )
-              : [...budgets, fetchedBudget];
-            setBudgets(updatedBudgets);
-            setBudget(fetchedBudget);
-            setItems(fetchedBudget.items || []);
+        const { data: budgetData, error } = await supabase
+          .from('budgets')
+          .select(`*, items:budget_items(*, category:categories(*))`)
+          .eq('user_id', user.id)
+          .eq('id', budgetId)
+          .single();
+        if (error || !budgetData) throw error ?? new Error('Budget not found');
+        const fetchedBudget = keysToCamel<Budget>(budgetData);
+
+        const [reportRes, categoriesData] = await Promise.all([
+          fetch(`/api/reports/monthly?month=${fetchedBudget.month}`).then((r) =>
+            r.json()
+          ),
+          useAppStore.getState().categories.length
+            ? Promise.resolve(null)
+            : supabase
+                .from('categories')
+                .select('*')
+                .eq('user_id', user.id)
+                .then(({ data }) => data),
+        ]);
+        if (cancelled) return;
+
+        setBudget(fetchedBudget);
+        setItems(fetchedBudget.items || []);
+        const map: Record<string, number> = {};
+        (reportRes.data ?? []).forEach(
+          (row: { categoryId: string; actual: number }) => {
+            map[row.categoryId] = row.actual;
           }
-        } else {
-          const existingBudget = budgets.find((b) => b.id === budgetId) || null;
-          setBudget(existingBudget);
-          setItems(existingBudget?.items || []);
-        }
-
-        if (!categories.length) {
-          const { data: categoriesData } = await supabase
-            .from('categories')
-            .select('*')
-            .eq('user_id', user.id);
-          if (categoriesData)
-            setCategories(keysToCamel<Category[]>(categoriesData));
-        }
-
-        if (!transactions.length) {
-          const { data: transactionsData } = await supabase
-            .from('transactions')
-            .select(
-              `
-              *,
-              account:accounts!transactions_account_id_fkey(name, type),
-              from_account:accounts!transactions_from_account_id_fkey(name, type),
-              to_account:accounts!transactions_to_account_id_fkey(name, type),
-              category:categories(name, color, icon)
-            `
-            )
-            .eq('user_id', user.id);
-          if (transactionsData)
-            setTransactions(keysToCamel<Transaction[]>(transactionsData));
-        }
+        );
+        setActuals(map);
+        setTotalSpent(reportRes.totalActual ?? 0);
+        if (categoriesData) setCategories(keysToCamel<Category[]>(categoriesData));
       } catch (error) {
         console.error('Failed to fetch budget:', error);
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
 
     fetchData();
-  }, [
-    budgetId,
-    user,
-    budgets,
-    categories.length,
-    transactions.length,
-    setBudgets,
-    setCategories,
-    setTransactions,
-    setLoading,
-    isPro,
-  ]);
+    return () => {
+      cancelled = true;
+    };
+  }, [budgetId, user, isPro, setCategories]);
+
+  useEffect(() => {
+    if (!open) {
+      setIsEditing(false);
+      setBudget(null);
+    }
+  }, [open]);
 
   const totalBudget = budget?.totalAmount ?? 0;
-  const totalSpent = budget ? getMonthlySpending(budget.month) : 0;
   const progress = totalBudget ? (totalSpent / totalBudget) * 100 : 0;
   const overallIndicatorColor =
     progress < 70
@@ -196,11 +159,7 @@ export function BudgetDetailDialog({
         i.id === itemId ? { ...i, amount } : i
       );
       setItems(updatedItems);
-      setBudgets(
-        budgets.map((b) =>
-          b.id === budget?.id ? { ...b, items: updatedItems } : b
-        )
-      );
+      onChanged?.();
     }
   };
 
@@ -212,11 +171,7 @@ export function BudgetDetailDialog({
     if (!error) {
       const updatedItems = items.filter((i) => i.id !== itemId);
       setItems(updatedItems);
-      setBudgets(
-        budgets.map((b) =>
-          b.id === budget?.id ? { ...b, items: updatedItems } : b
-        )
-      );
+      onChanged?.();
     }
   };
 
@@ -237,11 +192,7 @@ export function BudgetDetailDialog({
       const newItem = keysToCamel<BudgetItem>(data);
       const updatedItems = [...items, newItem];
       setItems(updatedItems);
-      setBudgets(
-        budgets.map((b) =>
-          b.id === budget.id ? { ...b, items: updatedItems } : b
-        )
-      );
+      onChanged?.();
       setNewCategoryId('');
       setNewAmount('');
     }
@@ -326,10 +277,7 @@ export function BudgetDetailDialog({
                     </TableHeader>
                     <TableBody>
                       {items.map((item) => {
-                        const spent = getCategorySpending(
-                          item.categoryId,
-                          budget.month
-                        );
+                        const spent = actuals[item.categoryId] ?? 0;
                         const progress = item.amount
                           ? (spent / item.amount) * 100
                           : 0;
@@ -457,10 +405,7 @@ export function BudgetDetailDialog({
               {/* Mobile cards */}
               <div className="space-y-4 md:hidden">
                 {items.map((item) => {
-                  const spent = getCategorySpending(
-                    item.categoryId,
-                    budget.month
-                  );
+                  const spent = actuals[item.categoryId] ?? 0;
                   const progress = item.amount ? (spent / item.amount) * 100 : 0;
                   const Icon =
                     item.category &&
