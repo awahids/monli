@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { getUser } from '@/lib/auth/server';
 import { createSumopodClient, getSumopodModel } from '@/lib/sumopod';
 import { createClient } from '@/lib/supabase/server';
-import { getAiUsageCount, logAiUsage } from '@/lib/ai-usage';
+import { AI_MONTHLY_LIMITS, getAiUsageCount, logAiUsage } from '@/lib/ai-usage';
 
 export async function POST(req: Request) {
   try {
@@ -33,9 +33,9 @@ export async function POST(req: Request) {
 
     if (user.email && !profile?.ai_unlimited) {
       const count = await getAiUsageCount(supabase, user.email, 'ocr');
-      if (count >= 30) {
+      if (count >= AI_MONTHLY_LIMITS.ocr) {
         return NextResponse.json(
-          { error: 'OCR usage limit reached' },
+          { error: `Kuota scan struk bulan ini (${AI_MONTHLY_LIMITS.ocr}x) sudah habis. Kuota direset tiap awal bulan.` },
           { status: 403 }
         );
       }

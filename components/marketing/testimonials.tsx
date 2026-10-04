@@ -9,16 +9,16 @@ gsap.registerPlugin(ScrollTrigger);
 
 const quotes = [
   {
-    quote: "“Qala Saku helps me keep tabs on every rupiah.”",
-    author: "Beta User",
+    quote: "“Qala Saku bikin aku tahu ke mana setiap rupiah pergi.”",
+    author: "Pengguna beta",
   },
   {
-    quote: "“Budgeting finally makes sense.”",
-    author: "Early Adopter",
+    quote: "“Akhirnya bikin budget terasa masuk akal.”",
+    author: "Pengguna awal",
   },
   {
-    quote: "“Clean design and dark mode—love it.”",
-    author: "Night Owl",
+    quote: "“Tampilannya bersih, mode gelapnya juga enak.”",
+    author: "Si burung hantu",
   },
 ];
 
@@ -46,7 +46,7 @@ export function Testimonials() {
   return (
     <section ref={sectionRef} className="py-24">
       <div className="mx-auto max-w-5xl space-y-8 px-4 text-center">
-        <h2 className="text-3xl font-bold">What users say</h2>
+        <h2 className="text-3xl font-bold">Kata pengguna</h2>
         <div className="grid gap-6 md:grid-cols-3">
           {quotes.map((q) => (
             <Card key={q.author} className="testimonial-card shadow-none">

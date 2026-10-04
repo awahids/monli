@@ -48,9 +48,9 @@ export function Footer() {
         <nav aria-label="Informasi" className="space-y-2">
           <p className="font-semibold">Informasi</p>
           <ul className="space-y-1.5 text-muted-foreground">
-            <li><Link href="#" className="hover:text-foreground">Privacy</Link></li>
-            <li><Link href="#" className="hover:text-foreground">Terms</Link></li>
-            <li><Link href="#" className="hover:text-foreground">Contact</Link></li>
+            <li><Link href="#" className="hover:text-foreground">Privasi</Link></li>
+            <li><Link href="#" className="hover:text-foreground">Ketentuan</Link></li>
+            <li><Link href="#" className="hover:text-foreground">Kontak</Link></li>
             <li><Link href="#" className="hover:text-foreground">Status</Link></li>
           </ul>
         </nav>

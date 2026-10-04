@@ -3,6 +3,7 @@ import { getUser } from "@/lib/auth/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getSnap } from "@/lib/midtrans";
+import { PRO_PRICE } from "@/lib/plans";
 
 export async function POST() {
   const snap = getSnap();
@@ -37,12 +38,12 @@ export async function POST() {
     const transaction = await snap.createTransaction({
       transaction_details: {
         order_id: orderId,
-        gross_amount: 9000,
+        gross_amount: PRO_PRICE,
       },
       item_details: [
         {
           id: "pro-plan",
-          price: 9000,
+          price: PRO_PRICE,
           quantity: 1,
           name: "Qala Saku Pro",
         },
@@ -57,7 +58,7 @@ export async function POST() {
       user_id: user.id,
       order_id: orderId,
       product_name: "Qala Saku Pro",
-      amount: 9000,
+      amount: PRO_PRICE,
       status: "pending",
       token: transaction.token,
     });

@@ -13,7 +13,7 @@ import {
   ResponsiveContainer,
   Label,
 } from 'recharts';
-import { toIDR } from '@/lib/currency';
+import { formatMoney } from '@/lib/currency';
 import type { ChartResponse } from '@/types';
 
 export default function CategoryMovementChart({ month }: { month: string }) {
@@ -61,10 +61,10 @@ export default function CategoryMovementChart({ month }: { month: string }) {
       return (
         <div className="rounded border bg-background p-2 text-xs">
           <div className="font-medium">{label}</div>
-          <div>Planned: {toIDR(p)}</div>
-          <div>Actual: {toIDR(a)}</div>
+          <div>Rencana: {formatMoney(p)}</div>
+          <div>Realisasi: {formatMoney(a)}</div>
           <div>
-            Diff: {toIDR(d)} {p > 0 && `(${diffPct.toFixed(0)}%)`}
+            Selisih: {formatMoney(d)} {p > 0 && `(${diffPct.toFixed(0)}%)`}
           </div>
         </div>
       );
@@ -75,13 +75,13 @@ export default function CategoryMovementChart({ month }: { month: string }) {
   return (
     <div className="space-y-4">
       {error && (
-        <div className="text-sm text-destructive">Failed to load data</div>
+        <div className="text-sm text-destructive">Gagal memuat data</div>
       )}
       {loading && (
-        <div className="text-sm text-muted-foreground">Loading...</div>
+        <div className="text-sm text-muted-foreground">Memuat...</div>
       )}
       {!loading && !error && chartData.length === 0 && (
-        <div className="text-sm text-muted-foreground">No data</div>
+        <div className="text-sm text-muted-foreground">Belum ada budget per kategori untuk bulan ini.</div>
       )}
       {chartData.length > 0 && (
         <div className="h-72">
@@ -96,13 +96,13 @@ export default function CategoryMovementChart({ month }: { month: string }) {
               >
                 <Label value="Categories" position="right" angle={90} dx={10} />
               </XAxis>
-              <YAxis tickFormatter={(v: number) => toIDR(v)} />
+              <YAxis tickFormatter={(v: number) => formatMoney(v)} />
               <Tooltip content={<CustomTooltip />} />
               <Legend />
               <ReferenceLine y={0} stroke="#888" />
-              <Line type="monotone" dataKey="planned" stroke="#3B82F6" dot name="Planned" />
-              <Line type="monotone" dataKey="actual" stroke="#16a34a" dot name="Actual" />
-              <Line type="monotone" dataKey="diff" stroke="#dc2626" dot name="Diff" />
+              <Line type="monotone" dataKey="planned" stroke="hsl(var(--chart-1))" dot name="Rencana" />
+              <Line type="monotone" dataKey="actual" stroke="#16a34a" dot name="Realisasi" />
+              <Line type="monotone" dataKey="diff" stroke="#dc2626" dot name="Selisih" />
             </LineChart>
           </ResponsiveContainer>
         </div>

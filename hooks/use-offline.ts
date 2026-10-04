@@ -65,8 +65,8 @@ export function useOffline() {
         if (pendingItems.length === 0) return;
 
         toast({
-          title: 'Syncing data...',
-          description: `Syncing ${pendingItems.length} pending changes.`,
+          title: 'Menyinkronkan data...',
+          description: `Menyinkronkan ${pendingItems.length} perubahan yang tertunda.`,
         });
 
         let failed = 0;
@@ -102,21 +102,21 @@ export function useOffline() {
 
         if (failed > 0) {
           toast({
-            title: 'Sync incomplete',
-            description: `${failed} change(s) could not be synced and will be retried.`,
+            title: 'Sinkronisasi belum lengkap',
+            description: `${failed} perubahan gagal disinkronkan dan akan dicoba lagi.`,
             variant: 'destructive',
           });
         } else {
           toast({
-            title: 'Sync completed',
-            description: 'All your offline changes have been synced.',
+            title: 'Sinkronisasi selesai',
+            description: 'Semua perubahan saat offline sudah tersimpan.',
           });
         }
       } catch (error) {
         console.error('Sync failed:', error);
         toast({
-          title: 'Sync failed',
-          description: 'Some changes could not be synced. Will retry when connection improves.',
+          title: 'Sinkronisasi gagal',
+          description: 'Beberapa perubahan belum tersimpan. Akan dicoba lagi saat koneksi membaik.',
           variant: 'destructive',
         });
       } finally {

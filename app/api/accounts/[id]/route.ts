@@ -27,7 +27,7 @@ export async function PATCH(
       updates.opening_balance = body.openingBalance;
     if (body.archived !== undefined) updates.archived = body.archived;
     if (body.accountNumber !== undefined)
-      updates.account_number = body.accountNumber;
+      updates.account_number = body.accountNumber.trim() || null;
 
     const { data, error } = await supabase
       .from("accounts")

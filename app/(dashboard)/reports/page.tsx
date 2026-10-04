@@ -26,7 +26,8 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
-import { formatIDR } from '@/lib/currency';
+import { formatMoney, formatMoneyCompact } from '@/lib/currency';
+import { ProLock } from '@/components/ui/pro-lock';
 import { Download, Filter } from 'lucide-react';
 import CategoryMovementChart from '@/components/reports/category-movement-chart';
 import { useAppStore } from '@/lib/store';
@@ -96,19 +97,7 @@ export default function ReportsPage() {
       .catch(() => setCategoryData([]));
   }, [month, user]);
 
-  if (user?.plan !== "PRO") {
-    return (
-      <div className="flex flex-col items-center justify-center py-20 px-4 text-center space-y-4">
-        <h2 className="text-2xl font-bold">Reports are a Pro feature</h2>
-        <p className="text-muted-foreground">
-          Upgrade to access detailed financial reports and insights.
-        </p>
-        <Button asChild size="lg" className="mt-2 w-full sm:w-auto shadow-lg">
-          <Link href="/upgrade">Upgrade to Pro</Link>
-        </Button>
-      </div>
-    );
-  }
+  const isPro = user?.plan === "PRO";
 
   const exportCSV = (
     rows: Record<string, unknown>[],
@@ -199,11 +188,11 @@ export default function ReportsPage() {
       <Collapsible open={filtersOpen} onOpenChange={setFiltersOpen}>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">
-              Reports
-            </h2>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
+              Laporan
+            </h1>
             <p className="text-muted-foreground text-sm sm:text-base">
-              Analyze your finances
+              Tren, kategori, dan budget vs realisasi.
             </p>
           </div>
           <CollapsibleTrigger asChild>
@@ -219,7 +208,7 @@ export default function ReportsPage() {
         <CollapsibleContent>
           <div className="mt-4 grid gap-4 grid-cols-1 sm:grid-cols-2">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Month</label>
+              <label className="text-sm font-medium">Bulan</label>
               <Input
                 type="month"
                 value={month}
@@ -227,7 +216,7 @@ export default function ReportsPage() {
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">Year</label>
+              <label className="text-sm font-medium">Tahun</label>
               <Input
                 type="number"
                 value={year}
@@ -238,31 +227,36 @@ export default function ReportsPage() {
         </CollapsibleContent>
       </Collapsible>
 
+      <ProLock
+        locked={!isPro}
+        title="Laporan lengkap ada di PRO"
+        description="Tren tahunan, rincian kategori, budget vs realisasi, dan export CSV."
+      >
       <Tabs defaultValue="summary" className="space-y-4">
         <TabsList className="grid h-auto w-full grid-cols-2 gap-2 sm:flex sm:h-10 sm:overflow-visible">
           <TabsTrigger
             value="summary"
             className="w-full whitespace-nowrap sm:flex-1"
           >
-            Monthly Summary
+            Ringkasan bulanan
           </TabsTrigger>
           <TabsTrigger
             value="trend"
             className="w-full whitespace-nowrap sm:flex-1"
           >
-            Income vs Expense Trend
+            Tren pemasukan & pengeluaran
           </TabsTrigger>
           <TabsTrigger
             value="category"
             className="w-full whitespace-nowrap sm:flex-1"
           >
-            Category Details
+            Rincian kategori
           </TabsTrigger>
           <TabsTrigger
             value="movement"
             className="w-full whitespace-nowrap sm:flex-1"
           >
-            Budget vs Actual
+            Budget vs realisasi
           </TabsTrigger>
         </TabsList>
 
@@ -280,7 +274,7 @@ export default function ReportsPage() {
           <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
             <Card>
               <CardHeader>
-                <CardTitle>Daily Expenses</CardTitle>
+                <CardTitle className="text-base">Pengeluaran harian</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="h-56 sm:h-72">
@@ -296,24 +290,24 @@ export default function ReportsPage() {
                         >
                           <stop
                             offset="5%"
-                            stopColor="#3B82F6"
+                            stopColor="hsl(var(--chart-1))"
                             stopOpacity={0.8}
                           />
                           <stop
                             offset="95%"
-                            stopColor="#3B82F6"
+                            stopColor="hsl(var(--chart-1))"
                             stopOpacity={0.1}
                           />
                         </linearGradient>
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="date" />
-                      <YAxis tickFormatter={(v) => formatIDR(v)} />
-                      <Tooltip formatter={(v: number) => formatIDR(v)} />
+                      <YAxis width={64} tickFormatter={(v) => formatMoneyCompact(v)} />
+                      <Tooltip formatter={(v: number) => formatMoney(v)} />
                       <Area
                         type="monotone"
                         dataKey="amount"
-                        stroke="#3B82F6"
+                        stroke="hsl(var(--chart-1))"
                         fill="url(#sumColor)"
                       />
                     </AreaChart>
@@ -323,7 +317,7 @@ export default function ReportsPage() {
             </Card>
             <Card>
               <CardHeader>
-                <CardTitle>Expenses by Category</CardTitle>
+                <CardTitle className="text-base">Pengeluaran per kategori</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="h-56 sm:h-72">
@@ -345,7 +339,7 @@ export default function ReportsPage() {
                           <Cell key={entry.categoryId} fill={entry.color} />
                         ))}
                       </Pie>
-                      <Tooltip formatter={(v: number) => formatIDR(v)} />
+                      <Tooltip formatter={(v: number) => formatMoney(v)} />
                       <Legend />
                     </PieChart>
                   </ResponsiveContainer>
@@ -368,7 +362,7 @@ export default function ReportsPage() {
           </div>
           <Card>
             <CardHeader>
-              <CardTitle>Income vs Expense ({year})</CardTitle>
+              <CardTitle className="text-base">Pemasukan vs pengeluaran ({year})</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="h-64 sm:h-80">
@@ -376,11 +370,11 @@ export default function ReportsPage() {
                   <LineChart data={trend}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="month" />
-                    <YAxis tickFormatter={(v) => formatIDR(v)} />
-                    <Tooltip formatter={(v: number) => formatIDR(v)} />
+                    <YAxis width={64} tickFormatter={(v) => formatMoneyCompact(v)} />
+                    <Tooltip formatter={(v: number) => formatMoney(v)} />
                     <Legend />
-                    <Line type="monotone" dataKey="income" stroke="#16a34a" />
-                    <Line type="monotone" dataKey="expense" stroke="#dc2626" />
+                    <Line type="monotone" dataKey="income" name="Pemasukan" stroke="#16a34a" strokeWidth={2} />
+                    <Line type="monotone" dataKey="expense" name="Pengeluaran" stroke="#dc2626" strokeWidth={2} />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
@@ -401,7 +395,7 @@ export default function ReportsPage() {
           </div>
           <Card>
             <CardHeader>
-              <CardTitle>Category Details ({month})</CardTitle>
+              <CardTitle className="text-base">Rincian kategori ({month})</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="h-64 sm:h-80">
@@ -420,7 +414,7 @@ export default function ReportsPage() {
                         <Cell key={entry.categoryId} fill={entry.color} />
                       ))}
                     </Pie>
-                    <Tooltip formatter={(v: number) => formatIDR(v)} />
+                    <Tooltip formatter={(v: number) => formatMoney(v)} />
                     <Legend />
                   </PieChart>
                 </ResponsiveContainer>
@@ -433,6 +427,7 @@ export default function ReportsPage() {
           <CategoryMovementChart month={month} />
         </TabsContent>
       </Tabs>
+      </ProLock>
     </div>
   );
 }

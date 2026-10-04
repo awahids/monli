@@ -14,10 +14,10 @@ import { Footer } from "@/components/marketing/footer";
 import { BRAND } from "@/lib/brand";
 
 export const metadata: Metadata = {
-  title: `${BRAND.name} — Budget monthly, track daily`,
+  title: `${BRAND.name} — Atur bulanan, catat harian`,
   description: BRAND.description,
   openGraph: {
-    title: `${BRAND.name} — Budget monthly, track daily`,
+    title: `${BRAND.name} — Atur bulanan, catat harian`,
     description: BRAND.description,
     images: [{ url: "/og-image.png", width: 1200, height: 630 }],
   },

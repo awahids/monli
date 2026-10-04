@@ -11,38 +11,38 @@ gsap.registerPlugin(ScrollTrigger, TextPlugin);
 
 const features = [
   {
-    title: "Accounts",
-    description: "See balances in one view—bank, e-wallet, and cash.",
+    title: "Akun",
+    description: "Lihat saldo bank, e-wallet, dan tunai dalam satu layar.",
     icon: Wallet,
-    image: "https://placehold.co/600x400/png?text=Accounts",
+    image: "https://placehold.co/600x400/png?text=Akun",
     color: "from-brand-teal via-brand-teal to-brand-deep-teal",
     bgPattern: "bg-gradient-to-br from-teal-50/80 to-cyan-50/40",
     darkBgPattern: "dark:from-teal-950/30 dark:to-cyan-950/20",
   },
   {
-    title: "Budgets",
+    title: "Budget",
     description:
-      "Plan per month per account. Allocate by category; roll over what matters.",
+      "Tentukan batas belanja bulanan per kategori dan pantau sisanya setiap hari.",
     icon: LayoutDashboard,
-    image: "https://placehold.co/600x400/png?text=Budgets",
+    image: "https://placehold.co/600x400/png?text=Budget",
     color: "from-green-500 via-green-600 to-emerald-500",
     bgPattern: "bg-gradient-to-br from-green-50/80 to-emerald-50/40",
     darkBgPattern: "dark:from-green-950/30 dark:to-emerald-950/20",
   },
   {
-    title: "Transactions",
-    description: "Add expense, income, or transfer in seconds.",
+    title: "Transaksi",
+    description: "Catat pengeluaran, pemasukan, atau transfer dalam hitungan detik.",
     icon: ReceiptText,
-    image: "https://placehold.co/600x400/png?text=Transactions",
+    image: "https://placehold.co/600x400/png?text=Transaksi",
     color: "from-amber-400 via-brand-gold to-amber-500",
     bgPattern: "bg-gradient-to-br from-amber-50/80 to-orange-50/40",
     darkBgPattern: "dark:from-amber-950/30 dark:to-orange-950/20",
   },
   {
-    title: "Insights",
-    description: "See spend vs. budget and trends.",
+    title: "Laporan",
+    description: "Bandingkan pengeluaran dengan budget dan lihat trennya.",
     icon: TrendingUp,
-    image: "https://placehold.co/600x400/png?text=Insights",
+    image: "https://placehold.co/600x400/png?text=Laporan",
     color: "from-slate-700 via-slate-800 to-slate-900",
     bgPattern: "bg-gradient-to-br from-slate-50/80 to-stone-50/40",
     darkBgPattern: "dark:from-slate-900/40 dark:to-stone-950/20",
@@ -121,14 +121,13 @@ export function Features() {
         <div className="mx-auto max-w-4xl text-center">
           <div className="inline-flex items-center gap-3 rounded-full surface-elevated px-6 py-3 text-sm font-semibold mb-8 card-hover-glow">
             <div className="w-3 h-3 bg-gradient-primary rounded-full animate-pulse"></div>
-            <span className="text-gradient-enhanced">Features that matter</span>
+            <span className="text-gradient-enhanced">Fitur yang benar-benar dipakai</span>
           </div>
           <h2 className="text-5xl font-bold tracking-tight text-foreground sm:text-6xl mb-8 text-gradient-enhanced">
-            Everything you need to manage your money
+            Semua yang kamu butuhkan untuk mengatur uang
           </h2>
           <p className="text-xl text-muted-foreground/90 leading-relaxed max-w-2xl mx-auto">
-            Powerful features designed to help you take control of your finances
-            and reach your goals faster than ever before.
+            Dirancang supaya mencatat keuangan terasa ringan, bukan beban.
           </p>
         </div>
 
@@ -186,7 +185,7 @@ export function Features() {
                 d="M13 10V3L4 14h7v7l9-11h-7z"
               />
             </svg>
-            Start using these features today
+            Mulai pakai sekarang
             <svg
               className="h-4 w-4 group-hover:translate-x-1 transition-transform"
               fill="none"

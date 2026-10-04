@@ -14,27 +14,30 @@ gsap.registerPlugin(ScrollTrigger);
 
 const faqs = [
   {
-    q: "What happened to Monli?",
-    a: "Monli is now Qala Saku, part of the Qala family (qala.digital) alongside Qala Invoice. Your account, data, and the monli.fun address stay the same.",
+    q: "Monli sekarang jadi apa?",
+    a: "Monli sekarang bernama Qala Saku, bagian dari keluarga Qala (qala.digital) bersama Qala Invoice. Akun, data, dan alamat monli.fun tetap sama.",
   },
   {
-    q: "Can I use with bank & e-wallets?",
-    a: "Yes—Qala Saku works with both bank and e-wallet accounts.",
+    q: "Apakah perlu menyambungkan rekening bank?",
+    a: "Tidak. Kamu mencatat sendiri transaksi dari rekening bank, e-wallet, maupun uang tunai. Untuk pengguna PRO, struk belanja bisa difoto dan dibaca otomatis.",
   },
   {
-    q: "How do budgets work?",
-    a: "Set monthly limits per account with category allocation and rollover.",
+    q: "Bagaimana cara kerja budget?",
+    a: "Tentukan batas belanja bulanan per kategori. Qala Saku menghitung sisa budget dan jatah harianmu dari transaksi yang kamu catat, dan bisa mengisi budget baru dari pengeluaran bulan lalu.",
   },
   {
-    q: "Is my data safe?",
-    a: "We use row level security on Supabase and never share your data.",
+    q: "Apakah dataku aman?",
+    a: "Setiap data hanya bisa diakses oleh pemilik akunnya (row level security di database) dan tidak dibagikan ke pihak lain.",
   },
   {
-    q: "Do you support dark mode?",
-    a: "Absolutely, light and dark themes are built in.",
+    q: "Ada mode gelap?",
+    a: "Ada. Tampilan terang dan gelap tersedia, atau ikuti pengaturan perangkatmu.",
   },
-  { q: "Mobile support?", a: "Qala Saku is mobile-friendly with a bottom nav on small screens." },
-  { q: "What's the intro pricing?", a: "Qala Saku Pro is free during our intro period." },
+  { q: "Bisa dipakai di HP?", a: "Bisa. Qala Saku dirancang untuk layar HP dengan navigasi di bawah, dan bisa dipasang seperti aplikasi (PWA)." },
+  {
+    q: "Berapa harga paket PRO?",
+    a: "Paket FREE gratis selamanya. PRO saat ini harga promo Rp 9.000 sekali bayar, untuk akun & budget tanpa batas, laporan lengkap, scan struk, dan asisten AI.",
+  },
 ];
 
 export function FAQ() {
@@ -61,7 +64,7 @@ export function FAQ() {
   return (
     <section id="faq" ref={sectionRef} className="py-24">
       <div className="mx-auto max-w-3xl px-4">
-        <h2 className="mb-8 text-center text-3xl font-bold">FAQ</h2>
+        <h2 className="mb-8 text-center text-3xl font-bold">Pertanyaan umum</h2>
         <Accordion
           type="single"
           collapsible

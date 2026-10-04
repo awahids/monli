@@ -61,10 +61,45 @@ export interface Transaction {
   categoryId?: string;
   note: string;
   tags: string[];
+  /** Set when the transaction was created by a recurring rule. */
+  recurringId?: string | null;
   account?: Account;
   fromAccount?: Account;
   toAccount?: Account;
   category?: Category;
+}
+
+export interface RecurringTransaction {
+  id: string;
+  type: 'expense' | 'income' | 'transfer';
+  accountId?: string | null;
+  fromAccountId?: string | null;
+  toAccountId?: string | null;
+  categoryId?: string | null;
+  amount: number;
+  note: string;
+  frequency: 'weekly' | 'monthly';
+  dayOfMonth?: number | null;
+  startDate: string;
+  nextDate: string;
+  endDate?: string | null;
+  active: boolean;
+  account?: Pick<Account, 'name' | 'type'> | null;
+  fromAccount?: Pick<Account, 'name' | 'type'> | null;
+  toAccount?: Pick<Account, 'name' | 'type'> | null;
+  category?: Pick<Category, 'name' | 'color' | 'icon'> | null;
+}
+
+export interface SavingsGoal {
+  id: string;
+  name: string;
+  targetAmount: number;
+  savedAmount: number;
+  targetDate?: string | null;
+  icon?: string | null;
+  color?: string | null;
+  archived: boolean;
+  createdAt: string;
 }
 
 export interface DashboardKPIs {

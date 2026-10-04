@@ -143,3 +143,49 @@ export const transactionPatchSchema = transactionBaseSchema
 
 export type TransactionCreate = z.infer<typeof transactionCreateSchema>;
 export type TransactionPatch = z.infer<typeof transactionPatchSchema>;
+
+export const recurringSchema = z
+  .object({
+    type: z.enum(['expense', 'income', 'transfer']),
+    accountId: z.string().uuid().nullable().optional(),
+    fromAccountId: z.string().uuid().nullable().optional(),
+    toAccountId: z.string().uuid().nullable().optional(),
+    categoryId: z.string().uuid().nullable().optional(),
+    amount: z.number().positive(),
+    note: z.string().max(200).default(''),
+    frequency: z.enum(['weekly', 'monthly']),
+    dayOfMonth: z.number().int().min(1).max(31).nullable().optional(),
+    startDate: dateSchema,
+    endDate: dateSchema.nullable().optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.type === 'transfer') {
+      if (!data.fromAccountId || !data.toAccountId || data.fromAccountId === data.toAccountId) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['toAccountId'], message: 'Pilih dua akun yang berbeda' });
+      }
+    } else if (!data.accountId) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['accountId'], message: 'Pilih akun' });
+    }
+    if (data.frequency === 'monthly' && !data.dayOfMonth) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['dayOfMonth'], message: 'Pilih tanggal' });
+    }
+    if (data.endDate && data.endDate < data.startDate) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['endDate'], message: 'Tanggal selesai sebelum tanggal mulai' });
+    }
+  });
+
+export const savingsGoalSchema = z.object({
+  name: z.string().trim().min(1).max(80),
+  targetAmount: z.number().positive(),
+  savedAmount: z.number().nonnegative().default(0),
+  targetDate: dateSchema.nullable().optional(),
+  icon: z.string().max(40).nullable().optional(),
+  color: z.string().max(20).nullable().optional(),
+  archived: z.boolean().optional(),
+});
+
+export const savingsGoalPatchSchema = savingsGoalSchema.partial();
+
+export const savingsContributionSchema = z.object({
+  amount: z.number().refine((n) => n !== 0, 'Nominal tidak boleh 0'),
+});

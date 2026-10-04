@@ -9,7 +9,6 @@ import { MobileNav } from "@/components/layout/mobile-nav";
 import { useAppStore } from "@/lib/store";
 import { getCurrentUser } from "@/lib/auth";
 import { OfflineBanner } from "@/components/ui/offline-banner";
-import { OnboardingTour } from "@/components/onboarding-tour";
 import { cn } from "@/lib/utils";
 import ChatWidget from "@/components/chat/chat-widget";
 
@@ -56,7 +55,6 @@ export default function DashboardLayout({
       </div>
       <MobileNav />
       <Toaster />
-      <OnboardingTour />
       {user?.plan === 'PRO' && <ChatWidget />}
     </div>
   );

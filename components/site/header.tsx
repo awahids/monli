@@ -29,21 +29,21 @@ export function Header() {
             href="#features"
             className="text-sm font-medium text-muted-foreground hover:text-primary transition-all duration-200 relative group py-2.5 px-4 rounded-lg hover:bg-primary/5"
           >
-            Features
+            Fitur
             <span className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-0 h-0.5 bg-gradient-primary transition-all duration-200 group-hover:w-8 rounded-full"></span>
           </Link>
           <Link
             href="#how-it-works"
             className="text-sm font-medium text-muted-foreground hover:text-primary transition-all duration-200 relative group py-2.5 px-4 rounded-lg hover:bg-primary/5"
           >
-            How it Works
+            Cara kerja
             <span className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-0 h-0.5 bg-gradient-primary transition-all duration-200 group-hover:w-8 rounded-full"></span>
           </Link>
           <Link
             href="#pricing"
             className="text-sm font-medium text-muted-foreground hover:text-primary transition-all duration-200 relative group py-2.5 px-4 rounded-lg hover:bg-primary/5"
           >
-            Pricing
+            Harga
             <span className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-0 h-0.5 bg-gradient-primary transition-all duration-200 group-hover:w-8 rounded-full"></span>
           </Link>
         </nav>
@@ -71,7 +71,7 @@ export function Header() {
           >
             <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
             <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-            <span className="sr-only">Toggle theme</span>
+            <span className="sr-only">Ganti tema</span>
           </Button>
 
           <Button
@@ -79,11 +79,11 @@ export function Header() {
             asChild
             className="rounded-2xl hover:bg-primary/10 transition-all duration-300 hover:scale-105"
           >
-            <Link href="/auth/sign-in">Sign in</Link>
+            <Link href="/auth/sign-in">Masuk</Link>
           </Button>
           <Button asChild className="button-modern relative z-10">
             <Link href="/auth/sign-up">
-              <span className="relative z-10">Get Started</span>
+              <span className="relative z-10">Mulai gratis</span>
             </Link>
           </Button>
         </div>
@@ -98,7 +98,7 @@ export function Header() {
           >
             <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
             <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-            <span className="sr-only">Toggle theme</span>
+            <span className="sr-only">Ganti tema</span>
           </Button>
 
           <Button
@@ -133,21 +133,21 @@ export function Header() {
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors duration-200 py-2"
               >
-                Features
+                Fitur
               </Link>
               <Link
                 href="#how-it-works"
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors duration-200 py-2"
               >
-                How it Works
+                Cara kerja
               </Link>
               <Link
                 href="#pricing"
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors duration-200 py-2"
               >
-                Pricing
+                Harga
               </Link>
             </nav>
 
@@ -161,7 +161,7 @@ export function Header() {
                   href="/auth/sign-in"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  Sign in
+                  Masuk
                 </Link>
               </Button>
               <Button
@@ -172,7 +172,7 @@ export function Header() {
                   href="/auth/sign-up"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  Get Started
+                  Mulai gratis
                 </Link>
               </Button>
             </div>

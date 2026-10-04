@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { Home, Receipt, Plus, PieChart, Settings } from "lucide-react";
+import { Home, Receipt, Plus, PieChart, Wallet } from "lucide-react";
 import TransactionForm, {
   TransactionFormValues,
 } from "@/components/transactions/transaction-form";
@@ -22,11 +22,11 @@ import { motion } from "framer-motion";
 import { useTheme } from "next-themes";
 
 const links = [
-  { href: "/dashboard", icon: Home, label: "Dashboard" },
-  { href: "/transactions", icon: Receipt, label: "Transactions" },
+  { href: "/dashboard", icon: Home, label: "Beranda" },
+  { href: "/transactions", icon: Receipt, label: "Transaksi" },
   // index 2 akan diisi tombol Plus
-  { href: "/budgets", icon: PieChart, label: "Budgets" },
-  { href: "/settings", icon: Settings, label: "Settings" },
+  { href: "/budgets", icon: PieChart, label: "Budget" },
+  { href: "/accounts", icon: Wallet, label: "Akun" },
 ];
 
 export function MobileNav() {
@@ -56,7 +56,7 @@ export function MobileNav() {
     if (!isOnline) {
       setTransactions([toOfflineTransaction(payload, user?.id || ''), ...transactions]);
       await addOfflineChange('create', 'transactions', payload);
-      toast.success('Transaction saved offline');
+      toast.success('Disimpan offline, akan disinkronkan saat online');
       setFormOpen(false);
       return;
     }
@@ -65,7 +65,7 @@ export function MobileNav() {
     setTransactions([tx, ...transactions]);
     // Keep balances on Dashboard/Accounts in sync with the new transaction.
     if (user) await refreshActiveAccounts(user.id);
-    toast.success('Transaction created');
+    toast.success('Transaksi tersimpan');
     setFormOpen(false);
   };
 
@@ -95,7 +95,7 @@ export function MobileNav() {
                 <div className="relative -mt-4 z-10" key={`plus-${idx}`}>
                   <motion.button
                     onClick={handleAddTransaction}
-                    aria-label="Add transaction"
+                    aria-label="Catat transaksi"
                     whileTap={{ scale: 0.95 }}
                     className={cn(
                       "relative flex h-16 w-16 items-center justify-center rounded-full",
@@ -103,7 +103,7 @@ export function MobileNav() {
                     )}
                   >
                     <Plus className="h-8 w-8 text-white" />
-                    <span className="sr-only">Add transaction</span>
+                    <span className="sr-only">Catat transaksi</span>
                   </motion.button>
                 </div>
               );
@@ -129,15 +129,15 @@ export function MobileNav() {
                   href={item.href}
                   aria-label={item.label}
                   className={cn(
-                    "relative flex min-w-[70px] flex-col items-center justify-center rounded-xl p-2 transition-colors duration-200 touch-manipulation overflow-hidden",
+                    "relative flex min-w-[64px] flex-col items-center justify-center rounded-xl px-2 py-1.5 transition-colors duration-200 touch-manipulation overflow-hidden",
                     isActive
                       ? "text-primary font-medium"
                       : "text-muted-foreground hover:text-primary active:scale-95",
                   )}
                 >
 
-                  <Icon className={cn("mb-1 h-6 w-6 flex-shrink-0", isActive ? "text-primary" : "text-muted-foreground")} />
-                  {/* <span className={cn("text-xs mt-1", isActive ? "font-medium" : "")}>{item.label}</span> */}
+                  <Icon className={cn("mb-1 h-5 w-5 flex-shrink-0", isActive ? "text-primary" : "text-muted-foreground")} />
+                  <span className={cn("text-[11px] leading-none", isActive ? "font-semibold" : "")}>{item.label}</span>
                 </Link>
               </div>
             );

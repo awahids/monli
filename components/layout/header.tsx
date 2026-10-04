@@ -32,11 +32,11 @@ function UserNav() {
   const handleSignOut = async () => {
     try {
       await signOut();
-      toast.success('Signed out successfully');
+      toast.success('Berhasil keluar');
       router.replace('/auth/sign-in');
       router.refresh();
     } catch (error) {
-      toast.error('Failed to sign out');
+      toast.error('Gagal keluar, coba lagi');
     }
   };
 
@@ -72,33 +72,33 @@ function UserNav() {
         <DropdownMenuSub>
           <DropdownMenuSubTrigger>
             <Sun className="mr-2 h-4 w-4" />
-            <span>Theme</span>
+            <span>Tema</span>
           </DropdownMenuSubTrigger>
           <DropdownMenuSubContent>
             <DropdownMenuItem onClick={() => setTheme('light')}>
               <Sun className="mr-2 h-4 w-4" />
-              <span>Light</span>
+              <span>Terang</span>
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => setTheme('dark')}>
               <Moon className="mr-2 h-4 w-4" />
-              <span>Dark</span>
+              <span>Gelap</span>
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => setTheme('system')}>
               <Laptop className="mr-2 h-4 w-4" />
-              <span>System</span>
+              <span>Ikuti sistem</span>
             </DropdownMenuItem>
           </DropdownMenuSubContent>
         </DropdownMenuSub>
         <DropdownMenuItem asChild>
           <Link href="/settings" className="flex items-center">
             <User className="mr-2 h-4 w-4" />
-            <span>Settings</span>
+            <span>Pengaturan</span>
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleSignOut}>
           <LogOut className="mr-2 h-4 w-4" />
-          <span>Sign out</span>
+          <span>Keluar</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
