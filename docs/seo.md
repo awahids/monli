@@ -1,13 +1,15 @@
-# monli SEO
+# Qala Saku SEO
+
+> Sebelumnya bernama monli. Pertahankan kata kunci "monli" di metadata selama masa transisi agar pencarian nama lama tetap mengarah ke sini.
 
 ## Nama Aplikasi
-monli
+Qala Saku
 
 ## Tagline
 Atur, lacak, dan wujudkan tujuan finansialmu dengan mudah.
 
 ## Deskripsi Singkat (untuk App Store/Play Store)
-monli adalah aplikasi pengelola keuangan pribadi yang membantu kamu mencatat pengeluaran, memonitor pemasukan, menyusun anggaran, dan memantau tabungan dalam satu tempat. Cerdas, mudah digunakan, dan dilengkapi grafik interaktif agar kamu bisa melihat gambaran keuangan secara utuh dan membuat keputusan finansial yang tepat.
+Qala Saku adalah aplikasi pengelola keuangan pribadi yang membantu kamu mencatat pengeluaran, memonitor pemasukan, menyusun anggaran, dan memantau tabungan dalam satu tempat. Cerdas, mudah digunakan, dan dilengkapi grafik interaktif agar kamu bisa melihat gambaran keuangan secara utuh dan membuat keputusan finansial yang tepat.
 
 ## Fitur Unggulan
 - Pencatatan Pengeluaran & Pemasukan: Catat transaksi harian dengan kategori yang bisa disesuaikan.
@@ -17,7 +19,7 @@ monli adalah aplikasi pengelola keuangan pribadi yang membantu kamu mencatat pen
 - Sinkronisasi & Keamanan: Data terenkripsi dan bisa disinkronkan antar perangkat.
 
 ## Deskripsi SEO Panjang
-monli adalah aplikasi pengelola keuangan yang dirancang untuk membantu pengguna mengatur dan memonitor kondisi finansial mereka secara efektif. Dengan antarmuka yang simpel namun kaya fitur, monli memudahkan proses pencatatan pemasukan maupun pengeluaran, sekaligus menyediakan laporan dan grafik analitis yang tajam untuk memahami kebiasaan belanja. Pengguna dapat menyusun anggaran, mengatur rencana tabungan, serta meninjau perkembangan keuangan secara real-time. monli cocok bagi individu maupun keluarga yang ingin meningkatkan literasi finansial dan meraih tujuan keuangan secara sistematis.
+Qala Saku adalah aplikasi pengelola keuangan yang dirancang untuk membantu pengguna mengatur dan memonitor kondisi finansial mereka secara efektif. Dengan antarmuka yang simpel namun kaya fitur, Qala Saku memudahkan proses pencatatan pemasukan maupun pengeluaran, sekaligus menyediakan laporan dan grafik analitis yang tajam untuk memahami kebiasaan belanja. Pengguna dapat menyusun anggaran, mengatur rencana tabungan, serta meninjau perkembangan keuangan secara real-time. Qala Saku cocok bagi individu maupun keluarga yang ingin meningkatkan literasi finansial dan meraih tujuan keuangan secara sistematis.
 
 ## Kata Kunci (Keywords) SEO
 - aplikasi keuangan
@@ -44,10 +46,10 @@ monli adalah aplikasi pengelola keuangan yang dirancang untuk membantu pengguna 
 ## Strategi SEO Singkat
 1. **Optimasi Konten Website & Blog**
    - Buat artikel rutin tentang tips menghemat uang, membuat anggaran, atau strategi menabung dengan menyisipkan kata kunci “aplikasi keuangan”, “catatan keuangan”, dan “budgeting app”.
-   - Gunakan headline yang menarik dan meta description yang menonjolkan fitur unik monli.
+   - Gunakan headline yang menarik dan meta description yang menonjolkan fitur unik Qala Saku.
 2. **Optimasi App Store & Play Store**
    - Sertakan kata kunci utama (misalnya: “aplikasi keuangan”, “pengelola uang”) di judul, deskripsi, dan label aplikasi.
-   - Gunakan screenshot dan video pendek yang menampilkan keunggulan monli.
+   - Gunakan screenshot dan video pendek yang menampilkan keunggulan Qala Saku.
 3. **Promosi di Media Sosial & Influencer**
    - Manfaatkan konten edukatif seperti infografik dan tips finansial di platform populer (Instagram, TikTok, YouTube).
    - Kolaborasi dengan influencer finansial atau content creator relevan.

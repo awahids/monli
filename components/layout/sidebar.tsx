@@ -19,6 +19,8 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { QalaLogo, QalaMark } from "@/components/brand/qala-mark";
+import { QalaFamilyProducts } from "@/components/brand/qala-family";
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -56,17 +58,13 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
       )}
     >
       <div className="flex flex-col flex-grow overflow-y-auto pt-5">
-        <div className={cn("px-3 py-4", collapsed && "items-center flex justify-center")}
+        <Link
+          href="/dashboard"
+          aria-label="Qala Saku, dashboard"
+          className={cn("px-3 py-4", collapsed && "items-center flex justify-center")}
         >
-          {!collapsed && (
-            <>
-              <h2 className="text-xl font-bold text-foreground">Monli App</h2>
-              <p className="text-sm text-muted-foreground mt-1">
-                Personal Finance Manager
-              </p>
-            </>
-          )}
-        </div>
+          {collapsed ? <QalaMark className="h-4" /> : <QalaLogo />}
+        </Link>
 
         <nav className={cn("mt-6 flex-grow space-y-1", collapsed ? "px-0" : "px-3")}
         >
@@ -91,8 +89,12 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
           })}
         </nav>
 
+        {!collapsed && (
+          <QalaFamilyProducts className="mt-auto px-3 pb-2 pt-4" />
+        )}
+
         {user?.plan !== 'PRO' && !collapsed && (
-          <div className="mt-auto p-3">
+          <div className="p-3">
             <div className="rounded-lg border bg-muted/50 p-4 text-center">
               <p className="text-sm font-medium">Upgrade Pro</p>
               <Button asChild size="sm" className="mt-2 w-full">
@@ -139,11 +141,8 @@ export function MobileSidebar() {
       </SheetTrigger>
       <SheetContent side="left" className="w-64 p-0">
         <div className="flex flex-col h-full">
-          <div className="px-3 py-4 border-b">
-            <h2 className="text-xl font-bold text-foreground">Monli App</h2>
-            <p className="text-sm text-muted-foreground mt-1">
-              Personal Finance Manager
-            </p>
+          <div className="px-4 py-4 border-b">
+            <QalaLogo />
           </div>
 
           <nav className="flex-1 px-3 py-4 space-y-2">
@@ -196,6 +195,8 @@ export function MobileSidebar() {
                 Zakat
               </Link>
             </div>
+
+            <QalaFamilyProducts className="pt-4 mt-4 border-t border-border" />
 
             {user?.plan !== 'PRO' && (
               <div className="mt-6 border-t border-border p-4">

@@ -1,6 +1,6 @@
 # Rencana Spesifikasi Fitur (RSL)
 
-Dokumen ini mendeskripsikan kebutuhan fungsional utama untuk aplikasi monli.
+Dokumen ini mendeskripsikan kebutuhan fungsional utama untuk aplikasi Qala Saku (sebelumnya monli).
 
 ## Manajemen Profil
 - Pengguna dapat membuat dan menyimpan profil dengan email unik, nama, dan mata uang default.

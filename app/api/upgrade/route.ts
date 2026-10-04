@@ -44,7 +44,7 @@ export async function POST() {
           id: "pro-plan",
           price: 9000,
           quantity: 1,
-          name: "Pro Plan Subscription",
+          name: "Qala Saku Pro",
         },
       ],
       customer_details: {
@@ -56,7 +56,7 @@ export async function POST() {
     const { error } = await createAdminClient().from("payments").insert({
       user_id: user.id,
       order_id: orderId,
-      product_name: "Pro Plan Subscription",
+      product_name: "Qala Saku Pro",
       amount: 9000,
       status: "pending",
       token: transaction.token,

@@ -6,7 +6,7 @@ const items = [
     text: "Manual Input",
     description:
       "Enter transactions manually - no bank account connection required",
-    color: "from-blue-500 to-cyan-500",
+    color: "from-brand-teal to-brand-deep-teal",
   },
   {
     icon: Shield,
@@ -19,7 +19,7 @@ const items = [
     icon: Server,
     text: "Access Anywhere",
     description: "Monitor your personal finances from any device",
-    color: "from-purple-500 to-violet-500",
+    color: "from-amber-400 to-brand-gold",
   },
   {
     icon: Moon,

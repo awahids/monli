@@ -6,7 +6,10 @@ import { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { TextPlugin } from "gsap/TextPlugin";
 
+import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { QalaMark } from "@/components/brand/qala-mark";
+import { BRAND } from "@/lib/brand";
 
 export function Hero() {
   const sectionRef = useRef<HTMLDivElement>(null);
@@ -77,10 +80,17 @@ export function Hero() {
       <div className="relative mx-auto max-w-7xl px-4 text-center">
         <div className="mx-auto max-w-4xl">
           {/* Badge */}
-          <div className="hero-animate mb-8 inline-flex items-center gap-2 rounded-full bg-primary/10 border border-primary/20 px-4 py-2 text-sm font-medium text-primary backdrop-blur-sm">
-            <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
-            Now in Beta - Join early adopters
-          </div>
+          <a
+            href={BRAND.familyUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="hero-animate mb-8 inline-flex items-center gap-2 rounded-full border bg-card px-4 py-2 text-sm font-medium text-muted-foreground backdrop-blur-sm transition-colors hover:text-foreground"
+          >
+            <QalaMark className="h-3" />
+            Bagian dari keluarga{" "}
+            <span className="font-semibold text-foreground">{BRAND.family}</span>
+            <ArrowRight className="h-3.5 w-3.5" />
+          </a>
 
           <h1 className="hero-animate text-4xl font-extrabold tracking-tight text-foreground sm:text-6xl lg:text-7xl leading-tight">
             <span className="block mb-2">Budget monthly,</span>
@@ -168,11 +178,11 @@ export function Hero() {
               <span>No bank connection required</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+              <div className="w-2 h-2 bg-brand-teal rounded-full"></div>
               <span>100% private & secure</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+              <div className="w-2 h-2 bg-brand-gold rounded-full"></div>
               <span>Free forever</span>
             </div>
           </div>
@@ -191,13 +201,13 @@ export function Hero() {
               icon: "M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z",
               text: "Secure & Private",
               delay: "0.2s",
-              gradient: "from-blue-500 to-indigo-600",
+              gradient: "from-brand-teal to-brand-deep-teal",
             },
             {
               icon: "M13 10V3L4 14h7v7l9-11h-7z",
               text: "Lightning Fast",
               delay: "0.4s",
-              gradient: "from-purple-500 to-pink-600",
+              gradient: "from-amber-400 to-brand-gold",
             },
           ].map((item, index) => (
             <div

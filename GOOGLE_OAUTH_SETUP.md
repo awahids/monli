@@ -1,19 +1,19 @@
 # Google OAuth Setup Guide
 
-This guide will walk you through setting up Google OAuth authentication for your monli application.
+This guide will walk you through setting up Google OAuth authentication for your Qala Saku application.
 
 ## Prerequisites
 
 - A Google account
 - Access to Google Cloud Console
-- Your monli application running locally or deployed
+- Your Qala Saku application running locally or deployed
 
 ## Step 1: Create a Google Cloud Project
 
 1. Go to the [Google Cloud Console](https://console.cloud.google.com/)
 2. Click on the project dropdown at the top of the page
 3. Click "New Project"
-4. Enter a project name (e.g., "monli-oauth")
+4. Enter a project name (e.g., "qala-saku-oauth")
 5. Click "Create"
 
 ## Step 2: Enable Google+ API
@@ -28,7 +28,7 @@ This guide will walk you through setting up Google OAuth authentication for your
 1. Go to "APIs & Services" > "OAuth consent screen"
 2. Choose "External" user type (unless you have a Google Workspace account)
 3. Fill in the required information:
-   - **App name**: monli
+   - **App name**: Qala Saku
    - **User support email**: Your email
    - **Developer contact information**: Your email
 4. Add your domain to "Authorized domains" if deployed
@@ -45,7 +45,7 @@ This guide will walk you through setting up Google OAuth authentication for your
 1. Go to "APIs & Services" > "Credentials"
 2. Click "Create Credentials" > "OAuth 2.0 Client IDs"
 3. Choose "Web application" as the application type
-4. Enter a name (e.g., "monli-web-client")
+4. Enter a name (e.g., "qala-saku-web-client")
 5. Add authorized redirect URIs:
    - For local development: `http://localhost:3000/auth/callback`
    - For production: `https://yourdomain.com/auth/callback`

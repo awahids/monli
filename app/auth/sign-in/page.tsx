@@ -19,6 +19,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Loader2, Eye, EyeOff } from "lucide-react";
+import { QalaMark } from "@/components/brand/qala-mark";
+import { QalaFamilyLink } from "@/components/brand/qala-family";
 
 const signInSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -60,31 +62,19 @@ export default function SignInPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-primary/10 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="relative min-h-screen flex flex-col items-center justify-center gap-6 bg-gradient-to-br from-primary/5 via-background to-primary/10 py-12 px-4 sm:px-6 lg:px-8">
       <div className="absolute inset-0 bg-grid-white/[0.02] bg-grid-16" />
       <Card className="w-full max-w-md relative shadow-xl border-0 bg-card/95 backdrop-blur-sm">
         <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-transparent to-primary/10 rounded-lg" />
         <CardHeader className="text-center relative z-10 pb-8">
-          <div className="mx-auto w-12 h-12 bg-gradient-to-r from-primary to-primary/80 rounded-full flex items-center justify-center mb-4">
-            <svg
-              className="w-6 h-6 text-white"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"
-              />
-            </svg>
-          </div>
+          <Link href="/" aria-label="Qala Saku, beranda" className="mx-auto mb-4 inline-flex rounded-md">
+            <QalaMark className="h-10" />
+          </Link>
           <CardTitle className="text-2xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
             Welcome Back
           </CardTitle>
           <CardDescription className="text-muted-foreground/80">
-            Sign in to your personal finance manager
+            Sign in to Qala Saku
           </CardDescription>
         </CardHeader>
         <CardContent className="relative z-10 pt-0">
@@ -237,6 +227,7 @@ export default function SignInPage() {
           </form>
         </CardContent>
       </Card>
+      <QalaFamilyLink className="relative text-xs text-muted-foreground" />
     </div>
   );
 }

@@ -1,15 +1,17 @@
 {
-  "name": "monli",
-  "short_name": "monli",
+  "name": "Qala Saku",
+  "short_name": "Qala Saku",
+  "description": "Aplikasi keuangan pribadi untuk catat, atur budget, dan pantau tabungan. Bagian dari keluarga Qala.",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#4F46E5",
+  "background_color": "#F2EFE9",
+  "theme_color": "#14A7A0",
+  "lang": "id",
   "icons": [
-    {
-      "src": "/favicon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml"
-    }
+    { "src": "/pwa-192x192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/pwa-512x512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/pwa-512x512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" }
   ]
 }

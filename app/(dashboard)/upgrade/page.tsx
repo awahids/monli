@@ -127,7 +127,7 @@ export default function UpgradePage() {
           <div className="rounded-md border p-4 space-y-2">
             <div className="text-sm font-medium">Order Summary</div>
             <div className="flex items-center justify-between text-sm">
-              <span>Pro Plan Subscription</span>
+              <span>Qala Saku Pro</span>
               <span>
                 <span className="mr-2 line-through text-muted-foreground">
                   {formatIDR(originalPrice)}

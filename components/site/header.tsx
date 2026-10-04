@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useTheme } from "next-themes";
 import { Sun, Moon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { QalaLogo } from "@/components/brand/qala-mark";
+import { BRAND } from "@/lib/brand";
 
 export function Header() {
   const { theme, setTheme } = useTheme();
@@ -17,11 +19,8 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/80">
       <div className="container flex h-16 items-center justify-between px-4 max-w-7xl mx-auto">
-        <Link href="/" className="flex items-center space-x-3 group">
-          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 shadow-sm group-hover:shadow-lg group-hover:scale-105 transition-all duration-300" />
-          <span className="text-xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
-            Monli
-          </span>
+        <Link href="/" className="flex items-center rounded-md" aria-label={`${BRAND.name}, beranda`}>
+          <QalaLogo markClassName="h-7" textClassName="text-xl" />
         </Link>
 
         {/* Desktop Navigation */}
@@ -167,7 +166,7 @@ export function Header() {
               </Button>
               <Button
                 asChild
-                className="justify-start h-auto p-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
+                className="justify-start h-auto p-2"
               >
                 <Link
                   href="/auth/sign-up"

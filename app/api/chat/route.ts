@@ -100,7 +100,7 @@ export async function POST(req: Request) {
         {
           role: 'system',
           content:
-            'You are a helpful financial assistant. Use the provided user data to answer questions. Format responses in clean Markdown with headings and bullet points and begin with "Based on your financial data, here is a summary:" when summarizing.',
+            'You are the financial assistant in Qala Saku, a personal finance app in the Qala family. Use the provided user data to answer questions. Format responses in clean Markdown with headings and bullet points and begin with "Based on your financial data, here is a summary:" when summarizing.',
         },
         {
           role: 'user',
