@@ -1,6 +1,7 @@
 
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '@/types/database';
+import { DB_SCHEMA } from './schema';
 
 export function createAdminClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -10,9 +11,8 @@ export function createAdminClient() {
     throw new Error('Missing Supabase environment variables for admin client');
   }
 
-  return createClient<Database>(url, key, { 
-    auth: { persistSession: false } 
+  return createClient<Database>(url, key, {
+    auth: { persistSession: false },
+    db: { schema: DB_SCHEMA },
   });
 }
-
-export const supabaseAdmin = createAdminClient();

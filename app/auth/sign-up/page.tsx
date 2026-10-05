@@ -19,14 +19,17 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
+import { QalaMark } from "@/components/brand/qala-mark";
+import { GoogleSignIn } from "@/components/auth/google-sign-in";
+import { QalaFamilyLink } from "@/components/brand/qala-family";
 
 const signUpSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters'),
-  email: z.string().email('Invalid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+  name: z.string().min(2, 'Nama minimal 2 karakter'),
+  email: z.string().email('Format email tidak valid'),
+  password: z.string().min(6, 'Kata sandi minimal 6 karakter'),
   confirmPassword: z.string(),
 }).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
+  message: "Konfirmasi kata sandi tidak sama",
   path: ["confirmPassword"],
 });
 
@@ -60,12 +63,12 @@ export default function SignUpPage() {
       const result = await response.json();
       
       if (!result.ok) {
-        throw new Error(result.error || 'Registration failed');
+        throw new Error(result.error || 'Pendaftaran gagal');
       }
       
       toast({
-        title: 'Registration successful!',
-        description: "Please check your email to verify your account, then sign in.",
+        title: 'Pendaftaran berhasil!',
+        description: "Cek email kamu untuk verifikasi akun, lalu masuk.",
       });
 
       // Redirect to sign-in page after successful registration
@@ -73,8 +76,8 @@ export default function SignUpPage() {
     } catch (e) {
       console.error('Sign up error:', e);
       toast({
-        title: 'Registration failed',
-        description: e instanceof Error ? e.message : 'An error occurred',
+        title: 'Pendaftaran gagal',
+        description: e instanceof Error ? e.message : 'Terjadi kesalahan',
         variant: 'destructive',
       });
     } finally {
@@ -88,34 +91,33 @@ export default function SignUpPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-primary/10 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="relative min-h-screen flex flex-col items-center justify-center gap-6 bg-gradient-to-br from-primary/5 via-background to-primary/10 py-12 px-4 sm:px-6 lg:px-8">
       <div className="absolute inset-0 bg-grid-white/[0.02] bg-grid-16" />
       <Card className="w-full max-w-md relative shadow-xl border-0 bg-card/95 backdrop-blur-sm">
         <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-transparent to-primary/10 rounded-lg" />
         <CardHeader className="text-center relative z-10 pb-8">
-          <div className="mx-auto w-12 h-12 bg-gradient-to-r from-primary to-primary/80 rounded-full flex items-center justify-center mb-4">
-            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-            </svg>
-          </div>
+          <Link href="/" aria-label="Qala Saku, beranda" className="mx-auto mb-4 inline-flex rounded-md">
+            <QalaMark className="h-10" />
+          </Link>
           <CardTitle className="text-2xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
-            Create your account
+            Buat akun
           </CardTitle>
           <CardDescription className="text-muted-foreground/80">
-            Start managing your finances today
+            Mulai atur keuanganmu dengan Qala Saku
           </CardDescription>
         </CardHeader>
         <CardContent className="relative z-10 pt-0">
+          <GoogleSignIn label="Daftar dengan Google" />
           <form
             onSubmit={handleSubmit(onSubmit, onError)}
             className="space-y-6"
           >
             <div className="space-y-2">
-              <Label htmlFor="name" className="text-sm font-medium text-foreground/90">Full Name</Label>
+              <Label htmlFor="name" className="text-sm font-medium text-foreground/90">Nama lengkap</Label>
               <Input
                 id="name"
                 {...register('name')}
-                placeholder="Enter your full name"
+                placeholder="Nama lengkap"
                 disabled={loading}
                 className="h-11 bg-background/50 border-border/50 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all duration-200"
                 aria-invalid={!!errors.name}
@@ -137,7 +139,7 @@ export default function SignUpPage() {
                 id="email"
                 {...register('email')}
                 type="email"
-                placeholder="Enter your email"
+                placeholder="Masukkan email"
                 disabled={loading}
                 className="h-11 bg-background/50 border-border/50 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all duration-200"
                 aria-invalid={!!errors.email}
@@ -154,12 +156,12 @@ export default function SignUpPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-sm font-medium text-foreground/90">Password</Label>
+              <Label htmlFor="password" className="text-sm font-medium text-foreground/90">Kata sandi</Label>
               <Input
                 id="password"
                 {...register('password')}
                 type="password"
-                placeholder="Create a password"
+                placeholder="Buat kata sandi"
                 disabled={loading}
                 className="h-11 bg-background/50 border-border/50 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all duration-200"
                 aria-invalid={!!errors.password}
@@ -176,12 +178,12 @@ export default function SignUpPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword" className="text-sm font-medium text-foreground/90">Confirm Password</Label>
+              <Label htmlFor="confirmPassword" className="text-sm font-medium text-foreground/90">Ulangi kata sandi</Label>
               <Input
                 id="confirmPassword"
                 {...register('confirmPassword')}
                 type="password"
-                placeholder="Confirm your password"
+                placeholder="Ulangi kata sandi"
                 disabled={loading}
                 className="h-11 bg-background/50 border-border/50 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all duration-200"
                 aria-invalid={!!errors.confirmPassword}
@@ -210,11 +212,11 @@ export default function SignUpPage() {
               {loading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creating account...
+                  Membuat akun...
                 </>
               ) : (
                 <>
-                  <span>Create Account</span>
+                  <span>Buat akun</span>
                   <svg className="ml-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                   </svg>
@@ -224,18 +226,19 @@ export default function SignUpPage() {
 
             <div className="text-center pt-4">
               <p className="text-sm text-muted-foreground">
-                Already have an account?{' '}
+                Sudah punya akun?{' '}
                 <Link
                   href="/auth/sign-in"
                   className="text-primary hover:text-primary/80 font-medium hover:underline transition-colors"
                 >
-                  Sign in
+                  Masuk
                 </Link>
               </p>
             </div>
           </form>
         </CardContent>
       </Card>
+      <QalaFamilyLink className="relative text-xs text-muted-foreground" />
     </div>
   );
 }

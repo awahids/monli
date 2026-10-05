@@ -1,19 +1,7 @@
 import { NextResponse } from "next/server";
-import midtransClient from "midtrans-client";
 import { getUser } from "@/lib/auth/server";
 import { createClient } from "@/lib/supabase/server";
-
-function mapStatus(status: string) {
-  switch (status) {
-    case "settlement":
-    case "capture":
-      return "success";
-    case "pending":
-      return "pending";
-    default:
-      return "failed";
-  }
-}
+import { syncPaymentStatus } from "@/lib/midtrans";
 
 export async function GET() {
   try {
@@ -26,31 +14,18 @@ export async function GET() {
       .order("created_at", { ascending: false });
     if (error) throw error;
 
-    const serverKey = process.env.MIDTRANS_SERVER_KEY;
-    const clientKey = process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY;
-
-    if (serverKey && clientKey && data) {
-      const snap = new midtransClient.Snap({
-        isProduction:
-          process.env.NEXT_PUBLIC_MIDTRANS_IS_PRODUCTION === "true",
-        serverKey,
-        clientKey,
-      });
-
-      await Promise.all(
-        data.map(async (p) => {
-          const res = await snap.transaction.status(p.order_id);
-          const newStatus = mapStatus(res.transaction_status);
-          if (newStatus !== p.status) {
-            await supabase
-              .from("payments")
-              .update({ status: newStatus })
-              .eq("id", p.id);
-            p.status = newStatus;
+    await Promise.all(
+      (data ?? [])
+        .filter((p) => p.status === "pending")
+        .map(async (p) => {
+          try {
+            const synced = await syncPaymentStatus(p.order_id);
+            p.status = synced.status;
+          } catch (e) {
+            console.error(`Failed to sync payment ${p.order_id}`, e);
           }
         }),
-      );
-    }
+    );
 
     return NextResponse.json({
       payments: data?.map((p) => ({
@@ -69,4 +44,3 @@ export async function GET() {
     );
   }
 }
-

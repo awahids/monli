@@ -6,6 +6,8 @@ import { offlineStorage } from '@/lib/offline-storage';
 import { useAppStore } from '@/lib/store';
 import { useToast } from '@/hooks/use-toast';
 
+let syncInFlight: Promise<void> | null = null;
+
 export function useOffline() {
   const [isOnline, setIsOnline] = useState(true);
   const [isInitialized, setIsInitialized] = useState(false);
@@ -48,62 +50,81 @@ export function useOffline() {
     initOffline();
   }, [setTransactions, setAccounts, setCategories, setBudgets]);
 
-  // Sync any pending offline changes when back online
+  // Sync any pending offline changes when back online. Several components
+  // use this hook, so a module-level lock keeps the queue from being
+  // replayed more than once (which created duplicate transactions).
   const syncPendingChanges = useCallback(async () => {
-    if (!isOnline) return;
+    // Read connectivity directly: the `online` listener runs before the
+    // isOnline state update is visible in this closure.
+    if (typeof navigator !== 'undefined' && !navigator.onLine) return;
+    if (syncInFlight) return syncInFlight;
 
-    try {
-      const pendingItems = await offlineStorage.getPendingSync();
-      if (pendingItems.length === 0) return;
+    syncInFlight = (async () => {
+      try {
+        const pendingItems = await offlineStorage.getPendingSync();
+        if (pendingItems.length === 0) return;
 
-      toast({
-        title: 'Syncing data...',
-        description: `Syncing ${pendingItems.length} pending changes.`,
-      });
+        toast({
+          title: 'Menyinkronkan data...',
+          description: `Menyinkronkan ${pendingItems.length} perubahan yang tertunda.`,
+        });
 
-      // Process each pending sync item
-      for (const item of pendingItems) {
-        try {
-          const endpoint = `/api/${item.table}${item.action === 'update' || item.action === 'delete' ? `/${item.data.id}` : ''}`;
+        let failed = 0;
+        for (const item of pendingItems) {
+          try {
+            const endpoint = `/api/${item.table}${item.action === 'update' || item.action === 'delete' ? `/${item.data.id}` : ''}`;
 
-          let method = 'POST';
-          if (item.action === 'update') method = 'PATCH';
-          if (item.action === 'delete') method = 'DELETE';
+            let method = 'POST';
+            if (item.action === 'update') method = 'PATCH';
+            if (item.action === 'delete') method = 'DELETE';
 
-          const response = await fetch(endpoint, {
-            method,
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: item.action !== 'delete' ? JSON.stringify(item.data) : undefined,
-          });
+            const response = await fetch(endpoint, {
+              method,
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: item.action !== 'delete' ? JSON.stringify(item.data) : undefined,
+            });
 
-          if (!response.ok) {
-            throw new Error(`Failed to sync ${item.table} ${item.action}`);
+            if (!response.ok) {
+              throw new Error(`Failed to sync ${item.table} ${item.action}`);
+            }
+            // Only drop items that actually reached the server.
+            await offlineStorage.removePendingSync(item.id);
+          } catch (error) {
+            failed += 1;
+            console.error(`Failed to sync item ${item.id}:`, error);
           }
-        } catch (error) {
-          console.error(`Failed to sync item ${item.id}:`, error);
-          // Continue with other items
         }
+
+        const remaining = await offlineStorage.getPendingSync();
+        setPendingSyncCount(remaining.length);
+
+        if (failed > 0) {
+          toast({
+            title: 'Sinkronisasi belum lengkap',
+            description: `${failed} perubahan gagal disinkronkan dan akan dicoba lagi.`,
+            variant: 'destructive',
+          });
+        } else {
+          toast({
+            title: 'Sinkronisasi selesai',
+            description: 'Semua perubahan saat offline sudah tersimpan.',
+          });
+        }
+      } catch (error) {
+        console.error('Sync failed:', error);
+        toast({
+          title: 'Sinkronisasi gagal',
+          description: 'Beberapa perubahan belum tersimpan. Akan dicoba lagi saat koneksi membaik.',
+          variant: 'destructive',
+        });
+      } finally {
+        syncInFlight = null;
       }
-
-      // Clear pending sync after successful sync
-      await offlineStorage.clearPendingSync();
-      setPendingSyncCount(0);
-
-      toast({
-        title: 'Sync completed',
-        description: 'All your offline changes have been synced.',
-      });
-    } catch (error) {
-      console.error('Sync failed:', error);
-      toast({
-        title: 'Sync failed',
-        description: 'Some changes could not be synced. Will retry when connection improves.',
-        variant: 'destructive',
-      });
-    }
-  }, [isOnline, toast, setPendingSyncCount]);
+    })();
+    return syncInFlight;
+  }, [toast, setPendingSyncCount]);
 
   // Monitor online/offline status
   useEffect(() => {

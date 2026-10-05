@@ -8,16 +8,16 @@ gsap.registerPlugin(ScrollTrigger);
 
 const steps = [
   {
-    title: "Create account",
-    description: "Sign up in seconds.",
+    title: "Buat akun",
+    description: "Daftar gratis dalam hitungan detik.",
   },
   {
-    title: "Add accounts & categories",
-    description: "Connect banks and set spending buckets.",
+    title: "Tambah rekening & kategori",
+    description: "Masukkan rekening, e-wallet, atau tunai beserta saldonya.",
   },
   {
-    title: "Set budget & log transactions",
-    description: "Stay on top every day.",
+    title: "Atur budget & catat transaksi",
+    description: "Pantau jatah harianmu setiap hari.",
   },
 ];
 
@@ -51,13 +51,13 @@ export function HowItWorks() {
         <div className="mb-20">
           <div className="inline-flex items-center gap-3 rounded-full surface-elevated px-6 py-3 text-sm font-semibold mb-8 card-hover-glow mx-auto">
             <div className="w-3 h-3 bg-gradient-secondary rounded-full animate-pulse"></div>
-            <span className="text-gradient-enhanced">Simple Process</span>
+            <span className="text-gradient-enhanced">Tiga langkah</span>
           </div>
           <h2 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl mb-6 text-gradient-enhanced">
-            How It Works
+            Cara kerja
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-            Get started with your financial journey in just three simple steps
+            Mulai rapikan keuanganmu hanya dalam tiga langkah
           </p>
         </div>
         
@@ -115,7 +115,7 @@ export function HowItWorks() {
         {/* Call to action */}
         <div className="mt-16">
           <div className="inline-flex items-center gap-2 rounded-full bg-gradient-primary px-6 py-3 text-white font-semibold shadow-colored hover:shadow-lg transition-all-smooth cursor-pointer">
-            <span>Ready to get started?</span>
+            <span>Siap mulai?</span>
             <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
             </svg>

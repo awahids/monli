@@ -19,10 +19,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Loader2, Eye, EyeOff } from "lucide-react";
+import { QalaMark } from "@/components/brand/qala-mark";
+import { GoogleSignIn } from "@/components/auth/google-sign-in";
+import { QalaFamilyLink } from "@/components/brand/qala-family";
 
 const signInSchema = z.object({
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  email: z.string().email("Format email tidak valid"),
+  password: z.string().min(6, "Kata sandi minimal 6 karakter"),
 });
 
 type SignInForm = z.infer<typeof signInSchema>;
@@ -46,12 +49,18 @@ export default function SignInPage() {
     setErrorMessage(null);
     try {
       await signIn(data.email, data.password);
-      toast.success("Welcome back!");
+      toast.success("Selamat datang kembali!");
       // Navigate without a full page reload so middleware picks up the session
       router.replace("/dashboard");
       router.refresh();
     } catch (error: any) {
-      const message = error.message || "Invalid login credentials";
+      const raw: string = error?.message || "";
+      // Supabase auth errors are English; show the common ones in Indonesian.
+      const message = /invalid login credentials/i.test(raw)
+        ? "Email atau kata sandi salah"
+        : /email not confirmed/i.test(raw)
+        ? "Email belum diverifikasi. Cek kotak masuk emailmu."
+        : raw || "Gagal masuk, coba lagi";
       setErrorMessage(message);
       toast.error(message);
     } finally {
@@ -60,34 +69,23 @@ export default function SignInPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-primary/10 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="relative min-h-screen flex flex-col items-center justify-center gap-6 bg-gradient-to-br from-primary/5 via-background to-primary/10 py-12 px-4 sm:px-6 lg:px-8">
       <div className="absolute inset-0 bg-grid-white/[0.02] bg-grid-16" />
       <Card className="w-full max-w-md relative shadow-xl border-0 bg-card/95 backdrop-blur-sm">
         <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-transparent to-primary/10 rounded-lg" />
         <CardHeader className="text-center relative z-10 pb-8">
-          <div className="mx-auto w-12 h-12 bg-gradient-to-r from-primary to-primary/80 rounded-full flex items-center justify-center mb-4">
-            <svg
-              className="w-6 h-6 text-white"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"
-              />
-            </svg>
-          </div>
+          <Link href="/" aria-label="Qala Saku, beranda" className="mx-auto mb-4 inline-flex rounded-md">
+            <QalaMark className="h-10" />
+          </Link>
           <CardTitle className="text-2xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
-            Welcome Back
+            Masuk
           </CardTitle>
           <CardDescription className="text-muted-foreground/80">
-            Sign in to your personal finance manager
+            Lanjutkan ke Qala Saku
           </CardDescription>
         </CardHeader>
         <CardContent className="relative z-10 pt-0">
+          <GoogleSignIn />
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div className="space-y-2">
               <Label
@@ -99,7 +97,7 @@ export default function SignInPage() {
               <Input
                 {...register("email")}
                 type="email"
-                placeholder="Enter your email"
+                placeholder="Masukkan email"
                 disabled={loading}
                 className="h-11 bg-background/50 border-border/50 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all duration-200"
               />
@@ -128,13 +126,13 @@ export default function SignInPage() {
                 htmlFor="password"
                 className="text-sm font-medium text-foreground/90"
               >
-                Password
+                Kata sandi
               </Label>
               <div className="relative">
                 <Input
                   {...register("password")}
                   type={showPassword ? "text" : "password"}
-                  placeholder="Enter your password"
+                  placeholder="Masukkan kata sandi"
                   disabled={loading}
                   className="h-11 bg-background/50 border-border/50 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all duration-200 pr-10"
                 />
@@ -143,7 +141,7 @@ export default function SignInPage() {
                   tabIndex={-1}
                   className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground hover:text-foreground transition-colors"
                   onClick={() => setShowPassword((prev) => !prev)}
-                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  aria-label={showPassword ? "Sembunyikan kata sandi" : "Tampilkan kata sandi"}
                 >
                   {showPassword ? (
                     <EyeOff className="h-4 w-4" />
@@ -180,11 +178,11 @@ export default function SignInPage() {
               {loading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Signing in...
+                  Sedang masuk...
                 </>
               ) : (
                 <>
-                  <span>Sign In</span>
+                  <span>Masuk</span>
                   <svg
                     className="ml-2 h-4 w-4"
                     fill="none"
@@ -225,18 +223,19 @@ export default function SignInPage() {
 
             <div className="text-center pt-4">
               <p className="text-sm text-muted-foreground">
-                Don&apos;t have an account?{" "}
+                Belum punya akun?{" "}
                 <Link
                   href="/auth/sign-up"
                   className="text-primary hover:text-primary/80 font-medium hover:underline transition-colors"
                 >
-                  Sign up
+                  Daftar
                 </Link>
               </p>
             </div>
           </form>
         </CardContent>
       </Card>
+      <QalaFamilyLink className="relative text-xs text-muted-foreground" />
     </div>
   );
 }

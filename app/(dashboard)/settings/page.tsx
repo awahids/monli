@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { profileSchema } from '@/lib/validation';
 import { Category } from '@/types';
 import { useToast } from '@/hooks/use-toast';
+import { useAppStore } from '@/lib/store';
 import {
   Card,
   CardContent,
@@ -87,11 +88,20 @@ export default function SettingsPage() {
     });
     if (!res.ok) {
       const { error } = await res.json();
-      toast({ description: error || 'Failed to update profile', variant: 'destructive' });
+      toast({ description: error || 'Gagal menyimpan profil', variant: 'destructive' });
       return;
     }
-    toast({ description: 'Profile updated' });
+    toast({ description: 'Profil tersimpan' });
     profileForm.reset(values);
+    // Keep the shared user in sync so amounts re-render in the new currency.
+    const current = useAppStore.getState().user;
+    if (current) {
+      useAppStore.getState().setUser({
+        ...current,
+        name: values.name,
+        defaultCurrency: values.defaultCurrency,
+      });
+    }
   }
 
   async function handleSaveCategory(values: CategoryFormValues) {
@@ -104,10 +114,10 @@ export default function SettingsPage() {
       if (res.ok) {
         const updated = await res.json();
         setCategories((prev) => prev.map((c) => (c.id === updated.id ? updated : c)));
-        toast({ description: 'Category saved' });
+        toast({ description: 'Kategori tersimpan' });
       } else {
         const { error } = await res.json();
-        toast({ description: error || 'Failed to save', variant: 'destructive' });
+        toast({ description: error || 'Gagal menyimpan', variant: 'destructive' });
       }
     } else {
       const res = await fetch('/api/settings/categories', {
@@ -118,10 +128,10 @@ export default function SettingsPage() {
       if (res.ok) {
         const created = await res.json();
         setCategories((prev) => [...prev, created]);
-        toast({ description: 'Category saved' });
+        toast({ description: 'Kategori tersimpan' });
       } else {
         const { error } = await res.json();
-        toast({ description: error || 'Failed to save', variant: 'destructive' });
+        toast({ description: error || 'Gagal menyimpan', variant: 'destructive' });
       }
     }
   }
@@ -130,10 +140,10 @@ export default function SettingsPage() {
     const res = await fetch(`/api/settings/categories/${id}`, { method: 'DELETE' });
     if (res.ok) {
       setCategories((prev) => prev.filter((c) => c.id !== id));
-      toast({ description: 'Category deleted' });
+      toast({ description: 'Kategori dihapus' });
     } else {
       const { error } = await res.json();
-      toast({ description: error || 'Failed to delete', variant: 'destructive' });
+      toast({ description: error || 'Gagal menghapus kategori', variant: 'destructive' });
     }
     setDeleteId(null);
   }
@@ -147,13 +157,13 @@ export default function SettingsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-3xl font-bold tracking-tight">Settings</h2>
-        <p className="text-muted-foreground">Manage your profile and categories.</p>
+        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Pengaturan</h1>
+        <p className="text-muted-foreground">Atur profil, mata uang, dan kategori.</p>
       </div>
       <div className="grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Profile & Preferences</CardTitle>
+            <CardTitle>Profil & preferensi</CardTitle>
           </CardHeader>
           <Form {...profileForm}>
             <form onSubmit={profileForm.handleSubmit(onProfileSubmit)}>
@@ -163,7 +173,7 @@ export default function SettingsPage() {
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Name</FormLabel>
+                      <FormLabel>Nama</FormLabel>
                       <FormControl>
                         <Input {...field} />
                       </FormControl>
@@ -180,16 +190,16 @@ export default function SettingsPage() {
                   name="defaultCurrency"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Default currency</FormLabel>
+                      <FormLabel>Mata uang</FormLabel>
                       <FormControl>
                         <Select value={field.value} onValueChange={field.onChange}>
                           <SelectTrigger>
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="IDR">IDR</SelectItem>
-                            <SelectItem value="USD">USD</SelectItem>
-                            <SelectItem value="EUR">EUR</SelectItem>
+                            <SelectItem value="IDR">Rupiah (IDR)</SelectItem>
+                            <SelectItem value="USD">US Dollar (USD)</SelectItem>
+                            <SelectItem value="EUR">Euro (EUR)</SelectItem>
                           </SelectContent>
                         </Select>
                       </FormControl>
@@ -200,7 +210,7 @@ export default function SettingsPage() {
               </CardContent>
               <CardFooter>
                 <Button type="submit" disabled={!profileForm.formState.isDirty}>
-                  Save Changes
+                  Simpan perubahan
                 </Button>
               </CardFooter>
             </form>
@@ -209,14 +219,14 @@ export default function SettingsPage() {
 
         <Card className="flex flex-col">
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Categories</CardTitle>
+            <CardTitle>Kategori</CardTitle>
             <Button
               onClick={() => {
                 setEditingCategory(undefined);
                 setCategoryDialogOpen(true);
               }}
             >
-              Add Category
+              Tambah kategori
             </Button>
           </CardHeader>
           <CardContent className="space-y-4 flex-1">
@@ -227,12 +237,12 @@ export default function SettingsPage() {
                 onValueChange={(v) => setTypeFilter((v as any) || 'all')}
                 className="w-full sm:w-auto"
               >
-                <ToggleGroupItem value="all">All</ToggleGroupItem>
-                <ToggleGroupItem value="expense">Expense</ToggleGroupItem>
-                <ToggleGroupItem value="income">Income</ToggleGroupItem>
+                <ToggleGroupItem value="all">Semua</ToggleGroupItem>
+                <ToggleGroupItem value="expense">Pengeluaran</ToggleGroupItem>
+                <ToggleGroupItem value="income">Pemasukan</ToggleGroupItem>
               </ToggleGroup>
               <Input
-                placeholder="Search category..."
+                placeholder="Cari kategori..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="w-full sm:ml-auto sm:w-64"
@@ -240,7 +250,7 @@ export default function SettingsPage() {
             </div>
           {filtered.length === 0 ? (
             <div className="text-center py-10 text-sm text-muted-foreground">
-              No categories found.
+              Tidak ada kategori yang cocok.
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -248,9 +258,9 @@ export default function SettingsPage() {
                   <TableHeader>
                     <TableRow>
                       <TableHead className="w-12"></TableHead>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Type</TableHead>
-                      <TableHead>Color</TableHead>
+                      <TableHead>Nama</TableHead>
+                      <TableHead>Jenis</TableHead>
+                      <TableHead>Warna</TableHead>
                       <TableHead className="w-24"></TableHead>
                     </TableRow>
                   </TableHeader>
@@ -332,15 +342,15 @@ export default function SettingsPage() {
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Category?</AlertDialogTitle>
+            <AlertDialogTitle>Hapus kategori?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone.
+              Kategori yang masih dipakai transaksi tidak bisa dihapus. Tindakan ini tidak bisa dibatalkan.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>Batal</AlertDialogCancel>
             <AlertDialogAction onClick={() => deleteId && handleDeleteCategory(deleteId)}>
-              Delete
+              Hapus
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

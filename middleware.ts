@@ -75,13 +75,21 @@ export async function middleware(request: NextRequest) {
     // Continue without user - will be handled by route protection below
   }
 
-  const isProtectedPath =
-    request.nextUrl.pathname.startsWith("/dashboard") ||
-    request.nextUrl.pathname.startsWith("/accounts") ||
-    request.nextUrl.pathname.startsWith("/budgets") ||
-    request.nextUrl.pathname.startsWith("/transactions") ||
-    request.nextUrl.pathname.startsWith("/reports") ||
-    request.nextUrl.pathname.startsWith("/settings");
+  const protectedPrefixes = [
+    "/dashboard",
+    "/accounts",
+    "/budgets",
+    "/transactions",
+    "/recurring",
+    "/goals",
+    "/reports",
+    "/settings",
+    "/upgrade",
+    "/payments",
+  ];
+  const isProtectedPath = protectedPrefixes.some((p) =>
+    request.nextUrl.pathname.startsWith(p),
+  );
 
   if (request.nextUrl.pathname === "/") {
     return response;

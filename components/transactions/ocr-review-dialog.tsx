@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
+import { useEffect, useRef, useState, forwardRef, useImperativeHandle } from 'react';
+import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
@@ -27,7 +28,8 @@ interface ItemFormProps {
 }
 
 export interface ItemFormHandle {
-  getValues: () => TransactionFormValues;
+  /** Validates the item; resolves to its parsed values, or null if invalid. */
+  validate: () => Promise<TransactionFormValues | null>;
 }
 
 const OcrItemForm = forwardRef<ItemFormHandle, ItemFormProps>(
@@ -52,7 +54,12 @@ const OcrItemForm = forwardRef<ItemFormHandle, ItemFormProps>(
       },
     });
 
-    useImperativeHandle(ref, () => ({ getValues: () => form.getValues() as TransactionFormValues }));
+    useImperativeHandle(ref, () => ({
+      validate: async () =>
+        (await form.trigger())
+          ? (formSchema.parse(form.getValues()) as TransactionFormValues)
+          : null,
+    }));
 
     return (
       <Form {...form}>
@@ -96,16 +103,27 @@ export default function OcrReviewDialog({
     itemRefs.current = itemRefs.current.slice(0, items.length);
   }, [items]);
 
+  const [saving, setSaving] = useState(false);
+
   const handleSave = async () => {
-    const values = itemRefs.current.map((ref) => ref.getValues());
-    await onSave(values);
+    const results = await Promise.all(itemRefs.current.map((ref) => ref.validate()));
+    if (results.some((r) => r === null)) {
+      toast.error('Lengkapi dulu item yang ditandai merah');
+      return;
+    }
+    setSaving(true);
+    try {
+      await onSave(results as TransactionFormValues[]);
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-3xl" ref={contentRef}>
         <DialogHeader>
-          <DialogTitle>Review Receipt</DialogTitle>
+          <DialogTitle>Periksa hasil scan struk ({items.length} item)</DialogTitle>
         </DialogHeader>
         <div className="space-y-6 max-h-[60vh] overflow-y-auto">
           {items.map((item, idx) => (
@@ -124,7 +142,9 @@ export default function OcrReviewDialog({
           ))}
         </div>
         <DialogFooter>
-          <Button onClick={handleSave}>Save Transactions</Button>
+          <Button onClick={handleSave} disabled={saving}>
+            {saving ? 'Menyimpan...' : 'Simpan semua'}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

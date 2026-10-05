@@ -2,84 +2,101 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-
 @layer base {
+  /* Qala family palette (shared with Qala Invoice): Jade Teal #14A7A0,
+     Deep Teal #0E8079, Warm Gold #F9A620, Navy #0B0F24, Warm Cream #F2EFE9.
+     Solid teal fills use Deep Teal in light mode so white text keeps AA
+     contrast (4.8:1). */
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222 15% 7%;
+    --background: 40 26% 93%;
+    --foreground: 230 30% 12%;
     --card: 0 0% 100%;
-    --card-foreground: 222 15% 7%;
+    --card-foreground: 230 30% 12%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222 15% 7%;
-    --primary: 248 88% 61%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222 15% 7%;
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
-    --accent: 210 40% 96%;
-    --accent-foreground: 222 15% 7%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 98%;
-    --success: 142 71% 45%;
-    --success-foreground: 0 0% 98%;
-    --warning: 38 92% 50%;
-    --warning-foreground: 0 0% 98%;
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 248 88% 61%;
-    --chart-1: 248 88% 61%;
-    --chart-2: 142 71% 45%;
-    --chart-3: 262 83% 58%;
-    --chart-4: 38 92% 50%;
-    --chart-5: 0 84% 60%;
+    --popover-foreground: 230 30% 12%;
+    --primary: 176 80% 28%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 48 24% 96%;
+    --secondary-foreground: 230 30% 12%;
+    --muted: 48 24% 96%;
+    --muted-foreground: 60 3% 34%;
+    --accent: 177 51% 92%;
+    --accent-foreground: 176 80% 24%;
+    --destructive: 0 64% 52%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 142 76% 32%;
+    --success-foreground: 0 0% 100%;
+    --warning: 37 92% 42%;
+    --warning-foreground: 28 90% 18%;
+    --border: 45 12% 87%;
+    --input: 45 10% 82%;
+    --ring: 177 79% 37%;
+    --brand-teal: 177 79% 37%;
+    --brand-deep-teal: 176 80% 28%;
+    --brand-gold: 37 95% 55%;
+    --brand-navy: 230 53% 9%;
+    --chart-1: 177 79% 37%;
+    --chart-2: 37 95% 55%;
+    --chart-3: 230 40% 32%;
+    --chart-4: 142 60% 40%;
+    --chart-5: 0 64% 52%;
     --radius: 0.75rem;
-    --gradient-primary: linear-gradient(135deg, hsl(248 88% 61%) 0%, hsl(262 83% 58%) 100%);
-    --gradient-secondary: linear-gradient(135deg, hsl(142 71% 45%) 0%, hsl(248 88% 61%) 100%);
-    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    --gradient-primary: linear-gradient(135deg, hsl(177 79% 37%) 0%, hsl(176 80% 28%) 100%);
+    --gradient-secondary: linear-gradient(135deg, hsl(177 79% 37%) 0%, hsl(37 95% 55%) 100%);
+    /* Dark enough for white text (AA) across the whole button. */
+    --gradient-button: linear-gradient(135deg, hsl(176 80% 30%) 0%, hsl(176 80% 23%) 100%);
+    --gradient-button-hover: linear-gradient(135deg, hsl(176 80% 23%) 0%, hsl(176 80% 30%) 100%);
+    --shadow-sm: 0 1px 2px 0 rgb(11 15 36 / 0.04);
+    --shadow: 0 1px 3px 0 rgb(11 15 36 / 0.08), 0 1px 2px -1px rgb(11 15 36 / 0.08);
+    --shadow-md: 0 8px 24px -12px rgb(11 15 36 / 0.16);
+    --shadow-lg: 0 10px 15px -3px rgb(11 15 36 / 0.1), 0 4px 6px -4px rgb(11 15 36 / 0.1);
+    --shadow-xl: 0 20px 25px -5px rgb(11 15 36 / 0.1), 0 8px 10px -6px rgb(11 15 36 / 0.1);
   }
 
   .dark {
-    --background: 222 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 248 88% 61%;
-    --primary-foreground: 222 84% 4.9%;
-    --secondary: 217 33% 17%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217 33% 17%;
-    --muted-foreground: 215 20% 65%;
-    --accent: 217 33% 17%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 63% 31%;
-    --destructive-foreground: 210 40% 98%;
-    --success: 142 71% 45%;
-    --success-foreground: 210 40% 98%;
-    --warning: 38 92% 50%;
-    --warning-foreground: 222 84% 4.9%;
-    --border: 217 33% 17%;
-    --input: 217 33% 17%;
-    --ring: 248 88% 61%;
-    --chart-1: 248 88% 61%;
-    --chart-2: 142 71% 45%;
-    --chart-3: 262 83% 58%;
-    --chart-4: 38 92% 50%;
-    --chart-5: 0 84% 60%;
-    --gradient-primary: linear-gradient(135deg, hsl(248 88% 61%) 0%, hsl(262 83% 58%) 100%);
-    --gradient-secondary: linear-gradient(135deg, hsl(142 71% 45%) 0%, hsl(248 88% 61%) 100%);
-    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.8);
-    --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.8), 0 1px 2px -1px rgb(0 0 0 / 0.8);
-    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.8), 0 2px 4px -2px rgb(0 0 0 / 0.8);
-    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.8), 0 4px 6px -4px rgb(0 0 0 / 0.8);
-    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.8), 0 8px 10px -6px rgb(0 0 0 / 0.8);
+    --background: 60 4% 10%;
+    --foreground: 40 26% 93%;
+    --card: 60 3% 14%;
+    --card-foreground: 40 26% 93%;
+    --popover: 60 3% 14%;
+    --popover-foreground: 40 26% 93%;
+    --primary: 177 79% 37%;
+    --primary-foreground: 230 53% 9%;
+    --secondary: 60 2% 18%;
+    --secondary-foreground: 40 26% 93%;
+    --muted: 60 2% 18%;
+    --muted-foreground: 54 5% 62%;
+    --accent: 177 45% 17%;
+    --accent-foreground: 177 51% 85%;
+    --destructive: 0 64% 58%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 142 60% 45%;
+    --success-foreground: 60 4% 10%;
+    --warning: 37 95% 55%;
+    --warning-foreground: 35 95% 12%;
+    --border: 60 2% 22%;
+    --input: 60 2% 26%;
+    --ring: 177 79% 37%;
+    --brand-teal: 177 79% 42%;
+    --brand-deep-teal: 177 79% 37%;
+    --brand-gold: 37 95% 55%;
+    /* The navy half of the wordmark turns cream on dark backgrounds. */
+    --brand-navy: 40 26% 93%;
+    --chart-1: 177 79% 42%;
+    --chart-2: 37 95% 55%;
+    --chart-3: 220 30% 70%;
+    --chart-4: 142 60% 45%;
+    --chart-5: 0 64% 58%;
+    --gradient-primary: linear-gradient(135deg, hsl(177 79% 42%) 0%, hsl(177 79% 32%) 100%);
+    --gradient-secondary: linear-gradient(135deg, hsl(177 79% 42%) 0%, hsl(37 95% 55%) 100%);
+    /* Light enough for navy text (primary-foreground) in dark mode. */
+    --gradient-button: linear-gradient(135deg, hsl(177 79% 44%) 0%, hsl(177 79% 36%) 100%);
+    --gradient-button-hover: linear-gradient(135deg, hsl(177 79% 36%) 0%, hsl(177 79% 44%) 100%);
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.6);
+    --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.6), 0 1px 2px -1px rgb(0 0 0 / 0.6);
+    --shadow-md: 0 8px 24px -12px rgb(0 0 0 / 0.7);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.6), 0 4px 6px -4px rgb(0 0 0 / 0.6);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.6), 0 8px 10px -6px rgb(0 0 0 / 0.6);
   }
 }
 
@@ -96,6 +113,11 @@
 
   h1, h2, h3, h4, h5, h6 {
     @apply font-semibold tracking-tight;
+  }
+
+  /* Qala family typography: Poppins for headings, Inter for body. */
+  h1, h2, h3 {
+    @apply font-display;
   }
 
   h1 {
@@ -185,7 +207,7 @@
   .button-gradient::before {
     @apply absolute inset-0 opacity-0 transition-opacity duration-300;
     content: '';
-    background: linear-gradient(135deg, hsl(262 83% 58%) 0%, hsl(248 88% 61%) 100%);
+    background: linear-gradient(135deg, hsl(176 80% 28%) 0%, hsl(177 79% 37%) 100%);
   }
 
   .button-gradient:hover::before {
@@ -484,9 +506,9 @@
   .text-gradient-enhanced {
     background: linear-gradient(
       135deg,
-      hsl(var(--primary)) 0%,
-      hsl(var(--chart-3)) 50%,
-      hsl(var(--chart-2)) 100%
+      hsl(var(--brand-teal)) 0%,
+      hsl(var(--brand-deep-teal)) 55%,
+      hsl(var(--brand-gold)) 100%
     );
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -494,8 +516,8 @@
   }
 
   .button-modern {
-    @apply relative overflow-hidden rounded-2xl px-8 py-4 font-semibold text-white transition-all duration-300 transform hover:scale-105 active:scale-95;
-    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--chart-3)) 100%);
+    @apply relative overflow-hidden rounded-2xl px-8 py-4 font-semibold text-primary-foreground transition-all duration-300 transform hover:scale-105 active:scale-95;
+    background: var(--gradient-button);
     box-shadow: 0 4px 15px hsl(var(--primary) / 0.4), 0 0 0 1px hsl(var(--primary) / 0.2);
   }
 
@@ -503,7 +525,7 @@
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(135deg, hsl(var(--chart-3)) 0%, hsl(var(--primary)) 100%);
+    background: var(--gradient-button-hover);
     opacity: 0;
     transition: opacity 0.3s ease;
   }

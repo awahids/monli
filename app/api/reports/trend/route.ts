@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createServerClient } from '@/lib/supabase/server';
 import { getUser } from '@/lib/auth/server';
+import { nextMonthStart } from '@/lib/date';
 
 export const revalidate = 60;
 
@@ -48,14 +49,13 @@ export async function GET(req: Request) {
     ) {
       return NextResponse.json({ error: 'range too large (max 12 months)' }, { status: 400 });
     }
-    const end = new Date(Date.UTC(toDate.getUTCFullYear(), toDate.getUTCMonth() + 1, 1));
 
     const { data, error } = await supabase
       .from('transactions')
-      .select('date, type, amount')
+      .select('actual_date, type, amount')
       .eq('user_id', user.id)
-      .gte('date', fromDate.toISOString())
-      .lt('date', end.toISOString());
+      .gte('actual_date', `${from}-01`)
+      .lt('actual_date', nextMonthStart(to));
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
@@ -63,9 +63,7 @@ export async function GET(req: Request) {
     const result = months.map(m => ({ month: m, income: 0, expense: 0 }));
     const index = new Map(result.map((r, i) => [r.month, i]));
     data?.forEach(tx => {
-      const d = new Date(tx.date);
-      const m = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
-      const idx = index.get(m);
+      const idx = index.get(tx.actual_date.slice(0, 7));
       if (idx !== undefined) {
         if (tx.type === 'income') result[idx].income += tx.amount;
         else if (tx.type === 'expense') result[idx].expense += tx.amount;

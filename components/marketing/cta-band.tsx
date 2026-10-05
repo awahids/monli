@@ -7,6 +7,7 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 import { Button } from "@/components/ui/button";
+import { BRAND } from "@/lib/brand";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -48,19 +49,18 @@ export function CTABand() {
         <div className="mx-auto max-w-4xl">
           <div className="cta-animate inline-flex items-center gap-2 rounded-full bg-primary/10 border border-primary/20 px-4 py-2 text-sm font-medium text-primary mb-8 backdrop-blur-sm">
             <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
-            Ready to get started?
+            Siap mulai?
           </div>
 
           <h2 className="cta-animate mb-6 text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
-            Take control of your money
+            Kendalikan uangmu
             <span className="block mt-2 bg-gradient-to-r from-primary via-primary to-primary/70 bg-clip-text text-transparent">
-              with Monli
+              bersama {BRAND.name}
             </span>
           </h2>
 
           <p className="cta-animate mx-auto mb-10 max-w-2xl text-xl text-muted-foreground">
-            Join thousands of users who have already improved their personal finance management.
-            Start your financial journey today.
+            Catat transaksi pertama hari ini dan lihat gambaran keuanganmu dengan jelas.
           </p>
 
           <div className="cta-animate flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -70,7 +70,7 @@ export function CTABand() {
               className="group relative rounded-2xl px-10 py-5 text-lg font-semibold bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg hover:shadow-xl hover:shadow-primary/25 transition-all duration-300 transform hover:scale-105"
             >
               <Link href="/auth/sign-up">
-                <span className="relative z-10">Get Started for Free</span>
+                <span className="relative z-10">Mulai gratis</span>
                 <svg
                   className="ml-3 h-5 w-5 transition-transform group-hover:translate-x-1"
                   fill="none"
@@ -103,7 +103,7 @@ export function CTABand() {
                     d="M5 13l4 4L19 7"
                   />
                 </svg>
-                No credit card required
+                Tanpa kartu kredit
               </div>
               <div className="flex items-center gap-2">
                 <svg
@@ -119,16 +119,16 @@ export function CTABand() {
                     d="M5 13l4 4L19 7"
                   />
                 </svg>
-                Setup in 2 minutes
+                Siap dalam 2 menit
               </div>
             </div>
           </div>
 
           {/* Trust indicators */}
           <div className="cta-animate mt-12 flex items-center justify-center gap-8 opacity-60">
-            <div className="text-sm">✋ No Bank Connection</div>
-            <div className="text-sm">🔒 Your Data Only</div>
-            <div className="text-sm">📝 Manual Tracking</div>
+            <div className="text-sm">✋ Tanpa sambung bank</div>
+            <div className="text-sm">🔒 Datamu milikmu</div>
+            <div className="text-sm">📝 Catat manual</div>
           </div>
         </div>
       </div>

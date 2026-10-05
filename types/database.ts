@@ -1,5 +1,6 @@
 export interface Database {
-  public: {
+  // Qala Saku lives in its own schema of a shared Supabase project.
+  saku: {
     Tables: {
       profiles: {
         Row: {
@@ -10,6 +11,7 @@ export interface Database {
           plan: 'FREE' | 'PRO';
           ai_unlimited: boolean;
           live_price_used_at: string | null;
+          onboarding_completed: boolean;
           created_at: string;
           updated_at: string;
         };
@@ -21,6 +23,7 @@ export interface Database {
           plan?: 'FREE' | 'PRO';
           ai_unlimited?: boolean;
           live_price_used_at?: string | null;
+          onboarding_completed?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -32,6 +35,7 @@ export interface Database {
           plan?: 'FREE' | 'PRO';
           ai_unlimited?: boolean;
           live_price_used_at?: string | null;
+          onboarding_completed?: boolean;
           updated_at?: string;
         };
       };

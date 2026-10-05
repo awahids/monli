@@ -29,20 +29,17 @@ export async function GET(req: Request) {
       );
     }
     const { from, to, accountId } = parse.data;
-    const start = new Date(`${from}T00:00:00.000Z`);
-    const endDay = new Date(`${to}T00:00:00.000Z`);
-    const end = new Date(Date.UTC(endDay.getUTCFullYear(), endDay.getUTCMonth(), endDay.getUTCDate() + 1));
 
-    type TxRow = Database['public']['Tables']['transactions']['Row'] & {
-      category: Pick<Database['public']['Tables']['categories']['Row'], 'name' | 'color'> | null;
+    type TxRow = Database['saku']['Tables']['transactions']['Row'] & {
+      category: Pick<Database['saku']['Tables']['categories']['Row'], 'name' | 'color'> | null;
     };
     let query = supabase
       .from('transactions')
       .select('amount, category_id, category:categories(name, color)')
       .eq('user_id', user.id)
       .eq('type', 'expense')
-      .gte('date', start.toISOString())
-      .lt('date', end.toISOString());
+      .gte('actual_date', from)
+      .lte('actual_date', to);
     if (accountId) {
       query = query.eq('account_id', accountId);
     }

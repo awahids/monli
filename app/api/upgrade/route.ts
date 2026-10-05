@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
-import midtransClient from "midtrans-client";
 import { getUser } from "@/lib/auth/server";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { getSnap } from "@/lib/midtrans";
+import { PRO_PRICE } from "@/lib/plans";
 
 export async function POST() {
-  const serverKey = process.env.MIDTRANS_SERVER_KEY;
-  const clientKey = process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY;
-  if (!serverKey || !clientKey) {
+  const snap = getSnap();
+  if (!snap) {
     return NextResponse.json(
       { error: "Midtrans keys not configured" },
       { status: 500 },
@@ -33,25 +34,18 @@ export async function POST() {
       );
     }
 
-    const snap = new midtransClient.Snap({
-      isProduction:
-        process.env.NEXT_PUBLIC_MIDTRANS_IS_PRODUCTION === "true",
-      serverKey,
-      clientKey,
-    });
-
     const orderId = `${user.id}-${Date.now()}`;
     const transaction = await snap.createTransaction({
       transaction_details: {
         order_id: orderId,
-        gross_amount: 9000,
+        gross_amount: PRO_PRICE,
       },
       item_details: [
         {
           id: "pro-plan",
-          price: 9000,
+          price: PRO_PRICE,
           quantity: 1,
-          name: "Pro Plan Subscription",
+          name: "Qala Saku Pro",
         },
       ],
       customer_details: {
@@ -59,11 +53,12 @@ export async function POST() {
       },
     });
 
-    const { error } = await supabase.from("payments").insert({
+    // Payments are written with the service role; users can only read them.
+    const { error } = await createAdminClient().from("payments").insert({
       user_id: user.id,
       order_id: orderId,
-      product_name: "Pro Plan Subscription",
-      amount: 9000,
+      product_name: "Qala Saku Pro",
+      amount: PRO_PRICE,
       status: "pending",
       token: transaction.token,
     });

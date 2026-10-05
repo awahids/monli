@@ -9,7 +9,6 @@ import { MobileNav } from "@/components/layout/mobile-nav";
 import { useAppStore } from "@/lib/store";
 import { getCurrentUser } from "@/lib/auth";
 import { OfflineBanner } from "@/components/ui/offline-banner";
-import { OnboardingTour } from "@/components/onboarding-tour";
 import { cn } from "@/lib/utils";
 import ChatWidget from "@/components/chat/chat-widget";
 
@@ -34,39 +33,28 @@ export default function DashboardLayout({
     })();
   }, [user, setUser, router]);
 
+  // Children are rendered exactly once: the sidebar and bottom nav switch
+  // with CSS breakpoints instead of duplicating the whole page tree.
   return (
     <div className="min-h-screen bg-background">
-      {/* Mobile Layout */}
-      <div className="md:hidden">
+      <Sidebar
+        collapsed={sidebarCollapsed}
+        onToggle={() => setSidebarCollapsed((c) => !c)}
+      />
+      <div
+        className={cn(
+          "flex min-h-screen flex-col transition-all",
+          sidebarCollapsed ? "md:ml-16" : "md:ml-64"
+        )}
+      >
         <Header />
-        <main className="p-4 pb-20 space-y-4">
+        <main className="flex-1 space-y-4 p-4 pb-24 md:space-y-6 md:p-6">
           <OfflineBanner />
           {children}
         </main>
-        <MobileNav />
       </div>
-
-      {/* Desktop Layout */}
-      <div className="hidden md:flex min-h-screen">
-        <Sidebar
-          collapsed={sidebarCollapsed}
-          onToggle={() => setSidebarCollapsed((c) => !c)}
-        />
-        <div
-          className={cn(
-            "flex-1 transition-all", 
-            sidebarCollapsed ? "md:ml-16" : "md:ml-64"
-          )}
-        >
-          <Header />
-          <main className="p-6 space-y-6">
-            <OfflineBanner />
-            {children}
-          </main>
-        </div>
-      </div>
+      <MobileNav />
       <Toaster />
-      <OnboardingTour />
       {user?.plan === 'PRO' && <ChatWidget />}
     </div>
   );

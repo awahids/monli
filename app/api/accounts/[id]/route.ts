@@ -27,7 +27,7 @@ export async function PATCH(
       updates.opening_balance = body.openingBalance;
     if (body.archived !== undefined) updates.archived = body.archived;
     if (body.accountNumber !== undefined)
-      updates.account_number = body.accountNumber;
+      updates.account_number = body.accountNumber.trim() || null;
 
     const { data, error } = await supabase
       .from("accounts")
@@ -59,19 +59,44 @@ export async function PATCH(
   }
 }
 
+// Default: archive (soft delete). With ?permanent=true the account is removed,
+// which only succeeds when no transactions reference it.
 export async function DELETE(
   req: Request,
   { params }: { params: { id: string } },
 ) {
   const supabase = createClient();
+  const permanent = new URL(req.url).searchParams.get("permanent") === "true";
   try {
     const user = await getUser();
+    if (!permanent) {
+      const { error } = await supabase
+        .from("accounts")
+        .update({ archived: true })
+        .eq("id", params.id)
+        .eq("user_id", user.id);
+      if (error) {
+        return NextResponse.json({ error: error.message }, { status: 400 });
+      }
+      return NextResponse.json({ success: true });
+    }
+
     const { error } = await supabase
       .from("accounts")
-      .update({ archived: true })
+      .delete()
       .eq("id", params.id)
       .eq("user_id", user.id);
     if (error) {
+      // 23503 = foreign_key_violation (transactions still reference it)
+      if (error.code === "23503") {
+        return NextResponse.json(
+          {
+            error:
+              "This account still has transactions. Archive it instead, or delete its transactions first.",
+          },
+          { status: 409 },
+        );
+      }
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
     return NextResponse.json({ success: true });

@@ -49,9 +49,9 @@ export function IconPicker({ value, onChange }: IconPickerProps) {
       </PopoverTrigger>
       <PopoverContent className="w-[200px] p-0">
         <Command>
-          <CommandInput placeholder="Search icon..." />
+          <CommandInput placeholder="Cari ikon..." />
           <CommandList>
-            <CommandEmpty>No icon found.</CommandEmpty>
+            <CommandEmpty>Ikon tidak ditemukan.</CommandEmpty>
             {iconNames.map((name) => {
               const Icon = (Icons as any)[name as keyof typeof Icons];
               return (

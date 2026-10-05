@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { getUser } from '@/lib/auth/server';
 import { createSumopodClient, getSumopodModel } from '@/lib/sumopod';
 import { createClient } from '@/lib/supabase/server';
-import { getAiUsageCount, logAiUsage } from '@/lib/ai-usage';
+import { AI_MONTHLY_LIMITS, getAiUsageCount, logAiUsage } from '@/lib/ai-usage';
 
 export async function POST(req: Request) {
   try {
@@ -31,16 +31,14 @@ export async function POST(req: Request) {
     const client = createSumopodClient();
     const model = getSumopodModel();
 
-    if (user.email) {
-      const isUnlimited = profile?.ai_unlimited;
+    if (user.email && !profile?.ai_unlimited) {
       const count = await getAiUsageCount(supabase, user.email, 'ocr');
-      if (!isUnlimited && count >= 30) {
+      if (count >= AI_MONTHLY_LIMITS.ocr) {
         return NextResponse.json(
-          { error: 'OCR usage limit reached' },
+          { error: `Kuota scan struk bulan ini (${AI_MONTHLY_LIMITS.ocr}x) sudah habis. Kuota direset tiap awal bulan.` },
           { status: 403 }
         );
       }
-      await logAiUsage(supabase, user.email, 'ocr');
     }
 
     const completion = await client.chat.completions.create({
@@ -72,6 +70,8 @@ export async function POST(req: Request) {
     });
 
     const content = completion.choices[0]?.message?.content || '{}';
+    // Only successful scans count towards the quota.
+    if (user.email) await logAiUsage(supabase, user.email, 'ocr');
     let data: any = {};
     try {
       data = JSON.parse(content);

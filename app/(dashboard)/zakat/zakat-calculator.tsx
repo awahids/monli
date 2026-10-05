@@ -61,7 +61,7 @@ export default function ZakatCalculator({
         return;
       }
       if (!r.ok) {
-        alert("Failed to fetch live price, please try again.");
+        alert("Gagal mengambil harga emas terkini, coba lagi.");
         return;
       }
       const d = await r.json();
@@ -69,7 +69,7 @@ export default function ZakatCalculator({
       setTs(d.tsJakarta ?? null);
       setCanUseLive(false);
     } catch {
-      alert("Network error. Please input price manually.");
+      alert("Koneksi bermasalah. Silakan isi harga secara manual.");
     }
   }
 

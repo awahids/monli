@@ -46,11 +46,11 @@ export function CategoryFormDialog({ open, onOpenChange, initialData, onSubmit }
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        aria-label={initialData ? 'Edit Category' : 'Add Category'}
+        aria-label={initialData ? 'Edit kategori' : 'Tambah kategori'}
         className="sm:max-w-md w-full h-full sm:h-auto sm:max-h-[90vh] overflow-y-auto p-0 sm:p-6"
       >
         <DialogHeader className="px-4 pt-4 sm:px-0 sm:pt-0">
-          <DialogTitle>{initialData ? 'Edit Category' : 'Add Category'}</DialogTitle>
+          <DialogTitle>{initialData ? 'Edit kategori' : 'Tambah kategori'}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form
@@ -65,7 +65,7 @@ export function CategoryFormDialog({ open, onOpenChange, initialData, onSubmit }
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Name</FormLabel>
+                    <FormLabel>Nama</FormLabel>
                     <FormControl>
                       <Input {...field} />
                     </FormControl>
@@ -78,7 +78,7 @@ export function CategoryFormDialog({ open, onOpenChange, initialData, onSubmit }
               name="type"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Type</FormLabel>
+                  <FormLabel>Jenis</FormLabel>
                   <FormControl>
                     <ToggleGroup
                       type="single"
@@ -86,8 +86,8 @@ export function CategoryFormDialog({ open, onOpenChange, initialData, onSubmit }
                       onValueChange={field.onChange}
                       className="justify-start"
                     >
-                      <ToggleGroupItem value="expense">Expense</ToggleGroupItem>
-                      <ToggleGroupItem value="income">Income</ToggleGroupItem>
+                      <ToggleGroupItem value="expense">Pengeluaran</ToggleGroupItem>
+                      <ToggleGroupItem value="income">Pemasukan</ToggleGroupItem>
                     </ToggleGroup>
                   </FormControl>
                   <FormMessage />
@@ -99,7 +99,7 @@ export function CategoryFormDialog({ open, onOpenChange, initialData, onSubmit }
               name="color"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Color</FormLabel>
+                  <FormLabel>Warna</FormLabel>
                   <FormControl>
                     <Input type="color" {...field} />
                   </FormControl>
@@ -112,7 +112,7 @@ export function CategoryFormDialog({ open, onOpenChange, initialData, onSubmit }
               name="icon"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Icon</FormLabel>
+                  <FormLabel>Ikon</FormLabel>
                   <FormControl>
                     <IconPicker value={field.value} onChange={field.onChange} />
                   </FormControl>
@@ -125,9 +125,9 @@ export function CategoryFormDialog({ open, onOpenChange, initialData, onSubmit }
               style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
             >
               <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
-                Cancel
+                Batal
               </Button>
-              <Button type="submit">Save</Button>
+              <Button type="submit">Simpan</Button>
             </DialogFooter>
           </form>
         </Form>

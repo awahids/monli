@@ -6,7 +6,10 @@ import { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { TextPlugin } from "gsap/TextPlugin";
 
+import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { QalaMark } from "@/components/brand/qala-mark";
+import { BRAND } from "@/lib/brand";
 
 export function Hero() {
   const sectionRef = useRef<HTMLDivElement>(null);
@@ -77,19 +80,26 @@ export function Hero() {
       <div className="relative mx-auto max-w-7xl px-4 text-center">
         <div className="mx-auto max-w-4xl">
           {/* Badge */}
-          <div className="hero-animate mb-8 inline-flex items-center gap-2 rounded-full bg-primary/10 border border-primary/20 px-4 py-2 text-sm font-medium text-primary backdrop-blur-sm">
-            <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
-            Now in Beta - Join early adopters
-          </div>
+          <a
+            href={BRAND.familyUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="hero-animate mb-8 inline-flex items-center gap-2 rounded-full border bg-card px-4 py-2 text-sm font-medium text-muted-foreground backdrop-blur-sm transition-colors hover:text-foreground"
+          >
+            <QalaMark className="h-3" />
+            Bagian dari keluarga{" "}
+            <span className="font-semibold text-foreground">{BRAND.family}</span>
+            <ArrowRight className="h-3.5 w-3.5" />
+          </a>
 
           <h1 className="hero-animate text-4xl font-extrabold tracking-tight text-foreground sm:text-6xl lg:text-7xl leading-tight">
-            <span className="block mb-2">Budget monthly,</span>
+            <span className="block mb-2">Atur bulanan,</span>
             <span className="relative block">
               <span
                 ref={trackRef}
                 className="bg-gradient-to-r from-primary via-primary to-primary/70 bg-clip-text text-transparent animate-pulse"
               >
-                track daily
+                catat harian
               </span>
               <svg
                 className="absolute -bottom-3 left-0 h-4 w-full text-primary/40 animate-pulse"
@@ -108,8 +118,8 @@ export function Hero() {
           </h1>
 
           <p className="hero-animate mx-auto mt-8 max-w-2xl text-xl leading-8 text-muted-foreground/90">
-            Take control of your finances with intelligent budgeting, real-time
-            tracking, and insights across all your accounts.
+            Pemasukan, pengeluaran, dan budget dari semua rekening
+            dan e-wallet dalam satu tempat. Tahu persis ke mana uangmu pergi.
           </p>
 
           <div className="hero-animate mt-10 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-4">
@@ -119,7 +129,7 @@ export function Hero() {
               className="group relative rounded-2xl px-10 py-5 text-lg font-semibold bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg hover:shadow-xl hover:shadow-primary/25 transition-all duration-300 transform hover:scale-105"
             >
               <Link href="/auth/sign-up" className="flex items-center gap-2">
-                <span className="relative z-10">Start Free Trial</span>
+                <span className="relative z-10">Mulai gratis</span>
                 <svg
                   className="ml-3 h-5 w-5 transition-transform group-hover:translate-x-1"
                   fill="none"
@@ -156,7 +166,7 @@ export function Hero() {
                     d="M19 14l-7 7m0 0l-7-7m7 7V3"
                   />
                 </svg>
-                Learn More
+                Lihat fitur
               </Link>
             </Button>
           </div>
@@ -165,15 +175,15 @@ export function Hero() {
           <div className="hero-animate flex flex-wrap items-center justify-center gap-6 sm:gap-8 text-sm text-muted-foreground pt-8">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-              <span>No bank connection required</span>
+              <span>Tanpa sambung ke rekening bank</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-              <span>100% private & secure</span>
+              <div className="w-2 h-2 bg-brand-teal rounded-full"></div>
+              <span>Data pribadi & aman</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-              <span>Free forever</span>
+              <div className="w-2 h-2 bg-brand-gold rounded-full"></div>
+              <span>Paket gratis selamanya</span>
             </div>
           </div>
         </div>
@@ -183,21 +193,21 @@ export function Hero() {
           {[
             {
               icon: "M5 13l4 4L19 7",
-              text: "100% Free",
+              text: "Gratis untuk mulai",
               delay: "0s",
               gradient: "from-emerald-500 to-teal-600",
             },
             {
               icon: "M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z",
-              text: "Secure & Private",
+              text: "Aman & pribadi",
               delay: "0.2s",
-              gradient: "from-blue-500 to-indigo-600",
+              gradient: "from-brand-teal to-brand-deep-teal",
             },
             {
               icon: "M13 10V3L4 14h7v7l9-11h-7z",
-              text: "Lightning Fast",
+              text: "Catat dalam detik",
               delay: "0.4s",
-              gradient: "from-purple-500 to-pink-600",
+              gradient: "from-amber-400 to-brand-gold",
             },
           ].map((item, index) => (
             <div

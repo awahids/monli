@@ -88,7 +88,7 @@ export async function POST(req: Request) {
         opening_balance: body.openingBalance ?? 0,
         current_balance: body.openingBalance ?? 0,
         archived: body.archived ?? false,
-        account_number: body.accountNumber ?? null,
+        account_number: body.accountNumber?.trim() || null,
       })
       .select("*")
       .single();

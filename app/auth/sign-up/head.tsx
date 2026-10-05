@@ -1,10 +1,10 @@
 export default function Head() {
   return (
     <>
-      <title>Daftar - Monli</title>
+      <title>Daftar - Qala Saku</title>
       <meta
         name="description"
-        content="Buat akun Monli untuk mulai mengatur dan memantau keuangan pribadimu."
+        content="Buat akun Qala Saku untuk mulai mengatur dan memantau keuangan pribadimu."
       />
       <meta name="robots" content="index, follow" />
     </>

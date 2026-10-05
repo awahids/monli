@@ -1,9 +1,9 @@
-# Monli Wiki
+# Qala Saku Wiki
 
-Selamat datang di wiki *Monli*! Dokumen ini memberikan gambaran umum tentang proyek serta panduan untuk berkontribusi.
+Selamat datang di wiki *Qala Saku* (sebelumnya Monli), bagian dari keluarga Qala! Dokumen ini memberikan gambaran umum tentang proyek serta panduan untuk berkontribusi.
 
 ## Ringkasan Proyek
-Monli adalah aplikasi pengelola keuangan pribadi berbasis web yang membantu kamu mencatat pengeluaran, memantau pemasukan, menyusun anggaran, dan melacak tabungan. Semua fitur dirancang agar pengelolaan keuangan menjadi lebih sederhana dan terstruktur.
+Qala Saku adalah aplikasi pengelola keuangan pribadi berbasis web yang membantu kamu mencatat pengeluaran, memantau pemasukan, menyusun anggaran, dan melacak tabungan. Semua fitur dirancang agar pengelolaan keuangan menjadi lebih sederhana dan terstruktur.
 
 ## Cara Menjalankan Proyek
 1. Pastikan Node.js dan npm telah terpasang.

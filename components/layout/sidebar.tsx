@@ -16,27 +16,41 @@ import {
   Package2,
   ChevronLeft,
   ChevronRight,
+  Repeat,
+  Target,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { QalaLogo, QalaMark } from "@/components/brand/qala-mark";
+import { QalaFamilyProducts } from "@/components/brand/qala-family";
 
 const navigation = [
-  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { name: "Budgets", href: "/budgets", icon: Wallet },
-  { name: "Transactions", href: "/transactions", icon: Receipt },
-  { name: "Accounts", href: "/accounts", icon: CreditCard },
-  { name: "Reports", href: "/reports", icon: BarChart3 },
-  { name: "Settings", href: "/settings", icon: Settings },
+  { name: "Beranda", href: "/dashboard", icon: LayoutDashboard },
+  { name: "Transaksi", href: "/transactions", icon: Receipt },
+  { name: "Budget", href: "/budgets", icon: Wallet },
+  { name: "Target tabungan", href: "/goals", icon: Target },
+  { name: "Transaksi rutin", href: "/recurring", icon: Repeat },
+  { name: "Akun", href: "/accounts", icon: CreditCard },
+  { name: "Laporan", href: "/reports", icon: BarChart3 },
   { name: "Zakat", href: "/zakat", icon: Package2 },
+  { name: "Pengaturan", href: "/settings", icon: Settings },
 ];
 
 // Essential navigation for mobile (most used features)
 const mobileNavigation = [
-  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { name: "Transactions", href: "/transactions", icon: Receipt },
-  { name: "Budgets", href: "/budgets", icon: Wallet },
-  { name: "Accounts", href: "/accounts", icon: CreditCard },
-  // { name: "Settings", href: "/settings", icon: Settings },
+  { name: "Beranda", href: "/dashboard", icon: LayoutDashboard },
+  { name: "Transaksi", href: "/transactions", icon: Receipt },
+  { name: "Budget", href: "/budgets", icon: Wallet },
+  { name: "Akun", href: "/accounts", icon: CreditCard },
+];
+
+// Everything else, below a divider in the mobile menu
+const secondaryMobileNavigation = [
+  { name: "Target tabungan", href: "/goals", icon: Target },
+  { name: "Transaksi rutin", href: "/recurring", icon: Repeat },
+  { name: "Laporan", href: "/reports", icon: BarChart3 },
+  { name: "Zakat", href: "/zakat", icon: Package2 },
+  { name: "Pengaturan", href: "/settings", icon: Settings },
 ];
 
 interface SidebarProps {
@@ -56,17 +70,13 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
       )}
     >
       <div className="flex flex-col flex-grow overflow-y-auto pt-5">
-        <div className={cn("px-3 py-4", collapsed && "items-center flex justify-center")}
+        <Link
+          href="/dashboard"
+          aria-label="Qala Saku, dashboard"
+          className={cn("px-3 py-4", collapsed && "items-center flex justify-center")}
         >
-          {!collapsed && (
-            <>
-              <h2 className="text-xl font-bold text-foreground">Monli App</h2>
-              <p className="text-sm text-muted-foreground mt-1">
-                Personal Finance Manager
-              </p>
-            </>
-          )}
-        </div>
+          {collapsed ? <QalaMark className="h-4" /> : <QalaLogo />}
+        </Link>
 
         <nav className={cn("mt-6 flex-grow space-y-1", collapsed ? "px-0" : "px-3")}
         >
@@ -91,12 +101,17 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
           })}
         </nav>
 
+        {!collapsed && (
+          <QalaFamilyProducts className="mt-auto px-3 pb-2 pt-4" />
+        )}
+
         {user?.plan !== 'PRO' && !collapsed && (
-          <div className="mt-auto p-3">
+          <div className="p-3">
             <div className="rounded-lg border bg-muted/50 p-4 text-center">
-              <p className="text-sm font-medium">Upgrade Pro</p>
+              <p className="text-sm font-medium">Coba Qala Saku PRO</p>
+              <p className="mt-1 text-xs text-muted-foreground">Scan struk, asisten AI, laporan lengkap.</p>
               <Button asChild size="sm" className="mt-2 w-full">
-                <Link href="/upgrade">Upgrade</Link>
+                <Link href="/upgrade">Lihat paket</Link>
               </Button>
             </div>
           </div>
@@ -134,19 +149,16 @@ export function MobileSidebar() {
           className="md:hidden h-10 w-10 rounded-lg hover:bg-primary/10 transition-all duration-200 touch-manipulation"
         >
           <Menu className="h-5 w-5" />
-          <span className="sr-only">Toggle menu</span>
+          <span className="sr-only">Buka menu</span>
         </Button>
       </SheetTrigger>
       <SheetContent side="left" className="w-64 p-0">
         <div className="flex flex-col h-full">
-          <div className="px-3 py-4 border-b">
-            <h2 className="text-xl font-bold text-foreground">Monli App</h2>
-            <p className="text-sm text-muted-foreground mt-1">
-              Personal Finance Manager
-            </p>
+          <div className="px-4 py-4 border-b">
+            <QalaLogo />
           </div>
 
-          <nav className="flex-1 px-3 py-4 space-y-2">
+          <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-2">
             {mobileNavigation.map((item) => {
               const isActive = pathname === item.href;
               return (
@@ -167,43 +179,35 @@ export function MobileSidebar() {
               );
             })}
 
-            <div className="pt-4 mt-4 border-t border-border space-y-2">
-              <Link
-                href="/reports"
-                onClick={() => setOpen(false)}
-                className={cn(
-                  "flex items-center px-4 py-4 text-base font-medium rounded-xl transition-all duration-200 touch-manipulation",
-                  pathname === "/reports"
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground active:bg-muted/80",
-                )}
-              >
-                <BarChart3 className="mr-4 h-5 w-5 flex-shrink-0" />
-                Reports
-              </Link>
-
-              <Link
-                href="/zakat"
-                onClick={() => setOpen(false)}
-                className={cn(
-                  "flex items-center px-4 py-4 text-base font-medium rounded-xl transition-all duration-200 touch-manipulation",
-                  pathname === "/zakat"
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground active:bg-muted/80",
-                )}
-              >
-                <Package2 className="mr-4 h-5 w-5 flex-shrink-0" />
-                Zakat
-              </Link>
+            <div className="pt-4 mt-4 border-t border-border space-y-1">
+              {secondaryMobileNavigation.map((item) => (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  onClick={() => setOpen(false)}
+                  className={cn(
+                    "flex items-center px-4 py-3 text-base font-medium rounded-xl transition-all duration-200 touch-manipulation",
+                    pathname === item.href
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground active:bg-muted/80",
+                  )}
+                >
+                  <item.icon className="mr-4 h-5 w-5 flex-shrink-0" />
+                  {item.name}
+                </Link>
+              ))}
             </div>
+
+            <QalaFamilyProducts className="pt-4 mt-4 border-t border-border" />
 
             {user?.plan !== 'PRO' && (
               <div className="mt-6 border-t border-border p-4">
                 <div className="rounded-lg bg-muted/50 p-4 text-center">
-                  <p className="text-sm font-medium">Upgrade Pro</p>
+                  <p className="text-sm font-medium">Coba Qala Saku PRO</p>
+              <p className="mt-1 text-xs text-muted-foreground">Scan struk, asisten AI, laporan lengkap.</p>
                   <Button asChild size="sm" className="mt-2 w-full">
                     <Link href="/upgrade" onClick={() => setOpen(false)}>
-                      Upgrade
+                      Lihat paket
                     </Link>
                   </Button>
                 </div>

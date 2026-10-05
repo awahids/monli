@@ -11,22 +11,15 @@ import { Testimonials } from "@/components/marketing/testimonials";
 import { FAQ } from "@/components/marketing/faq";
 import { CTABand } from "@/components/marketing/cta-band";
 import { Footer } from "@/components/marketing/footer";
+import { BRAND } from "@/lib/brand";
 
 export const metadata: Metadata = {
-  title: "Monli — Budget monthly, track daily",
-  description:
-    "Manage money across banks & e-wallets, set monthly budgets, and track daily transactions with Monli.",
+  title: `${BRAND.name} — Atur bulanan, catat harian`,
+  description: BRAND.description,
   openGraph: {
-    title: "Monli — Budget monthly, track daily",
-    description:
-      "Manage money across banks & e-wallets, set monthly budgets, and track daily transactions with Monli.",
-    images: [
-      {
-        url: "https://placehold.co/1200x630/png?text=Monli",
-        width: 1200,
-        height: 630,
-      },
-    ],
+    title: `${BRAND.name} — Atur bulanan, catat harian`,
+    description: BRAND.description,
+    images: [{ url: "/og-image.png", width: 1200, height: 630 }],
   },
 };
 
@@ -34,16 +27,18 @@ const jsonLd = [
   {
     "@context": "https://schema.org",
     "@type": "Organization",
-    name: "Monli",
-    url: "https://monli.fun",
-    sameAs: ["https://twitter.com/monli", "https://github.com/monliapp"],
+    name: BRAND.family,
+    url: BRAND.familyUrl,
   },
   {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
-    name: "Monli",
+    name: BRAND.name,
+    alternateName: BRAND.formerName,
+    url: BRAND.url,
     applicationCategory: "FinanceApplication",
     operatingSystem: "Web",
+    publisher: { "@type": "Organization", name: BRAND.family, url: BRAND.familyUrl },
     offers: { "@type": "Offer", price: "0", priceCurrency: "IDR" },
   },
 ];

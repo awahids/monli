@@ -8,11 +8,12 @@ interface ProgressProps extends React.HTMLAttributes<HTMLDivElement> {
   value?: number;
   max?: number;
   indicatorClassName?: string;
+  indicatorStyle?: React.CSSProperties;
 }
 
 const Progress = React.forwardRef<HTMLDivElement, ProgressProps>(
   (
-    { className, value = 0, max = 100, indicatorClassName, ...props },
+    { className, value = 0, max = 100, indicatorClassName, indicatorStyle, ...props },
     ref,
   ) => {
     const clampedValue = Math.min(Math.max(value, 0), max);
@@ -35,7 +36,7 @@ const Progress = React.forwardRef<HTMLDivElement, ProgressProps>(
       >
         <div
           className={cn('h-full bg-primary transition-all', indicatorClassName)}
-          style={{ width: `${percentage}%` }}
+          style={{ ...indicatorStyle, width: `${percentage}%` }}
         />
       </div>
     );

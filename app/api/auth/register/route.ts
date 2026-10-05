@@ -17,7 +17,7 @@ export async function POST(req: Request) {
     return NextResponse.json(
       {
         ok: false,
-        error: "Invalid input data",
+        error: "Data pendaftaran tidak valid",
       },
       { status: 400 },
     );
@@ -39,11 +39,11 @@ export async function POST(req: Request) {
       error.message.includes("already registered") ||
       error.message.includes("already exists")
     ) {
-      message = "An account already exists for this email address.";
+      message = "Email ini sudah terdaftar. Silakan masuk.";
     } else if (error.message.includes("weak_password")) {
-      message = "Password is too weak. Please choose a stronger password.";
+      message = "Kata sandi terlalu lemah. Pilih yang lebih kuat.";
     } else if (error.message.includes("invalid_credentials")) {
-      message = "Invalid email or password format.";
+      message = "Format email atau kata sandi tidak valid.";
     } else {
       message = error.message;
     }
@@ -71,7 +71,7 @@ export async function POST(req: Request) {
       return NextResponse.json(
         {
           ok: false,
-          error: "Failed to create user profile. Please try again.",
+          error: "Gagal membuat profil. Coba lagi.",
         },
         { status: 500 },
       );

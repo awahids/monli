@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createServerClient } from '@/lib/supabase/server';
 import { getUser } from '@/lib/auth/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 const OUNCE_TO_GRAM = 31.1034768;
 
@@ -65,7 +66,8 @@ export async function GET() {
     const tsJakarta = new Date((data.timestamp ?? Date.now() / 1000) * 1000)
       .toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' });
 
-    await supabase
+    // Quota column is protected from user writes; record usage server-side.
+    await createAdminClient()
       .from('profiles')
       .update({ live_price_used_at: now.toISOString() })
       .eq('id', user.id);

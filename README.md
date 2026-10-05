@@ -1,8 +1,10 @@
-# monli
+# Qala Saku
 
 Atur, lacak, dan wujudkan tujuan finansialmu dengan mudah.
 
-monli adalah aplikasi pengelola keuangan pribadi yang membantu kamu mencatat pengeluaran, memonitor pemasukan, menyusun anggaran, dan memantau tabungan dalam satu tempat. Cerdas, mudah digunakan, dan dilengkapi grafik interaktif agar kamu bisa melihat gambaran keuangan secara utuh dan membuat keputusan finansial yang tepat.
+> **Qala Saku** (sebelumnya **Monli**) adalah bagian dari [keluarga Qala](https://qala.digital), bersama [Qala Invoice](https://invoice.monli.fun). Domain tetap [monli.fun](https://monli.fun).
+
+Qala Saku adalah aplikasi pengelola keuangan pribadi yang membantu kamu mencatat pengeluaran, memonitor pemasukan, menyusun anggaran, dan memantau tabungan dalam satu tempat. Cerdas, mudah digunakan, dan dilengkapi grafik interaktif agar kamu bisa melihat gambaran keuangan secara utuh dan membuat keputusan finansial yang tepat.
 
 ## Fitur Unggulan
 
@@ -15,6 +17,12 @@ monli adalah aplikasi pengelola keuangan pribadi yang membantu kamu mencatat pen
 
 Lihat [docs/seo.md](docs/seo.md) untuk detail strategi dan kata kunci SEO.
 
+## Identitas Brand
+
+Nama produk, tagline, dan daftar produk keluarga Qala ada di `lib/brand.ts`; logo di `components/brand/qala-mark.tsx`. Palet (Jade Teal `#14A7A0`, Deep Teal `#0E8079`, Warm Gold `#F9A620`, Navy `#0B0F24`, Warm Cream `#F2EFE9`) dan tipografi (Poppins untuk judul, Inter untuk teks) sama dengan Qala Invoice; token warnanya ada di `app/globals.css`.
+
+Nama `monli` sengaja dipertahankan di tempat internal (nama package, nama database IndexedDB offline, domain) agar data dan tautan lama tetap berfungsi.
+
 ## Konfigurasi Midtrans
 
 Untuk mengaktifkan pembayaran Midtrans, siapkan variabel lingkungan berikut:
@@ -22,6 +30,9 @@ Untuk mengaktifkan pembayaran Midtrans, siapkan variabel lingkungan berikut:
 - `MIDTRANS_SERVER_KEY` – server key dari Midtrans
 - `NEXT_PUBLIC_MIDTRANS_CLIENT_KEY` – client key untuk skrip Snap
 - `NEXT_PUBLIC_MIDTRANS_IS_PRODUCTION` – set ke `true` bila menggunakan mode produksi; biarkan kosong untuk sandbox
+- `SUPABASE_SERVICE_ROLE_KEY` – wajib; status pembayaran dan plan hanya ditulis dari server
+
+Atur **Payment Notification URL** di dashboard Midtrans ke `https://<domain>/api/payments/notify`. Plan user hanya di-upgrade ke PRO setelah status pembayaran diverifikasi langsung ke Midtrans (lewat webhook ini atau saat halaman pembayaran dibuka), tidak pernah dari status yang dikirim browser.
 
 ## Konfigurasi OCR SumoPod
 

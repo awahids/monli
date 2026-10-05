@@ -3,28 +3,28 @@ import { Wallet, Shield, Server, Moon } from "lucide-react";
 const items = [
   {
     icon: Wallet,
-    text: "Manual Input",
+    text: "Catat manual",
     description:
-      "Enter transactions manually - no bank account connection required",
-    color: "from-blue-500 to-cyan-500",
+      "Kamu yang pegang kendali, tanpa perlu menyambungkan rekening bank",
+    color: "from-brand-teal to-brand-deep-teal",
   },
   {
     icon: Shield,
-    text: "Private & Secure",
+    text: "Pribadi & aman",
     description:
-      "Your financial data stays safe and is never shared with third parties",
+      "Data keuanganmu tersimpan aman dan tidak dibagikan ke pihak ketiga",
     color: "from-green-500 to-emerald-500",
   },
   {
     icon: Server,
-    text: "Access Anywhere",
-    description: "Monitor your personal finances from any device",
-    color: "from-purple-500 to-violet-500",
+    text: "Akses di mana saja",
+    description: "Pantau keuangan dari HP maupun laptop",
+    color: "from-amber-400 to-brand-gold",
   },
   {
     icon: Moon,
-    text: "Simple Design",
-    description: "Clean and intuitive interface that's easy to use",
+    text: "Desain sederhana",
+    description: "Tampilan bersih yang mudah dipahami sejak pertama dipakai",
     color: "from-gray-600 to-gray-800",
   },
 ];
@@ -37,10 +37,10 @@ export function TrustSignals() {
       <div className="relative mx-auto max-w-6xl px-4">
         <div className="text-center mb-12">
           <h3 className="text-2xl font-bold text-foreground mb-4">
-            Trusted by users worldwide
+            Dibuat dengan privasi sebagai prioritas
           </h3>
           <p className="text-muted-foreground">
-            Built with security, privacy, and user experience in mind
+            Keamanan data dan kenyamanan pakai jadi dasar setiap fitur
           </p>
         </div>
 
