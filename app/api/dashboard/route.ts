@@ -82,8 +82,8 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: budgetTxErr.message }, { status: 400 });
     }
 
-    type BudgetItem = Database['public']['Tables']['budget_items']['Row'] & {
-      category: Pick<Database['public']['Tables']['categories']['Row'], 'name'> | null;
+    type BudgetItem = Database['saku']['Tables']['budget_items']['Row'] & {
+      category: Pick<Database['saku']['Tables']['categories']['Row'], 'name'> | null;
     };
     type Budget = { id: string; items: BudgetItem[] };
     const { data: budgetData, error: budgetErr } = await supabase

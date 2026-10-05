@@ -24,8 +24,8 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: 'month is required (YYYY-MM)' }, { status: 400 });
     }
 
-    type TxRow = Database['public']['Tables']['transactions']['Row'] & {
-      category: Pick<Database['public']['Tables']['categories']['Row'], 'name' | 'color'> | null;
+    type TxRow = Database['saku']['Tables']['transactions']['Row'] & {
+      category: Pick<Database['saku']['Tables']['categories']['Row'], 'name' | 'color'> | null;
     };
     const { data, error } = await supabase
       .from('transactions')

@@ -69,7 +69,7 @@ create index savings_goals_user_id_idx on savings_goals(user_id);
 
 -- Atomic deposit / withdrawal. Runs as the caller, so RLS still applies.
 create or replace function contribute_savings_goal(goal_id uuid, delta numeric)
-returns savings_goals
+returns setof savings_goals
 language sql
 security invoker
 set search_path = public

@@ -20,6 +20,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import { QalaMark } from "@/components/brand/qala-mark";
+import { GoogleSignIn } from "@/components/auth/google-sign-in";
 import { QalaFamilyLink } from "@/components/brand/qala-family";
 
 const signUpSchema = z.object({
@@ -106,6 +107,7 @@ export default function SignUpPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="relative z-10 pt-0">
+          <GoogleSignIn label="Daftar dengan Google" />
           <form
             onSubmit={handleSubmit(onSubmit, onError)}
             className="space-y-6"

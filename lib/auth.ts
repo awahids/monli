@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/client";
 import { User } from "@/types";
 import { useAppStore } from "./store";
+import { ensureProfile } from "./profile";
 
 export const supabase = createClient();
 
@@ -57,6 +58,19 @@ export async function signIn(email: string, password: string) {
   return user;
 }
 
+/**
+ * Starts Google sign-in. The browser leaves the app and comes back to
+ * /auth/callback, which exchanges the code for a session.
+ */
+export async function signInWithGoogle(next = "/dashboard") {
+  const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`;
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: { redirectTo },
+  });
+  if (error) throw error;
+}
+
 export async function signOut() {
   const { error } = await supabase.auth.signOut();
 
@@ -74,12 +88,9 @@ export async function getCurrentUser(): Promise<User | null> {
 
   if (!user) return null;
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", user.id)
-    .single();
-
+  // Accounts from Google sign-in (or another app on the shared project)
+  // get their Qala Saku profile on first visit.
+  const profile = await ensureProfile(supabase, user);
   if (!profile) return null;
 
   return {

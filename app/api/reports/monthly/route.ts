@@ -26,9 +26,9 @@ export async function GET(req: Request) {
     }
     const { month } = parse.data;
 
-    type BudgetItem = Database['public']['Tables']['budget_items']['Row'] & {
+    type BudgetItem = Database['saku']['Tables']['budget_items']['Row'] & {
       category: Pick<
-        Database['public']['Tables']['categories']['Row'],
+        Database['saku']['Tables']['categories']['Row'],
         'name' | 'color'
       > | null;
     };

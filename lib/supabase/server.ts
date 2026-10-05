@@ -1,6 +1,7 @@
 import { createServerClient as createSupabaseServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import type { Database } from "@/types/database";
+import { DB_SCHEMA } from "./schema";
 
 export function createClient() {
   const cookieStore = cookies();
@@ -13,6 +14,7 @@ export function createClient() {
   }
 
   return createSupabaseServerClient<Database>(supabaseUrl, supabaseAnonKey, {
+    db: { schema: DB_SCHEMA },
     cookies: {
       get(name: string) {
         return cookieStore.get(name)?.value;

@@ -20,6 +20,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Loader2, Eye, EyeOff } from "lucide-react";
 import { QalaMark } from "@/components/brand/qala-mark";
+import { GoogleSignIn } from "@/components/auth/google-sign-in";
 import { QalaFamilyLink } from "@/components/brand/qala-family";
 
 const signInSchema = z.object({
@@ -84,6 +85,7 @@ export default function SignInPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="relative z-10 pt-0">
+          <GoogleSignIn />
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div className="space-y-2">
               <Label

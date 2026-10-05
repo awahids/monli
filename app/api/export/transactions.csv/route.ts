@@ -29,11 +29,11 @@ export async function GET(req: Request) {
       );
     }
     const { from, to, type, accountId, categoryId } = parse.data;
-    type TxRow = Database['public']['Tables']['transactions']['Row'] & {
-      account: Pick<Database['public']['Tables']['accounts']['Row'], 'name'> | null;
-      from_account: Pick<Database['public']['Tables']['accounts']['Row'], 'name'> | null;
-      to_account: Pick<Database['public']['Tables']['accounts']['Row'], 'name'> | null;
-      category: Pick<Database['public']['Tables']['categories']['Row'], 'name'> | null;
+    type TxRow = Database['saku']['Tables']['transactions']['Row'] & {
+      account: Pick<Database['saku']['Tables']['accounts']['Row'], 'name'> | null;
+      from_account: Pick<Database['saku']['Tables']['accounts']['Row'], 'name'> | null;
+      to_account: Pick<Database['saku']['Tables']['accounts']['Row'], 'name'> | null;
+      category: Pick<Database['saku']['Tables']['categories']['Row'], 'name'> | null;
     };
     let query = supabase
       .from('transactions')
