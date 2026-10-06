@@ -27,6 +27,8 @@ export interface ActiveSpace {
   canWrite: boolean;
   /** Spaces the user can switch to, besides their own. */
   joined: JoinedSpace[];
+  /** Names of the people in the active space, by profile id (owner and members). */
+  people: Record<string, string>;
 }
 
 export interface Account {
@@ -85,6 +87,8 @@ export interface Transaction {
   tags: string[];
   /** Set when the transaction was created by a recurring rule. */
   recurringId?: string | null;
+  /** Profile id of whoever recorded it (useful in shared spaces). */
+  createdBy?: string | null;
   account?: Account;
   fromAccount?: Account;
   toAccount?: Account;

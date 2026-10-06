@@ -25,9 +25,15 @@ export function SpaceSwitcher() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" className="max-w-[11rem] gap-2" aria-label={`Ruang: ${current}. Ganti ruang`}>
+        <Button
+          variant="outline"
+          size="sm"
+          className="max-w-[11rem] gap-2 px-2 sm:px-3"
+          aria-label={`Ruang: ${current}. Ganti ruang`}
+        >
           {space.isOwn ? <User className="h-4 w-4 shrink-0" /> : <Users className="h-4 w-4 shrink-0 text-primary" />}
-          <span className="truncate">{current}</span>
+          {/* Icon only on phones, where the header has no room for the name. */}
+          <span className="hidden truncate sm:inline">{current}</span>
           <ChevronsUpDown className="h-3.5 w-3.5 shrink-0 opacity-60" />
         </Button>
       </DropdownMenuTrigger>
