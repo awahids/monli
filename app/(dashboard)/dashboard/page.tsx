@@ -30,7 +30,14 @@ import { GoalsSummary } from '@/components/dashboard/goals-summary';
 import TransactionForm, {
   TransactionFormValues,
 } from '@/components/transactions/transaction-form';
-import { currentMonth, formatDate, shiftMonth } from '@/lib/date';
+import {
+  budgetPeriod,
+  currentBudgetMonth,
+  currentMonth,
+  daysBetweenInclusive,
+  formatDate,
+  shiftMonth,
+} from '@/lib/date';
 import { keysToCamel } from '@/lib/case';
 import { greeting, monthDelta, monthTotals, type Delta } from '@/lib/dashboard';
 import {
@@ -124,6 +131,10 @@ export default function DashboardPage() {
 
   const thisMonth = currentMonth();
   const prevMonth = shiftMonth(thisMonth, -1);
+  // The budget card follows the user's budget period, which may start on
+  // payday rather than the 1st; KPIs and charts stay on the calendar month.
+  const budgetStartDay = user?.budgetStartDay || 1;
+  const budgetMonth = currentBudgetMonth(budgetStartDay);
 
   // Throws on failure so the form keeps the user's input and shows the error.
   const handleSave = async (values: TransactionFormValues) => {
@@ -177,7 +188,7 @@ export default function DashboardPage() {
             .from('budgets')
             .select(`*, items:budget_items(*, category:categories(*))`)
             .eq('user_id', user.id)
-            .eq('month', thisMonth),
+            .eq('month', budgetMonth),
         ]);
 
         if (accountsRes.data) setAccounts(keysToCamel<Account[]>(accountsRes.data));
@@ -193,14 +204,14 @@ export default function DashboardPage() {
     };
 
     fetchData();
-  }, [user, isOnline, thisMonth, setAccounts, setTransactions, setBudgets, setCategories]);
+  }, [user, isOnline, thisMonth, budgetMonth, setAccounts, setTransactions, setBudgets, setCategories]);
 
   // Category breakdown and budget actuals come from the server so they match
   // Reports and Budgets exactly.
   useEffect(() => {
     if (!user || !isOnline) return;
     let cancelled = false;
-    fetch(`/api/dashboard?month=${thisMonth}`)
+    fetch(`/api/dashboard?month=${thisMonth}&budgetMonth=${budgetMonth}`)
       .then((res) => (res.ok ? res.json() : Promise.reject(res)))
       .then((data) => {
         if (cancelled) return;
@@ -219,7 +230,7 @@ export default function DashboardPage() {
     return () => {
       cancelled = true;
     };
-  }, [user, isOnline, thisMonth, transactions]);
+  }, [user, isOnline, thisMonth, budgetMonth, transactions]);
 
   const kpis = useMemo(() => {
     const now = monthTotals(transactions, thisMonth);
@@ -231,16 +242,14 @@ export default function DashboardPage() {
     return { now, prev, totalBalance, net: now.income - now.expense };
   }, [transactions, accounts, thisMonth, prevMonth]);
 
-  const budget = budgets.find((b) => b.month === thisMonth);
+  const budget = budgets.find((b) => b.month === budgetMonth);
   const budgetCard = useMemo(() => {
     if (!budget) return null;
     const planned = budget.totalAmount;
     const actual = budgetSummary?.totalActual ?? 0;
     const remaining = planned - actual;
-    const [y, m] = thisMonth.split('-').map(Number);
-    const daysInMonth = new Date(Date.UTC(y, m, 0)).getUTCDate();
-    const today = Number(formatDate(new Date()).slice(8, 10));
-    const daysLeft = Math.max(daysInMonth - today + 1, 1);
+    const { end } = budgetPeriod(budgetMonth, budgetStartDay);
+    const daysLeft = Math.max(daysBetweenInclusive(formatDate(new Date()), end), 1);
     return {
       planned,
       actual,
@@ -250,7 +259,7 @@ export default function DashboardPage() {
       pct: planned > 0 ? Math.min((actual / planned) * 100, 100) : 0,
       over: remaining < 0,
     };
-  }, [budget, budgetSummary, thisMonth]);
+  }, [budget, budgetSummary, budgetMonth, budgetStartDay]);
 
   const showOnboarding = Boolean(user && !user.onboardingCompleted);
   const completeOnboarding = async () => {
