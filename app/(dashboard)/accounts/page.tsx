@@ -36,15 +36,18 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AccountForm } from '@/components/accounts/account-form';
 import { cn } from '@/lib/utils';
 
-const TYPE_META: Record<Account['type'], { label: string; icon: typeof Wallet }> = {
-  bank: { label: 'Bank', icon: Landmark },
-  ewallet: { label: 'E-wallet', icon: Smartphone },
-  cash: { label: 'Tunai', icon: Wallet },
+// Card face per account type, in the Qala palette (deep teal, navy, warm gold).
+const TYPE_META: Record<Account['type'], { label: string; icon: typeof Wallet; gradient: string }> = {
+  bank: { label: 'Bank', icon: Landmark, gradient: 'bg-gradient-to-br from-[#0B0F24] via-[#12304a] to-[#0E8079]' },
+  ewallet: { label: 'E-wallet', icon: Smartphone, gradient: 'bg-gradient-to-br from-[#0E8079] via-[#14A7A0] to-[#0b5d58]' },
+  cash: { label: 'Tunai', icon: Wallet, gradient: 'bg-gradient-to-br from-[#7a4a0b] via-[#b8730f] to-[#3d2a0b]' },
 };
 
 const HIDE_KEY = 'qala-saku:hide-balances';
 
-const maskNumber = (num: string) => `•••• ${num.slice(-4)}`;
+const maskNumber = (num: string) => `•••• •••• ${num.slice(-4)}`;
+/** Groups digits in fours like a printed card: 1234 5678 90. */
+const formatAccountNumber = (num: string) => num.replace(/\s+/g, '').replace(/(.{4})(?=.)/g, '$1 ');
 
 export default function AccountsPage() {
   const { user, setAccounts } = useAppStore();
@@ -177,9 +180,11 @@ export default function AccountsPage() {
       {loading ? (
         <div className="space-y-3" aria-busy="true" aria-label="Memuat akun">
           <Skeleton className="h-24 rounded-xl" />
-          {Array.from({ length: 3 }).map((_, i) => (
-            <Skeleton key={i} className="h-20 rounded-xl" />
-          ))}
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Skeleton key={i} className="aspect-[1.586/1] rounded-2xl" />
+            ))}
+          </div>
         </div>
       ) : rows.length === 0 ? (
         <EmptyState
@@ -224,92 +229,135 @@ export default function AccountsPage() {
               {currentTab === 'active' ? 'Semua akun sedang diarsipkan.' : 'Tidak ada akun yang diarsipkan.'}
             </p>
           ) : (
-            <div className="grid gap-3 md:grid-cols-2">
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
               {accounts.map((account) => {
                 const meta = TYPE_META[account.type];
                 const Icon = meta.icon;
                 const balance = account.currentBalance ?? 0;
+                const isRevealed = revealed[account.id];
                 return (
-                  <Card
+                  <div
                     key={account.id}
-                    className={cn('flex items-center gap-4 p-4 transition-colors hover:bg-muted/40', account.archived && 'opacity-70')}
+                    className={cn(
+                      'group relative aspect-[1.586/1] overflow-hidden rounded-2xl text-white shadow-md ring-1 ring-black/5 transition-all hover:-translate-y-0.5 hover:shadow-xl',
+                      meta.gradient,
+                      account.archived && 'opacity-60 saturate-50'
+                    )}
                   >
+                    {/* Decorative rings, echoing the Qala mark */}
+                    <span aria-hidden className="pointer-events-none absolute -right-10 -top-12 h-44 w-44 rounded-full border-[18px] border-white/10" />
+                    <span aria-hidden className="pointer-events-none absolute -bottom-16 right-16 h-40 w-40 rounded-full border-[14px] border-white/5" />
+
+                    {/* Whole card opens the account's transactions; controls sit above it. */}
                     <button
                       type="button"
-                      className="flex min-w-0 flex-1 items-center gap-4 text-left"
+                      className="absolute inset-0 z-0 rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
                       onClick={() => router.push(`/transactions?accountId=${account.id}`)}
                       aria-label={`Lihat transaksi ${account.name}`}
-                    >
-                      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-accent text-accent-foreground">
-                        <Icon className="h-5 w-5" />
-                      </span>
-                      <span className="min-w-0 flex-1">
-                        <span className="flex items-center gap-2">
-                          <span className="truncate font-medium">{account.name}</span>
-                          {account.archived && <Badge variant="secondary">Diarsipkan</Badge>}
-                        </span>
-                        <span className="block truncate text-xs text-muted-foreground">
-                          {meta.label}
-                          {account.accountNumber &&
-                            ` · ${revealed[account.id] ? account.accountNumber : maskNumber(account.accountNumber)}`}
-                        </span>
-                      </span>
-                      <span
-                        className={cn(
-                          'shrink-0 text-right font-semibold tabular-nums',
-                          balance < 0 && !hideBalances && 'text-red-600 dark:text-red-400'
-                        )}
-                      >
-                        {money(balance, account.currency)}
-                      </span>
-                    </button>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" aria-label={`Aksi untuk ${account.name}`}>
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onClick={() => {
-                            setEditingAccount(account);
-                            setDialogOpen(true);
-                          }}
-                        >
-                          Edit
-                        </DropdownMenuItem>
-                        {account.accountNumber && (
+                    />
+
+                    <div className="pointer-events-none relative z-10 flex h-full flex-col justify-between p-5">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <p className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-widest text-white/70">
+                            <Icon className="h-3.5 w-3.5" /> {meta.label}
+                          </p>
+                          <p className="mt-1 truncate font-display text-lg font-semibold">{account.name}</p>
+                        </div>
+                        <div className="pointer-events-auto flex shrink-0 items-center gap-1">
+                          {account.archived && (
+                            <Badge className="border-0 bg-white/20 text-white hover:bg-white/20">Diarsipkan</Badge>
+                          )}
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-white hover:bg-white/20 hover:text-white"
+                                aria-label={`Aksi untuk ${account.name}`}
+                              >
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  setEditingAccount(account);
+                                  setDialogOpen(true);
+                                }}
+                              >
+                                Edit
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleArchive(account, !account.archived)}>
+                                {account.archived ? 'Pulihkan' : 'Arsipkan'}
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                className="text-destructive focus:text-destructive"
+                                onClick={() => setPendingDelete(account)}
+                              >
+                                Hapus
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        <span
+                          aria-hidden
+                          className="h-7 w-10 shrink-0 rounded-md bg-gradient-to-br from-amber-200 via-amber-300 to-amber-500 shadow-inner"
+                        />
+                        {account.accountNumber ? (
                           <>
-                            <DropdownMenuItem
-                              onClick={() =>
-                                setRevealed((r) => ({ ...r, [account.id]: !r[account.id] }))
-                              }
-                            >
-                              {revealed[account.id] ? 'Sembunyikan nomor' : 'Tampilkan nomor'}
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => {
-                                navigator.clipboard.writeText(account.accountNumber!);
-                                toast.success('Nomor rekening disalin');
-                              }}
-                            >
-                              <Copy className="mr-2 h-4 w-4" /> Salin nomor
-                            </DropdownMenuItem>
+                            <span className="truncate font-mono text-base tracking-[0.2em] sm:text-lg">
+                              {isRevealed ? formatAccountNumber(account.accountNumber) : maskNumber(account.accountNumber)}
+                            </span>
+                            <span className="pointer-events-auto ml-auto flex shrink-0">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 text-white/80 hover:bg-white/20 hover:text-white"
+                                onClick={() => setRevealed((r) => ({ ...r, [account.id]: !r[account.id] }))}
+                                aria-label={isRevealed ? 'Sembunyikan nomor' : 'Tampilkan nomor'}
+                              >
+                                {isRevealed ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 text-white/80 hover:bg-white/20 hover:text-white"
+                                onClick={() => {
+                                  navigator.clipboard.writeText(account.accountNumber!);
+                                  toast.success('Nomor rekening disalin');
+                                }}
+                                aria-label="Salin nomor rekening"
+                              >
+                                <Copy className="h-3.5 w-3.5" />
+                              </Button>
+                            </span>
                           </>
-                        )}
-                        <DropdownMenuItem onClick={() => handleArchive(account, !account.archived)}>
-                          {account.archived ? 'Pulihkan' : 'Arsipkan'}
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          className="text-destructive focus:text-destructive"
-                          onClick={() => setPendingDelete(account)}
-                        >
-                          Hapus
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </Card>
+                        ) : null}
+                      </div>
+
+                      <div className="flex items-end justify-between gap-3">
+                        <span className="truncate text-xs uppercase tracking-wider text-white/70">
+                          {user?.name || 'Qala Saku'}
+                        </span>
+                        <div className="text-right">
+                          <p className="text-[10px] uppercase tracking-widest text-white/60">Saldo</p>
+                          <p
+                            className={cn(
+                              'font-display text-xl font-bold tabular-nums sm:text-2xl',
+                              balance < 0 && !hideBalances && 'text-red-200'
+                            )}
+                          >
+                            {money(balance, account.currency)}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 );
               })}
             </div>
