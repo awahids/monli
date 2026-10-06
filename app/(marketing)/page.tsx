@@ -3,6 +3,7 @@ import Script from "next/script";
 
 import { Header } from "@/components/site/header";
 import { Hero } from "@/components/marketing/hero";
+import { ScrollVideo } from "@/components/marketing/scroll-video";
 import { TrustSignals } from "@/components/marketing/trust-signals";
 import { Features } from "@/components/marketing/features";
 import { HowItWorks } from "@/components/marketing/how-it-works";
@@ -61,6 +62,7 @@ export default function LandingPage() {
       <Header />
       <main className="pb-24">
         <Hero />
+        <ScrollVideo />
         <TrustSignals />
         <Features />
         <HowItWorks />
