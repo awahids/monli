@@ -40,6 +40,7 @@ import {
 import { MoneyInput } from '@/components/ui/money-input';
 import { CategoryIcon } from '@/components/transactions/category-icon';
 import { cn } from '@/lib/utils';
+import { TagSuggestions } from '@/components/transactions/tag-suggestions';
 import { defaultBudgetMonth } from '@/lib/budget-period';
 import { formatDate } from '@/lib/date';
 import { formatMoneyCompact, getDisplayCurrency } from '@/lib/currency';
@@ -455,6 +456,19 @@ export function TransactionFields({
             <FormControl>
               <Input placeholder="mis. Makan siang bareng tim" {...field} />
             </FormControl>
+            <TagSuggestions
+              note={field.value}
+              categoryId={currentType === 'transfer' ? undefined : form.watch('categoryId') ?? undefined}
+              tags={form.watch('tags') ?? []}
+              onAdd={(tag) =>
+                form.setValue('tags', [...(form.getValues('tags') ?? []), tag], { shouldDirty: true })
+              }
+            />
+            {(form.watch('tags') ?? []).length > 0 && !moreOpen && (
+              <p className="text-xs text-muted-foreground">
+                Tag: {(form.watch('tags') ?? []).join(', ')}
+              </p>
+            )}
             <FormMessage />
           </FormItem>
         )}
