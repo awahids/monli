@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { getUser } from '@/lib/auth/server';
+import { getSpace } from '@/lib/auth/server';
 import { dueOccurrences, type RecurringFrequency } from '@/lib/recurring';
 import { budgetMonthFor, formatDate } from '@/lib/date';
 
@@ -29,12 +29,14 @@ type Rule = {
 export async function POST() {
   const supabase = createClient();
   try {
-    const user = await getUser();
+    const space = await getSpace();
+    // Viewers can't record transactions; the owner or an editor will.
+    if (!space.canWrite) return NextResponse.json({ created: 0 });
     const today = formatDate(new Date());
     const { data: rules, error } = await supabase
       .from('recurring_transactions')
       .select('id, type, account_id, from_account_id, to_account_id, category_id, amount, note, frequency, day_of_month, next_date, end_date')
-      .eq('user_id', user.id)
+      .eq('user_id', space.ownerId)
       .eq('active', true)
       .lte('next_date', today);
     if (error) return NextResponse.json({ error: error.message }, { status: 400 });
@@ -42,7 +44,7 @@ export async function POST() {
     const { data: profile } = await supabase
       .from('profiles')
       .select('budget_start_day')
-      .eq('id', user.id)
+      .eq('id', space.ownerId)
       .maybeSingle();
     const startDay = profile?.budget_start_day ?? 1;
 
@@ -55,7 +57,7 @@ export async function POST() {
 
       if (dates.length) {
         const rows = dates.map((d) => ({
-          user_id: user.id,
+          user_id: space.ownerId,
           recurring_id: rule.id,
           date: d,
           actual_date: d,
@@ -85,7 +87,7 @@ export async function POST() {
         .from('recurring_transactions')
         .update(nextDate ? { next_date: nextDate } : { active: false })
         .eq('id', rule.id)
-        .eq('user_id', user.id)
+        .eq('user_id', space.ownerId)
         .eq('next_date', rule.next_date);
     }
 

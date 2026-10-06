@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createServerClient } from '@/lib/supabase/server';
-import { getUser } from '@/lib/auth/server';
+import { getSpace } from '@/lib/auth/server';
 import { nextMonthStart } from '@/lib/date';
 import type { Database } from '@/types/database';
 
@@ -9,11 +9,11 @@ export const revalidate = 60;
 export async function GET(req: Request) {
   const supabase = createServerClient();
   try {
-    const user = await getUser();
+    const space = await getSpace();
     const { data: profile } = await supabase
       .from('profiles')
       .select('plan')
-      .eq('id', user.id)
+      .eq('id', space.ownerId)
       .single();
     if (profile?.plan !== 'PRO') {
       return NextResponse.json({ error: 'Upgrade to access category reports' }, { status: 403 });
@@ -30,7 +30,7 @@ export async function GET(req: Request) {
     const { data, error } = await supabase
       .from('transactions')
       .select('amount, category_id, category:categories(name, color)')
-      .eq('user_id', user.id)
+      .eq('user_id', space.ownerId)
       .eq('type', 'expense')
       .gte('actual_date', `${month}-01`)
       .lt('actual_date', nextMonthStart(month))

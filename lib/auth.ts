@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/client";
 import { User } from "@/types";
 import { useAppStore } from "./store";
 import { ensureProfile } from "./profile";
+import { loadActiveSpace, writeSpaceCookie } from "./space-client";
 
 export const supabase = createClient();
 
@@ -71,6 +72,13 @@ export async function signInWithGoogle(next = "/dashboard") {
   if (error) throw error;
 }
 
+/** The ?next= of the current page if it is an internal path, for post-login redirects. */
+export function nextFromLocation(fallback = "/dashboard"): string {
+  if (typeof window === "undefined") return fallback;
+  const next = new URLSearchParams(window.location.search).get("next");
+  return next && next.startsWith("/") && !next.startsWith("//") ? next : fallback;
+}
+
 export async function signOut() {
   const { error } = await supabase.auth.signOut();
 
@@ -78,6 +86,8 @@ export async function signOut() {
   document.cookie =
     "sb-refresh-token=; Path=/; Max-Age=0; SameSite=Lax; Secure";
   useAppStore.getState().setUser(null);
+  useAppStore.getState().setSpace(null);
+  writeSpaceCookie(null);
   if (error) throw error;
 }
 
@@ -93,7 +103,7 @@ export async function getCurrentUser(): Promise<User | null> {
   const profile = await ensureProfile(supabase, user);
   if (!profile) return null;
 
-  return {
+  const current: User = {
     id: profile.id,
     email: profile.email,
     name: profile.name,
@@ -102,4 +112,22 @@ export async function getCurrentUser(): Promise<User | null> {
     plan: profile.plan,
     budgetStartDay: profile.budget_start_day ?? 1,
   };
+
+  // Set before the user so pages that wait for the user also see the space.
+  try {
+    const { space, owner } = await loadActiveSpace(supabase, profile.id, profile.name);
+    useAppStore.getState().setSpace(space);
+    // In a shared space, budget periods and currency follow the owner's settings.
+    if (owner) Object.assign(current, owner);
+  } catch {
+    useAppStore.getState().setSpace({
+      ownerId: profile.id,
+      ownerName: profile.name,
+      role: "owner",
+      isOwn: true,
+      canWrite: true,
+      joined: [],
+    });
+  }
+  return current;
 }

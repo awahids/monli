@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
 import { createServerClient } from '@/lib/supabase/server';
-import { getUser } from '@/lib/auth/server';
+import { getSpace } from '@/lib/auth/server';
 
 export async function GET(req: Request) {
   const supabase = createServerClient();
   try {
-    await getUser();
+    const space = await getSpace();
     const { searchParams } = new URL(req.url);
     const month = searchParams.get('month');
     const type = (searchParams.get('type') as 'expense' | 'income') ?? 'expense';
@@ -15,9 +15,10 @@ export async function GET(req: Request) {
     if (type !== 'expense' && type !== 'income') {
       return NextResponse.json({ error: 'invalid type' }, { status: 400 });
     }
-    const { data, error } = await supabase.rpc('report_budget_vs_actual', {
+    const { data, error } = await supabase.rpc('space_budget_vs_actual', {
       month_in: month,
       type_in: type,
+      space_owner: space.ownerId,
     });
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 400 });

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createServerClient } from '@/lib/supabase/server';
-import { getUser } from '@/lib/auth/server';
+import { getSpace, readOnlyResponse } from '@/lib/auth/server';
 import { transactionPatchSchema } from '@/lib/validation';
 import { z } from 'zod';
 
@@ -18,14 +18,15 @@ export async function PATCH(
     return NextResponse.json({ error: (e as Error).message }, { status: 400 });
   }
   try {
-    const user = await getUser();
+    const space = await getSpace();
+    if (!space.canWrite) return readOnlyResponse();
     const { data: existing, error: exErr } = await supabase
       .from('transactions')
       .select(
         'type, amount, account_id, from_account_id, to_account_id, category_id',
       )
       .eq('id', params.id)
-      .eq('user_id', user.id)
+      .eq('user_id', space.ownerId)
       .single();
     if (exErr || !existing) {
       return NextResponse.json(
@@ -72,7 +73,7 @@ export async function PATCH(
         const { data: bal, error: balErr } = await supabase
           .from('accounts')
           .select('current_balance')
-          .eq('user_id', user.id)
+          .eq('user_id', space.ownerId)
           .eq('id', newFrom)
           .single();
         if (balErr) {
@@ -112,7 +113,7 @@ export async function PATCH(
         tags: body.tags,
       })
       .eq('id', params.id)
-      .eq('user_id', user.id)
+      .eq('user_id', space.ownerId)
       .select(
         `*,
         account:accounts!transactions_account_id_fkey(name, type),
@@ -139,12 +140,13 @@ export async function DELETE(
 ) {
   const supabase = createServerClient();
   try {
-    const user = await getUser();
+    const space = await getSpace();
+    if (!space.canWrite) return readOnlyResponse();
     const { error } = await supabase
       .from('transactions')
       .delete()
       .eq('id', params.id)
-      .eq('user_id', user.id);
+      .eq('user_id', space.ownerId);
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createServerClient } from '@/lib/supabase/server';
-import { getUser } from '@/lib/auth/server';
+import { getSpace, readOnlyResponse } from '@/lib/auth/server';
 import { transactionCreateSchema } from '@/lib/validation';
 import { z } from 'zod';
 
@@ -27,7 +27,7 @@ function sanitizeSearch(value?: string): string {
 export async function GET(req: Request) {
   const supabase = createServerClient();
   try {
-    const user = await getUser();
+    const space = await getSpace();
     const { searchParams } = new URL(req.url);
     const page = Math.max(parseInt(searchParams.get('page') ?? '1', 10) || 1, 1);
     const pageSize = Math.min(
@@ -52,7 +52,7 @@ export async function GET(req: Request) {
     // Typed loosely: Supabase's builder generics are too deep to thread
     // through a shared helper (TS2589); results are typed at each call.
     const applyFilters = (q: any): any => {
-      let out = q.eq('user_id', user.id);
+      let out = q.eq('user_id', space.ownerId);
       if (from) out = out.gte(dateField, from);
       if (to) out = out.lte(dateField, to);
       if (type) out = out.eq('type', type);
@@ -132,7 +132,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: (e as Error).message }, { status: 400 });
   }
   try {
-    const user = await getUser();
+    const space = await getSpace();
+    if (!space.canWrite) return readOnlyResponse();
     if (
       process.env.DISALLOW_NEGATIVE_BALANCE === 'true' &&
       body.type === 'transfer' &&
@@ -141,7 +142,7 @@ export async function POST(req: Request) {
       const { data: bal, error: balErr } = await supabase
         .from('accounts')
         .select('current_balance')
-        .eq('user_id', user.id)
+        .eq('user_id', space.ownerId)
         .eq('id', body.fromAccountId)
         .single();
       if (balErr) {
@@ -157,7 +158,7 @@ export async function POST(req: Request) {
     const { data, error } = await supabase
       .from('transactions')
       .insert({
-        user_id: user.id,
+        user_id: space.ownerId,
         date: body.actualDate,
         actual_date: body.actualDate,
         budget_month: body.budgetMonth,

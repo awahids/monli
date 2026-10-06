@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createServerClient } from '@/lib/supabase/server';
-import { getUser } from '@/lib/auth/server';
+import { getSpace } from '@/lib/auth/server';
 import { nextMonthStart } from '@/lib/date';
 
 export const revalidate = 60;
@@ -18,7 +18,7 @@ const querySchema = z.object({
 export async function GET(req: Request) {
   const supabase = createServerClient();
   try {
-    const user = await getUser();
+    const space = await getSpace();
     const { searchParams } = new URL(req.url);
     const parse = querySchema.safeParse(Object.fromEntries(searchParams));
     if (!parse.success) {
@@ -53,7 +53,7 @@ export async function GET(req: Request) {
     const { data, error } = await supabase
       .from('transactions')
       .select('actual_date, type, amount')
-      .eq('user_id', user.id)
+      .eq('user_id', space.ownerId)
       .gte('actual_date', `${from}-01`)
       .lt('actual_date', nextMonthStart(to));
     if (error) {

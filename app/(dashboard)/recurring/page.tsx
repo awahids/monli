@@ -15,7 +15,7 @@ import { formatMoney } from '@/lib/currency';
 import { formatDate } from '@/lib/date';
 import { describeSchedule } from '@/lib/recurring';
 import { resetDueRecurring, runDueRecurring } from '@/lib/recurring-client';
-import { FREE_LIMITS } from '@/lib/plans';
+import { FREE_LIMITS, spacePlan } from '@/lib/plans';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -39,7 +39,7 @@ function ruleTitle(r: RecurringTransaction) {
 }
 
 export default function RecurringPage() {
-  const { user, accounts, categories, setAccounts, setCategories } = useAppStore();
+  const { user, space, accounts, categories, setAccounts, setCategories } = useAppStore();
   const [rules, setRules] = useState<RecurringTransaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [formOpen, setFormOpen] = useState(false);
@@ -47,7 +47,7 @@ export default function RecurringPage() {
   const [deleting, setDeleting] = useState<RecurringTransaction | null>(null);
 
   const today = formatDate(new Date());
-  const isFree = user?.plan !== 'PRO';
+  const isFree = spacePlan(user, space) !== 'PRO';
   const limitReached = isFree && rules.length >= FREE_LIMITS.recurring;
 
   const fetchRules = useCallback(async () => {
@@ -72,15 +72,15 @@ export default function RecurringPage() {
     if (!user) return;
     (async () => {
       if (!accounts.length) {
-        const { data } = await supabase.from('accounts').select('*').eq('user_id', user.id).eq('archived', false);
+        const { data } = await supabase.from('accounts').select('*').eq('user_id', (space?.ownerId ?? user.id)).eq('archived', false);
         if (data) setAccounts(keysToCamel<Account[]>(data));
       }
       if (!categories.length) {
-        const { data } = await supabase.from('categories').select('*').eq('user_id', user.id);
+        const { data } = await supabase.from('categories').select('*').eq('user_id', (space?.ownerId ?? user.id));
         if (data) setCategories(keysToCamel<Category[]>(data));
       }
     })().catch(console.error);
-  }, [user, accounts.length, categories.length, setAccounts, setCategories]);
+  }, [space?.ownerId, user, accounts.length, categories.length, setAccounts, setCategories]);
 
   /** After a create/edit/resume, record anything already due, then reload. */
   const afterSave = async () => {

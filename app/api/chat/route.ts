@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { getUser } from '@/lib/auth/server';
+import { getSpace } from '@/lib/auth/server';
 import { createClient } from '@/lib/supabase/server';
 import { createSumopodClient, getSumopodModel } from '@/lib/sumopod';
 import { AI_MONTHLY_LIMITS, getAiUsageCount, logAiUsage } from '@/lib/ai-usage';
@@ -37,7 +37,9 @@ export async function POST(req: Request) {
     const { message, history = [] } = parsed.data;
 
     const supabase = createClient();
-    const user = await getUser();
+    // AI quota and plan are the caller's own; the data comes from the active space.
+    const space = await getSpace();
+    const { user } = space;
 
     if (!user.email) {
       return NextResponse.json({ error: 'Email is required' }, { status: 400 });
@@ -69,32 +71,32 @@ export async function POST(req: Request) {
         supabase
           .from('accounts')
           .select('id, name, type, currency, current_balance, archived')
-          .eq('user_id', user.id),
+          .eq('user_id', space.ownerId),
         supabase
           .from('categories')
           .select('id, name, type')
-          .eq('user_id', user.id),
+          .eq('user_id', space.ownerId),
         supabase
           .from('budgets')
           .select('id, month, total_amount, items:budget_items(category_id, amount)')
-          .eq('user_id', user.id)
+          .eq('user_id', space.ownerId)
           .gte('month', since.slice(0, 7)),
         supabase
           .from('transactions')
           .select('actual_date, budget_month, amount, type, account_id, from_account_id, to_account_id, category_id, note')
-          .eq('user_id', user.id)
+          .eq('user_id', space.ownerId)
           .gte('actual_date', since)
           .order('actual_date', { ascending: false })
           .limit(MAX_TRANSACTIONS),
         supabase
           .from('savings_goals')
           .select('name, target_amount, saved_amount, target_date')
-          .eq('user_id', user.id)
+          .eq('user_id', space.ownerId)
           .eq('archived', false),
         supabase
           .from('recurring_transactions')
           .select('type, amount, note, frequency, day_of_month, next_date, account_id, category_id')
-          .eq('user_id', user.id)
+          .eq('user_id', space.ownerId)
           .eq('active', true),
       ]);
 

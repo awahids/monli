@@ -45,7 +45,7 @@ function roundUp(amount: number, currency: string) {
 }
 
 export function BudgetFormDialog({ open, onOpenChange, onCreated }: BudgetFormDialogProps) {
-  const { user } = useAppStore();
+  const { user, space } = useAppStore();
   const [categories, setCategories] = useState<Category[]>([]);
   const [month, setMonth] = useState<string>(() => thisBudgetMonth());
   const [items, setItems] = useState<ItemInput[]>([{ categoryId: '', amount: 0 }]);
@@ -58,12 +58,12 @@ export function BudgetFormDialog({ open, onOpenChange, onCreated }: BudgetFormDi
     supabase
       .from('categories')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('user_id', (space?.ownerId ?? user.id))
       .eq('type', 'expense')
       .then(({ data }) => {
         if (data) setCategories(keysToCamel<Category[]>(data));
       });
-  }, [open, user]);
+  }, [space?.ownerId, open, user]);
 
   const allocated = useMemo(
     () => items.reduce((sum, i) => sum + (i.categoryId ? i.amount : 0), 0),

@@ -22,6 +22,7 @@ import { useTheme } from 'next-themes';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { MobileSidebar } from './sidebar';
+import { SpaceSwitcher } from './space-switcher';
 import { QalaLogo } from '@/components/brand/qala-mark';
 
 function UserNav() {
@@ -116,6 +117,7 @@ export function Header() {
         </div>
         <div className="flex items-center space-x-2 sm:space-x-4">
           <OfflineIndicator />
+          <SpaceSwitcher />
           <UserNav />
         </div>
       </div>

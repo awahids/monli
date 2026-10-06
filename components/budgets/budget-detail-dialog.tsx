@@ -33,6 +33,7 @@ import { formatMoney } from '@/lib/currency';
 import { Budget, BudgetItem, Category } from '@/types';
 import { keysToCamel } from '@/lib/case';
 import { cn } from '@/lib/utils';
+import { spacePlan } from '@/lib/plans';
 
 type BudgetDetailDialogProps = {
   budgetId: string | null;
@@ -60,7 +61,7 @@ export function BudgetDetailDialog({
   onOpenChange,
   onChanged,
 }: BudgetDetailDialogProps) {
-  const { user, categories, setCategories } = useAppStore();
+  const { user, space, categories, setCategories } = useAppStore();
 
   const [budget, setBudget] = useState<Budget | null>(null);
   const [items, setItems] = useState<BudgetItem[]>([]);
@@ -70,7 +71,7 @@ export function BudgetDetailDialog({
   const [isEditing, setIsEditing] = useState(false);
   const [newCategoryId, setNewCategoryId] = useState('');
   const [newAmount, setNewAmount] = useState(0);
-  const isPro = user?.plan === 'PRO';
+  const isPro = spacePlan(user, space) === 'PRO';
 
   // Always load the budget fresh (with items) and get spending from the
   // server, attributed by budget_month. FREE users get the same data shown
@@ -85,7 +86,7 @@ export function BudgetDetailDialog({
         const { data: budgetData, error } = await supabase
           .from('budgets')
           .select(`*, items:budget_items(*, category:categories(*))`)
-          .eq('user_id', user.id)
+          .eq('user_id', (space?.ownerId ?? user.id))
           .eq('id', budgetId)
           .single();
         if (error || !budgetData) throw error ?? new Error('Budget not found');
@@ -98,7 +99,7 @@ export function BudgetDetailDialog({
             : supabase
                 .from('categories')
                 .select('*')
-                .eq('user_id', user.id)
+                .eq('user_id', (space?.ownerId ?? user.id))
                 .then(({ data }) => data),
         ]);
         if (cancelled) return;
@@ -124,7 +125,7 @@ export function BudgetDetailDialog({
     return () => {
       cancelled = true;
     };
-  }, [budgetId, user, setCategories]);
+  }, [space?.ownerId, budgetId, user, setCategories]);
 
   useEffect(() => {
     if (!open) {

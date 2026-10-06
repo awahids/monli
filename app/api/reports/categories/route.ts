@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createServerClient } from '@/lib/supabase/server';
-import { getUser } from '@/lib/auth/server';
+import { getSpace } from '@/lib/auth/server';
 import type { Database } from '@/types/database';
 
 export const revalidate = 60;
@@ -19,7 +19,7 @@ const querySchema = z.object({
 export async function GET(req: Request) {
   const supabase = createServerClient();
   try {
-    const user = await getUser();
+    const space = await getSpace();
     const { searchParams } = new URL(req.url);
     const parse = querySchema.safeParse(Object.fromEntries(searchParams));
     if (!parse.success) {
@@ -36,7 +36,7 @@ export async function GET(req: Request) {
     let query = supabase
       .from('transactions')
       .select('amount, category_id, category:categories(name, color)')
-      .eq('user_id', user.id)
+      .eq('user_id', space.ownerId)
       .eq('type', 'expense')
       .gte('actual_date', from)
       .lte('actual_date', to);

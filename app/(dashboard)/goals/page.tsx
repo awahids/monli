@@ -13,7 +13,7 @@ import { keysToCamel } from '@/lib/case';
 import { formatMoney } from '@/lib/currency';
 import { formatDate } from '@/lib/date';
 import { goalProgress } from '@/lib/goals';
-import { FREE_LIMITS } from '@/lib/plans';
+import { FREE_LIMITS, spacePlan } from '@/lib/plans';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -32,7 +32,7 @@ import { CategoryIcon } from '@/components/transactions/category-icon';
 import { ContributeDialog, GoalFormDialog } from '@/components/goals/goal-dialogs';
 
 export default function GoalsPage() {
-  const { user } = useAppStore();
+  const { user, space } = useAppStore();
   const [goals, setGoals] = useState<SavingsGoal[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<'active' | 'archived'>('active');
@@ -45,7 +45,7 @@ export default function GoalsPage() {
   const active = goals.filter((g) => !g.archived);
   const archived = goals.filter((g) => g.archived);
   const shown = tab === 'active' ? active : archived;
-  const limitReached = user?.plan !== 'PRO' && active.length >= FREE_LIMITS.goals;
+  const limitReached = spacePlan(user, space) !== 'PRO' && active.length >= FREE_LIMITS.goals;
   const totalSaved = active.reduce((s, g) => s + g.savedAmount, 0);
   const totalTarget = active.reduce((s, g) => s + g.targetAmount, 0);
 

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { getUser } from '@/lib/auth/server';
+import { getSpace, readOnlyResponse } from '@/lib/auth/server';
 import { savingsContributionSchema } from '@/lib/validation';
 import { z } from 'zod';
 
@@ -17,7 +17,8 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     return NextResponse.json({ error: issue ?? 'Data tidak valid' }, { status: 400 });
   }
   try {
-    await getUser();
+    const space = await getSpace();
+    if (!space.canWrite) return readOnlyResponse();
     const { data, error } = await supabase
       .rpc('contribute_savings_goal', { goal_id: params.id, delta: body.amount })
       .single();

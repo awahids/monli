@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { signIn } from "@/lib/auth";
+import { nextFromLocation, signIn } from "@/lib/auth";
 import {
   Card,
   CardContent,
@@ -51,7 +51,7 @@ export default function SignInPage() {
       await signIn(data.email, data.password);
       toast.success("Selamat datang kembali!");
       // Navigate without a full page reload so middleware picks up the session
-      router.replace("/dashboard");
+      router.replace(nextFromLocation());
       router.refresh();
     } catch (error: any) {
       const raw: string = error?.message || "";

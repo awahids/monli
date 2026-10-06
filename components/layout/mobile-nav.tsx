@@ -17,6 +17,7 @@ import {
   toTransactionPayload,
 } from "@/lib/transactions-client";
 import { toast } from "sonner";
+import { READ_ONLY_MESSAGE } from "@/lib/space";
 import { useOffline } from "@/hooks/use-offline";
 import { motion } from "framer-motion";
 import { useTheme } from "next-themes";
@@ -35,6 +36,7 @@ export function MobileNav() {
   const [transaction, setTransaction] = useState<Transaction | undefined>();
   const {
     user,
+    space,
     accounts,
     categories,
     transactions,
@@ -45,6 +47,10 @@ export function MobileNav() {
   const isDarkTheme = theme === "dark";
 
   const handleAddTransaction = () => {
+    if (space && !space.canWrite) {
+      toast.info(READ_ONLY_MESSAGE);
+      return;
+    }
     setTransaction(undefined);
     setFormOpen(true);
   };
@@ -54,7 +60,7 @@ export function MobileNav() {
     const payload = toTransactionPayload(values);
 
     if (!isOnline) {
-      setTransactions([toOfflineTransaction(payload, user?.id || ''), ...transactions]);
+      setTransactions([toOfflineTransaction(payload, space?.ownerId ?? user?.id ?? ''), ...transactions]);
       await addOfflineChange('create', 'transactions', payload);
       toast.success('Disimpan offline, akan disinkronkan saat online');
       setFormOpen(false);
@@ -64,7 +70,7 @@ export function MobileNav() {
     const tx = await saveTransaction(payload);
     setTransactions([tx, ...transactions]);
     // Keep balances on Dashboard/Accounts in sync with the new transaction.
-    if (user) await refreshActiveAccounts(user.id);
+    if (user) await refreshActiveAccounts((space?.ownerId ?? user.id));
     toast.success('Transaksi tersimpan');
     setFormOpen(false);
   };

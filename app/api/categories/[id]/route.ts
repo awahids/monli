@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createServerClient } from '@/lib/supabase/server';
-import { getUser } from '@/lib/auth/server';
+import { getSpace, readOnlyResponse } from '@/lib/auth/server';
 import { categorySchema } from '@/lib/validation';
 import { z } from 'zod';
 
@@ -15,7 +15,8 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
     return NextResponse.json({ error: (e as Error).message }, { status: 400 });
   }
   try {
-    const user = await getUser();
+    const space = await getSpace();
+    if (!space.canWrite) return readOnlyResponse();
     const { data, error } = await supabase
       .from('categories')
       .update({
@@ -25,7 +26,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
         icon: body.icon,
       })
       .eq('id', params.id)
-      .eq('user_id', user.id)
+      .eq('user_id', space.ownerId)
       .select('*')
       .single();
     if (error || !data) {
@@ -40,12 +41,13 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
 export async function DELETE(req: Request, { params }: { params: { id: string } }) {
   const supabase = createServerClient();
   try {
-    const user = await getUser();
+    const space = await getSpace();
+    if (!space.canWrite) return readOnlyResponse();
     const { error } = await supabase
       .from('categories')
       .delete()
       .eq('id', params.id)
-      .eq('user_id', user.id);
+      .eq('user_id', space.ownerId);
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }

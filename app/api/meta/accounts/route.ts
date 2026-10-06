@@ -1,15 +1,15 @@
 import { NextResponse } from 'next/server';
 import { createServerClient } from '@/lib/supabase/server';
-import { getUser } from '@/lib/auth/server';
+import { getSpace } from '@/lib/auth/server';
 
 export async function GET() {
   const supabase = createServerClient();
   try {
-    const user = await getUser();
+    const space = await getSpace();
     const { data, error } = await supabase
       .from('accounts')
       .select('id, name, type, currency, current_balance')
-      .eq('user_id', user.id);
+      .eq('user_id', space.ownerId);
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }

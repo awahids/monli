@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { getUser } from "@/lib/auth/server";
+import { getSpace, readOnlyResponse } from "@/lib/auth/server";
 import { accountSchema } from "@/lib/validation";
 import { z } from "zod";
 
@@ -18,7 +18,8 @@ export async function PATCH(
     return NextResponse.json({ error: (e as Error).message }, { status: 400 });
   }
   try {
-    const user = await getUser();
+    const space = await getSpace();
+    if (!space.canWrite) return readOnlyResponse();
     const updates: Record<string, any> = {};
     if (body.name !== undefined) updates.name = body.name;
     if (body.type !== undefined) updates.type = body.type;
@@ -33,7 +34,7 @@ export async function PATCH(
       .from("accounts")
       .update(updates)
       .eq("id", params.id)
-      .eq("user_id", user.id)
+      .eq("user_id", space.ownerId)
       .select("*")
       .single();
     if (error || !data) {
@@ -68,13 +69,14 @@ export async function DELETE(
   const supabase = createClient();
   const permanent = new URL(req.url).searchParams.get("permanent") === "true";
   try {
-    const user = await getUser();
+    const space = await getSpace();
+    if (!space.canWrite) return readOnlyResponse();
     if (!permanent) {
       const { error } = await supabase
         .from("accounts")
         .update({ archived: true })
         .eq("id", params.id)
-        .eq("user_id", user.id);
+        .eq("user_id", space.ownerId);
       if (error) {
         return NextResponse.json({ error: error.message }, { status: 400 });
       }
@@ -85,7 +87,7 @@ export async function DELETE(
       .from("accounts")
       .delete()
       .eq("id", params.id)
-      .eq("user_id", user.id);
+      .eq("user_id", space.ownerId);
     if (error) {
       // 23503 = foreign_key_violation (transactions still reference it)
       if (error.code === "23503") {

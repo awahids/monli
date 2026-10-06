@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { getUser } from "@/lib/auth/server";
+import { getSpace, readOnlyResponse } from "@/lib/auth/server";
 import { budgetSchema } from "@/lib/validation";
 import { z } from "zod";
 
@@ -17,11 +17,11 @@ export async function GET(req: Request) {
   }
 
   try {
-    const user = await getUser();
+    const space = await getSpace();
     let query = supabase
       .from("budgets")
       .select("id, month, total_amount", { count: "exact" })
-      .eq("user_id", user.id);
+      .eq("user_id", space.ownerId);
     if (year !== "all") query = query.like("month", `${year}-%`);
     const {
       data: budgets,
@@ -40,7 +40,7 @@ export async function GET(req: Request) {
     const { data: tx, error: txError } = await supabase
       .from("transactions")
       .select("amount, budget_month")
-      .eq("user_id", user.id)
+      .eq("user_id", space.ownerId)
       .eq("type", "expense")
       .in(
         "budget_month",
@@ -75,24 +75,25 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: (e as Error).message }, { status: 400 });
   }
   try {
-    const user = await getUser();
+    const space = await getSpace();
+    if (!space.canWrite) return readOnlyResponse();
     const { data: profile } = await supabase
       .from("profiles")
       .select("plan")
-      .eq("id", user.id)
+      .eq("id", space.ownerId)
       .single();
 
     if (profile?.plan === "FREE") {
       const { count } = await supabase
         .from("budgets")
         .select("id", { count: "exact", head: true })
-        .eq("user_id", user.id);
+        .eq("user_id", space.ownerId);
 
       if ((count ?? 0) >= 2) {
         const { data: existing } = await supabase
           .from("budgets")
           .select("id")
-          .eq("user_id", user.id)
+          .eq("user_id", space.ownerId)
           .eq("month", body.month)
           .single();
         if (!existing) {
@@ -108,7 +109,7 @@ export async function POST(req: Request) {
       .from("budgets")
       .upsert(
         {
-          user_id: user.id,
+          user_id: space.ownerId,
           month: body.month,
           total_amount: body.totalAmount,
         },
