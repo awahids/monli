@@ -127,6 +127,7 @@ export async function getCurrentUser(): Promise<User | null> {
       isOwn: true,
       canWrite: true,
       joined: [],
+      people: {},
     });
   }
   return current;

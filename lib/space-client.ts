@@ -51,12 +51,12 @@ export async function loadActiveSpace(
       .map((r) => ({ membershipId: r.id, ownerId: r.owner_id, ownerName: owners.get(r.owner_id)!.name, role: r.role }));
   }
 
-  const own: ActiveSpace = { ownerId: userId, ownerName: userName, role: 'owner', isOwn: true, canWrite: true, joined };
   const requested = readCookie(SPACE_COOKIE);
   const target = isUuid(requested) ? joined.find((j) => j.ownerId === requested) : undefined;
   if (!target) {
     if (requested && requested !== userId) writeSpaceCookie(null);
-    return { space: own };
+    const people = await loadPeople(supabase, userId);
+    return { space: { ownerId: userId, ownerName: userName, role: 'owner', isOwn: true, canWrite: true, joined, people } };
   }
 
   const owner = owners.get(target.ownerId)!;
@@ -68,9 +68,17 @@ export async function loadActiveSpace(
       isOwn: false,
       canWrite: target.role === 'editor',
       joined,
+      people: await loadPeople(supabase, target.ownerId),
     },
     owner: { defaultCurrency: owner.default_currency, budgetStartDay: owner.budget_start_day ?? 1 },
   };
+}
+
+/** Who is in a space, to label who recorded each transaction. Empty if unavailable. */
+async function loadPeople(supabase: SupabaseClient<any, any, any>, spaceOwner: string): Promise<Record<string, string>> {
+  const { data, error } = await supabase.rpc('space_people', { space_owner: spaceOwner });
+  if (error || !Array.isArray(data)) return {};
+  return Object.fromEntries((data as { id: string; name: string }[]).map((p) => [p.id, p.name]));
 }
 
 /** Switches space and reloads, so no data from the previous space lingers in memory. */

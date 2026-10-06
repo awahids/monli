@@ -6,6 +6,7 @@ import { ArrowRightLeft } from 'lucide-react';
 import type { Transaction } from '@/types';
 import { CategoryIcon } from '@/components/transactions/category-icon';
 import { formatMoney } from '@/lib/currency';
+import { useAppStore } from '@/lib/store';
 import { cn } from '@/lib/utils';
 
 export function transactionTitle(t: Transaction): string {
@@ -28,9 +29,23 @@ interface Props {
   onClick?: () => void;
 }
 
+/**
+ * Who recorded a transaction, when the space is used by more than one person.
+ * Unknown for entries from before sharing or by someone who has since left.
+ */
+function useRecorder(createdBy?: string | null): string | undefined {
+  const userId = useAppStore((s) => s.user?.id);
+  const people = useAppStore((s) => s.space?.people);
+  if (!createdBy || !people || Object.keys(people).length < 2) return undefined;
+  if (createdBy === userId) return 'oleh Kamu';
+  const name = people[createdBy];
+  return name ? `oleh ${name.split(' ')[0]}` : undefined;
+}
+
 /** One transaction line: icon, title, account · category, signed amount. */
 export function TransactionRow({ transaction: t, showDate = false, onClick }: Props) {
   const amount = signedAmount(t);
+  const recorder = useRecorder(t.createdBy);
   const meta = [
     t.type === 'transfer'
       ? `${t.fromAccount?.name ?? '?'} → ${t.toAccount?.name ?? '?'}`
@@ -61,8 +76,17 @@ export function TransactionRow({ transaction: t, showDate = false, onClick }: Pr
       </span>
       <span className="min-w-0 flex-1 text-left">
         <span className="block truncate text-sm font-medium">{transactionTitle(t)}</span>
-        {meta.length > 0 && (
-          <span className="block truncate text-xs text-muted-foreground">{meta.join(' · ')}</span>
+        {(meta.length > 0 || recorder) && (
+          <span className="flex min-w-0 text-xs text-muted-foreground">
+            <span className="truncate">{meta.join(' · ')}</span>
+            {/* Kept outside the truncated part so it stays visible on narrow screens. */}
+            {recorder && (
+              <span className="shrink-0 whitespace-pre">
+                {meta.length > 0 ? ' · ' : ''}
+                {recorder}
+              </span>
+            )}
+          </span>
         )}
       </span>
       <span className={cn('shrink-0 text-sm font-semibold tabular-nums', amount.className)}>

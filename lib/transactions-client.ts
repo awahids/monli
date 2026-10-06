@@ -72,6 +72,7 @@ export function toOfflineTransaction(
     amount: payload.amount,
     note: payload.note,
     tags: payload.tags,
+    createdBy: useAppStore.getState().user?.id ?? null,
   };
 }
 
