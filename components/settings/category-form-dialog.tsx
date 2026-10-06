@@ -13,6 +13,9 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { IconPicker } from './icon-picker';
+import { cn } from '@/lib/utils';
+
+const COLORS = ['#ef4444', '#f59e0b', '#22c55e', '#14A7A0', '#3b82f6', '#6366f1', '#a855f7', '#ec4899', '#64748b'];
 
 export type CategoryFormValues = z.infer<typeof categorySchema>;
 
@@ -29,8 +32,8 @@ export function CategoryFormDialog({ open, onOpenChange, initialData, onSubmit }
     defaultValues: {
       name: initialData?.name ?? '',
       type: initialData?.type ?? 'expense',
-      color: initialData?.color ?? '#000000',
-      icon: initialData?.icon ?? '',
+      color: initialData?.color ?? COLORS[3],
+      icon: initialData?.icon ?? 'ShoppingBag',
     },
   });
 
@@ -38,8 +41,8 @@ export function CategoryFormDialog({ open, onOpenChange, initialData, onSubmit }
     form.reset({
       name: initialData?.name ?? '',
       type: initialData?.type ?? 'expense',
-      color: initialData?.color ?? '#000000',
-      icon: initialData?.icon ?? '',
+      color: initialData?.color ?? COLORS[3],
+      icon: initialData?.icon ?? 'ShoppingBag',
     });
   }, [initialData, form]);
 
@@ -100,9 +103,46 @@ export function CategoryFormDialog({ open, onOpenChange, initialData, onSubmit }
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Warna</FormLabel>
-                  <FormControl>
-                    <Input type="color" {...field} />
-                  </FormControl>
+                  <div className="flex flex-wrap items-center gap-2" role="radiogroup" aria-label="Warna">
+                    {COLORS.map((c) => (
+                      <button
+                        key={c}
+                        type="button"
+                        role="radio"
+                        aria-checked={field.value === c}
+                        aria-label={`Warna ${c}`}
+                        onClick={() => field.onChange(c)}
+                        className={cn(
+                          'h-8 w-8 rounded-full ring-offset-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                          field.value === c && 'ring-2 ring-foreground'
+                        )}
+                        style={{ backgroundColor: c }}
+                      />
+                    ))}
+                    {/* Native picker hidden under a swatch: rainbow until a custom colour is chosen. */}
+                    <label
+                      title="Warna lain"
+                      className={cn(
+                        'relative h-8 w-8 cursor-pointer rounded-full ring-offset-2 ring-offset-background focus-within:ring-2 focus-within:ring-ring',
+                        field.value && !COLORS.includes(field.value) && 'ring-2 ring-foreground'
+                      )}
+                      style={{
+                        background:
+                          field.value && !COLORS.includes(field.value)
+                            ? field.value
+                            : 'conic-gradient(#ef4444, #f59e0b, #22c55e, #14A7A0, #3b82f6, #a855f7, #ec4899, #ef4444)',
+                      }}
+                    >
+                      <FormControl>
+                        <input
+                          type="color"
+                          aria-label="Warna lain"
+                          className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                          {...field}
+                        />
+                      </FormControl>
+                    </label>
+                  </div>
                   <FormMessage />
                 </FormItem>
               )}
@@ -114,7 +154,7 @@ export function CategoryFormDialog({ open, onOpenChange, initialData, onSubmit }
                 <FormItem>
                   <FormLabel>Ikon</FormLabel>
                   <FormControl>
-                    <IconPicker value={field.value} onChange={field.onChange} />
+                    <IconPicker value={field.value} onChange={field.onChange} color={form.watch('color')} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
