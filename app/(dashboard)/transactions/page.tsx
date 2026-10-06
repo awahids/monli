@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 
 import { useAppStore } from '@/lib/store';
 import { runDueRecurring } from '@/lib/recurring-client';
+import { defaultBudgetMonth } from '@/lib/budget-period';
 import { supabase } from '@/lib/supabase';
 import { formatMoney } from '@/lib/currency';
 import { cn } from '@/lib/utils';
@@ -331,7 +332,7 @@ export default function TransactionsPage() {
           amount: data.total || data.amount,
           note: data.description,
           actualDate: date,
-          budgetMonth: formatDate(date).slice(0, 7),
+          budgetMonth: defaultBudgetMonth(date),
           type: 'expense',
         });
         setEditing(undefined);

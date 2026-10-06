@@ -21,6 +21,7 @@ export const currencyCodes = ['IDR', 'USD', 'EUR'] as const;
 export const profileSchema = z.object({
   name: z.string().min(1).max(100),
   defaultCurrency: z.enum(currencyCodes),
+  budgetStartDay: z.number().int().min(1).max(31),
 });
 
 export const profilePatchSchema = profileSchema.partial();

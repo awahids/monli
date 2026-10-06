@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createServerClient } from '@/lib/supabase/server';
 import { getUser } from '@/lib/auth/server';
-import { currentMonth, formatDate, nextMonthStart } from '@/lib/date';
+import { budgetPeriod, daysBetweenInclusive, formatDate, nextMonthStart } from '@/lib/date';
 import type { Database } from '@/types/database';
 import { ensureDefaultCategories } from '@/lib/categories';
 
@@ -10,6 +10,12 @@ export const dynamic = 'force-dynamic';
 
 const querySchema = z.object({
   month: z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/, 'Invalid month format. Use YYYY-MM'),
+  // Budget month for the planned-vs-actual numbers; differs from the
+  // calendar month when the user's budget period starts after the 1st.
+  budgetMonth: z
+    .string()
+    .regex(/^\d{4}-(0[1-9]|1[0-2])$/, 'Invalid month format. Use YYYY-MM')
+    .optional(),
   accountId: z.string().uuid().optional(),
 });
 
@@ -23,6 +29,7 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const parse = querySchema.safeParse({
       month: searchParams.get('month') ?? undefined,
+      budgetMonth: searchParams.get('budgetMonth') ?? undefined,
       accountId: searchParams.get('accountId') ?? undefined,
     });
     if (!parse.success) {
@@ -32,6 +39,7 @@ export async function GET(req: Request) {
       );
     }
     const { month, accountId } = parse.data;
+    const budgetMonth = parse.data.budgetMonth ?? month;
     const start = `${month}-01`;
     const end = nextMonthStart(month);
 
@@ -76,7 +84,7 @@ export async function GET(req: Request) {
         .select('amount, category_id, category:categories(name)')
         .eq('user_id', user.id)
         .eq('type', 'expense')
-        .eq('budget_month', month)
+        .eq('budget_month', budgetMonth)
     ).returns<{ amount: number; category_id: string | null; category: { name: string } | null }[]>();
     if (budgetTxErr) {
       return NextResponse.json({ error: budgetTxErr.message }, { status: 400 });
@@ -90,7 +98,7 @@ export async function GET(req: Request) {
       .from('budgets')
       .select('id, items:budget_items(amount, category_id, category:categories(name))')
       .eq('user_id', user.id)
-      .eq('month', month)
+      .eq('month', budgetMonth)
       .maybeSingle<Budget>();
     if (budgetErr) {
       return NextResponse.json({ error: budgetErr.message }, { status: 400 });
@@ -151,13 +159,22 @@ export async function GET(req: Request) {
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([date, amount]) => ({ date, amount }));
 
+    // Daily averages follow the calendar month; the remaining allowance
+    // follows the budget period.
     const [y, m] = month.split('-').map(Number);
     const totalDays = new Date(Date.UTC(y, m, 0)).getUTCDate();
-    const thisMonth = currentMonth();
+    const monthEnd = `${month}-${String(totalDays).padStart(2, '0')}`;
     const daysPassed =
-      month < thisMonth ? totalDays : month > thisMonth ? 0 : Number(today.slice(8, 10));
+      today < start ? 0 : today > monthEnd ? totalDays : Number(today.slice(8, 10));
     const dailyAverage = daysPassed > 0 ? mtdSpend / daysPassed : 0;
-    const remainingDays = Math.max(totalDays - daysPassed, 0);
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('budget_start_day')
+      .eq('id', user.id)
+      .maybeSingle();
+    const period = budgetPeriod(budgetMonth, profile?.budget_start_day ?? 1);
+    const remainingDays =
+      today > period.end ? 0 : daysBetweenInclusive(today < period.start ? period.start : today, period.end);
     const remainingDaysAllowance =
       remainingDays > 0 ? Math.max((totalPlanned - totalActual) / remainingDays, 0) : 0;
 

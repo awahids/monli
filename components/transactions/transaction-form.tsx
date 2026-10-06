@@ -40,6 +40,7 @@ import {
 import { MoneyInput } from '@/components/ui/money-input';
 import { CategoryIcon } from '@/components/transactions/category-icon';
 import { cn } from '@/lib/utils';
+import { defaultBudgetMonth } from '@/lib/budget-period';
 import { formatDate } from '@/lib/date';
 import { formatMoneyCompact, getDisplayCurrency } from '@/lib/currency';
 
@@ -212,7 +213,7 @@ export function TransactionFields({
   const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000);
   const setDate = (date: Date) => {
     form.setValue('actualDate', date, { shouldValidate: true });
-    form.setValue('budgetMonth', formatDate(date).slice(0, 7));
+    form.setValue('budgetMonth', defaultBudgetMonth(date));
   };
   const isSameDay = (a?: Date, b?: Date) =>
     Boolean(a && b && formatDate(a) === formatDate(b));
@@ -480,8 +481,8 @@ export function TransactionFields({
                   <Input type="month" {...field} />
                 </FormControl>
                 <FormDescription>
-                  Otomatis mengikuti tanggal. Ubah kalau transaksi ini milik budget bulan lain,
-                  mis. gaji tanggal 28 untuk budget bulan depan.
+                  Otomatis mengikuti tanggal dan periode budget di Pengaturan. Ubah kalau
+                  transaksi ini milik budget bulan lain.
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -566,7 +567,7 @@ function newDefaults(
     (categories.some((c) => c.id === lastCategory && c.type === type) ? lastCategory : undefined);
   const actualDate = initial?.actualDate ?? getJakartaDate();
   return {
-    budgetMonth: initial?.budgetMonth ?? formatDate(actualDate).slice(0, 7),
+    budgetMonth: initial?.budgetMonth ?? defaultBudgetMonth(actualDate),
     actualDate,
     type,
     accountId,

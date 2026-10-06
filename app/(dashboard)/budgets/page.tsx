@@ -9,7 +9,7 @@ import { toast } from 'sonner';
 
 import { useAppStore } from '@/lib/store';
 import { formatMoney } from '@/lib/currency';
-import { currentMonth } from '@/lib/date';
+import { thisBudgetMonth } from '@/lib/budget-period';
 import { cn } from '@/lib/utils';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -42,7 +42,7 @@ export default function BudgetsPage() {
   const [selectedBudgetId, setSelectedBudgetId] = useState<string | null>(null);
   const [isAdding, setIsAdding] = useState(false);
   const disableAdd = user?.plan === 'FREE' && budgets.length >= 2;
-  const thisMonth = currentMonth();
+  const thisMonth = thisBudgetMonth();
 
   // Planned vs actual is computed on the server (actual by budget_month), so
   // the numbers no longer depend on which transactions happen to be cached.

@@ -18,6 +18,7 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -62,7 +63,7 @@ export default function SettingsPage() {
 
   const profileForm = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
-    defaultValues: { name: '', defaultCurrency: 'IDR' },
+    defaultValues: { name: '', defaultCurrency: 'IDR', budgetStartDay: 1 },
   });
 
   useEffect(() => {
@@ -72,6 +73,7 @@ export default function SettingsPage() {
         profileForm.reset({
           name: data.name,
           defaultCurrency: data.defaultCurrency || 'IDR',
+          budgetStartDay: data.budgetStartDay || 1,
         });
         setEmail(data.email);
       });
@@ -100,6 +102,7 @@ export default function SettingsPage() {
         ...current,
         name: values.name,
         defaultCurrency: values.defaultCurrency,
+        budgetStartDay: values.budgetStartDay,
       });
     }
   }
@@ -207,6 +210,34 @@ export default function SettingsPage() {
                     </FormItem>
                   )}
                 />
+                <FormField
+                  control={profileForm.control}
+                  name="budgetStartDay"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Periode budget dimulai tanggal</FormLabel>
+                      <FormControl>
+                        <Select value={String(field.value)} onValueChange={(v) => field.onChange(Number(v))}>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
+                              <SelectItem key={d} value={String(d)}>
+                                {d === 1 ? '1 (bulan kalender)' : `Tanggal ${d}`}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                      <FormDescription>
+                        Pilih tanggal gajian kalau budget kamu mengikuti gaji. Misalnya 25: transaksi 25
+                        September sampai 24 Oktober masuk budget Oktober.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </CardContent>
               <CardFooter>
                 <Button type="submit" disabled={!profileForm.formState.isDirty}>
@@ -271,7 +302,7 @@ export default function SettingsPage() {
                         <TableRow key={c.id}>
                           <TableCell>{Icon ? <Icon className="h-4 w-4" /> : null}</TableCell>
                           <TableCell>{c.name}</TableCell>
-                          <TableCell className="capitalize">{c.type}</TableCell>
+                          <TableCell>{c.type === 'income' ? 'Pemasukan' : 'Pengeluaran'}</TableCell>
                           <TableCell>
                             <div className="h-4 w-4 rounded-full" style={{ backgroundColor: c.color }} />
                           </TableCell>
@@ -304,7 +335,7 @@ export default function SettingsPage() {
                           <span>{Icon ? <Icon className="h-5 w-5" /> : null}</span>
                           <div>
                             <p className="font-medium leading-none">{c.name}</p>
-                            <p className="text-sm text-muted-foreground capitalize">{c.type}</p>
+                            <p className="text-sm text-muted-foreground">{c.type === 'income' ? 'Pemasukan' : 'Pengeluaran'}</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-2">

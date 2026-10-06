@@ -8,7 +8,8 @@ import { supabase } from '@/lib/supabase';
 import { Category } from '@/types';
 import { formatMoney } from '@/lib/currency';
 import { keysToCamel } from '@/lib/case';
-import { currentMonth, shiftMonth } from '@/lib/date';
+import { shiftMonth } from '@/lib/date';
+import { thisBudgetMonth } from '@/lib/budget-period';
 import {
   Dialog,
   DialogContent,
@@ -46,7 +47,7 @@ function roundUp(amount: number, currency: string) {
 export function BudgetFormDialog({ open, onOpenChange, onCreated }: BudgetFormDialogProps) {
   const { user } = useAppStore();
   const [categories, setCategories] = useState<Category[]>([]);
-  const [month, setMonth] = useState<string>(() => currentMonth());
+  const [month, setMonth] = useState<string>(() => thisBudgetMonth());
   const [items, setItems] = useState<ItemInput[]>([{ categoryId: '', amount: 0 }]);
   const [extraTotal, setExtraTotal] = useState(0);
   const [submitting, setSubmitting] = useState(false);
@@ -76,7 +77,7 @@ export function BudgetFormDialog({ open, onOpenChange, onCreated }: BudgetFormDi
     setItems((prev) => prev.map((item, i) => (i === index ? { ...item, ...patch } : item)));
 
   const reset = () => {
-    setMonth(currentMonth());
+    setMonth(thisBudgetMonth());
     setItems([{ categoryId: '', amount: 0 }]);
     setExtraTotal(0);
   };

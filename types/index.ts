@@ -5,6 +5,8 @@ export interface User {
   defaultCurrency: string;
   onboardingCompleted: boolean;
   plan: 'FREE' | 'PRO';
+  /** Day budget periods start on (1 = calendar month, 25 = payday the 25th). */
+  budgetStartDay: number;
 }
 
 export interface Account {
