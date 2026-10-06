@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { getUser } from '@/lib/auth/server';
+import { getSpace, readOnlyResponse } from '@/lib/auth/server';
 import { savingsGoalSchema } from '@/lib/validation';
 import { FREE_LIMITS } from '@/lib/plans';
 import { z } from 'zod';
@@ -10,11 +10,11 @@ export const dynamic = 'force-dynamic';
 export async function GET() {
   const supabase = createClient();
   try {
-    const user = await getUser();
+    const space = await getSpace();
     const { data, error } = await supabase
       .from('savings_goals')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('user_id', space.ownerId)
       .order('archived', { ascending: true })
       .order('created_at', { ascending: true });
     if (error) return NextResponse.json({ error: error.message }, { status: 400 });
@@ -34,13 +34,14 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: issue ?? 'Data tidak valid' }, { status: 400 });
   }
   try {
-    const user = await getUser();
-    const { data: profile } = await supabase.from('profiles').select('plan').eq('id', user.id).single();
+    const space = await getSpace();
+    if (!space.canWrite) return readOnlyResponse();
+    const { data: profile } = await supabase.from('profiles').select('plan').eq('id', space.ownerId).single();
     if (profile?.plan !== 'PRO') {
       const { count } = await supabase
         .from('savings_goals')
         .select('id', { count: 'exact', head: true })
-        .eq('user_id', user.id)
+        .eq('user_id', space.ownerId)
         .eq('archived', false);
       if ((count ?? 0) >= FREE_LIMITS.goals) {
         return NextResponse.json(
@@ -52,7 +53,7 @@ export async function POST(req: Request) {
     const { data, error } = await supabase
       .from('savings_goals')
       .insert({
-        user_id: user.id,
+        user_id: space.ownerId,
         name: body.name,
         target_amount: body.targetAmount,
         saved_amount: body.savedAmount ?? 0,

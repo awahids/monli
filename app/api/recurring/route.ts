@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { getUser } from '@/lib/auth/server';
+import { getSpace, readOnlyResponse } from '@/lib/auth/server';
 import { recurringSchema } from '@/lib/validation';
 import { firstOccurrence } from '@/lib/recurring';
 import { FREE_LIMITS } from '@/lib/plans';
@@ -12,11 +12,11 @@ export const dynamic = 'force-dynamic';
 export async function GET() {
   const supabase = createClient();
   try {
-    const user = await getUser();
+    const space = await getSpace();
     const { data, error } = await supabase
       .from('recurring_transactions')
       .select(RECURRING_SELECT)
-      .eq('user_id', user.id)
+      .eq('user_id', space.ownerId)
       .order('active', { ascending: false })
       .order('next_date', { ascending: true });
     if (error) return NextResponse.json({ error: error.message }, { status: 400 });
@@ -36,13 +36,14 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: issue ?? 'Data tidak valid' }, { status: 400 });
   }
   try {
-    const user = await getUser();
-    const { data: profile } = await supabase.from('profiles').select('plan').eq('id', user.id).single();
+    const space = await getSpace();
+    if (!space.canWrite) return readOnlyResponse();
+    const { data: profile } = await supabase.from('profiles').select('plan').eq('id', space.ownerId).single();
     if (profile?.plan !== 'PRO') {
       const { count } = await supabase
         .from('recurring_transactions')
         .select('id', { count: 'exact', head: true })
-        .eq('user_id', user.id);
+        .eq('user_id', space.ownerId);
       if ((count ?? 0) >= FREE_LIMITS.recurring) {
         return NextResponse.json(
           { error: `Paket FREE dibatasi ${FREE_LIMITS.recurring} transaksi rutin` },
@@ -54,7 +55,7 @@ export async function POST(req: Request) {
     const { data, error } = await supabase
       .from('recurring_transactions')
       .insert({
-        user_id: user.id,
+        user_id: space.ownerId,
         ...toRecurringRow(body),
         // A start date in the past backfills the occurrences since then.
         next_date: firstOccurrence(body.startDate, body.frequency, body.dayOfMonth),

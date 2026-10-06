@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createServerClient } from '@/lib/supabase/server';
-import { getUser } from '@/lib/auth/server';
+import { getSpace } from '@/lib/auth/server';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,11 +11,11 @@ export const dynamic = 'force-dynamic';
 export async function GET() {
   const supabase = createServerClient();
   try {
-    const user = await getUser();
+    const space = await getSpace();
     const { data, error } = await supabase
       .from('transactions')
       .select('note, category_id, tags')
-      .eq('user_id', user.id)
+      .eq('user_id', space.ownerId)
       .neq('tags', '{}')
       .order('actual_date', { ascending: false })
       .limit(500);

@@ -34,6 +34,7 @@ import {
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { CategoryFormDialog, CategoryFormValues } from '@/components/settings/category-form-dialog';
+import { SharedSpaceCard } from '@/components/settings/shared-space-card';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import {
@@ -161,7 +162,7 @@ export default function SettingsPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Pengaturan</h1>
-        <p className="text-muted-foreground">Atur profil, mata uang, dan kategori.</p>
+        <p className="text-muted-foreground">Atur profil, mata uang, kategori, dan kelola bersama.</p>
       </div>
       <div className="grid gap-6 md:grid-cols-2">
         <Card>
@@ -362,6 +363,8 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
       </div>
+
+      <SharedSpaceCard />
 
       <CategoryFormDialog
         open={categoryDialogOpen}

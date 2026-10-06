@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createServerClient } from '@/lib/supabase/server';
-import { getUser } from '@/lib/auth/server';
+import { getSpace, readOnlyResponse } from '@/lib/auth/server';
 import { categorySchema } from '@/lib/validation';
 import { z } from 'zod';
 
@@ -13,7 +13,8 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     return NextResponse.json({ error: (e as Error).message }, { status: 422 });
   }
   try {
-    const user = await getUser();
+    const space = await getSpace();
+    if (!space.canWrite) return readOnlyResponse();
     const { data: existing, error: existingError } = await supabase
       .from('categories')
       .select('user_id')
@@ -22,7 +23,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     if (existingError || !existing) {
       return NextResponse.json({ error: 'Not found' }, { status: 404 });
     }
-    if (existing.user_id !== user.id) {
+    if (existing.user_id !== space.ownerId) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
     const { data, error } = await supabase
@@ -51,7 +52,8 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
   const supabase = createServerClient();
   try {
-    const user = await getUser();
+    const space = await getSpace();
+    if (!space.canWrite) return readOnlyResponse();
     const { data: category, error: fetchError } = await supabase
       .from('categories')
       .select('user_id')
@@ -60,7 +62,7 @@ export async function DELETE(_req: Request, { params }: { params: { id: string }
     if (fetchError || !category) {
       return NextResponse.json({ error: 'Not found' }, { status: 404 });
     }
-    if (category.user_id !== user.id) {
+    if (category.user_id !== space.ownerId) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -68,7 +70,7 @@ export async function DELETE(_req: Request, { params }: { params: { id: string }
       .from('transactions')
       .select('*', { count: 'exact', head: true })
       .eq('category_id', params.id)
-      .eq('user_id', user.id);
+      .eq('user_id', space.ownerId);
     if (txnError) {
       return NextResponse.json({ error: txnError.message }, { status: 500 });
     }
@@ -86,7 +88,7 @@ export async function DELETE(_req: Request, { params }: { params: { id: string }
       .from('budget_items')
       .select('id,budgets!inner(user_id)', { count: 'exact', head: true })
       .eq('category_id', params.id)
-      .eq('budgets.user_id', user.id);
+      .eq('budgets.user_id', space.ownerId);
     if (itemError) {
       return NextResponse.json({ error: itemError.message }, { status: 500 });
     }
@@ -104,7 +106,7 @@ export async function DELETE(_req: Request, { params }: { params: { id: string }
       .from('categories')
       .delete()
       .eq('id', params.id)
-      .eq('user_id', user.id);
+      .eq('user_id', space.ownerId);
     if (delError) {
       return NextResponse.json({ error: delError.message }, { status: 500 });
     }

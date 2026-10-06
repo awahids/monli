@@ -173,6 +173,7 @@ export interface Database {
           category_id: string | null;
           note: string;
           tags: string[];
+          created_by: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -235,6 +236,29 @@ export interface Database {
           amount?: number;
           status?: string;
           token?: string;
+        };
+      };
+      space_members: {
+        Row: {
+          id: string;
+          owner_id: string;
+          member_id: string | null;
+          email: string;
+          role: 'editor' | 'viewer';
+          status: 'pending' | 'active';
+          token: string;
+          member_name: string | null;
+          created_at: string;
+          accepted_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          owner_id: string;
+          email: string;
+          role?: 'editor' | 'viewer';
+        };
+        Update: {
+          role?: 'editor' | 'viewer';
         };
       };
       ai_logs: {

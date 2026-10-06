@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createServerClient } from '@/lib/supabase/server';
-import { getUser } from '@/lib/auth/server';
+import { getSpace, readOnlyResponse } from '@/lib/auth/server';
 import { categorySchema } from '@/lib/validation';
 import { z } from 'zod';
 import { ensureDefaultCategories } from '@/lib/categories';
@@ -19,12 +19,12 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: (e as Error).message }, { status: 422 });
   }
   try {
-    const user = await getUser();
-    await ensureDefaultCategories(supabase, user.id);
+    const space = await getSpace();
+    await ensureDefaultCategories(supabase, space.ownerId);
     let query = supabase
       .from('categories')
       .select('id, name, type, color, icon')
-      .eq('user_id', user.id);
+      .eq('user_id', space.ownerId);
     if (params.type && params.type !== 'all') {
       query = query.eq('type', params.type);
     }
@@ -50,11 +50,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: (e as Error).message }, { status: 422 });
   }
   try {
-    const user = await getUser();
+    const space = await getSpace();
+    if (!space.canWrite) return readOnlyResponse();
     const { data, error } = await supabase
       .from('categories')
       .insert({
-        user_id: user.id,
+        user_id: space.ownerId,
         name: body.name,
         type: body.type,
         color: body.color,

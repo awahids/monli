@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { User, Account, Category, Transaction, Budget } from '@/types';
+import { User, Account, Category, Transaction, Budget, ActiveSpace } from '@/types';
 
 // Check if we're in browser environment
 const isBrowser = typeof window !== 'undefined';
@@ -11,6 +11,8 @@ export interface ChatMessage {
 
 interface AppState {
   user: User | null;
+  /** Whose data the app shows: the user's own space or a shared one. */
+  space: ActiveSpace | null;
   accounts: Account[];
   categories: Category[];
   transactions: Transaction[];
@@ -23,6 +25,7 @@ interface AppState {
   
   // Actions
   setUser: (user: User | null) => void;
+  setSpace: (space: ActiveSpace | null) => void;
   setAccounts: (accounts: Account[]) => void;
   setCategories: (categories: Category[]) => void;
   setTransactions: (transactions: Transaction[]) => void;
@@ -36,6 +39,7 @@ interface AppState {
 
 export const useAppStore = create<AppState>((set) => ({
   user: null,
+  space: null,
   accounts: [],
   categories: [],
   transactions: [],
@@ -45,6 +49,7 @@ export const useAppStore = create<AppState>((set) => ({
   chatMessages: [],
 
   setUser: (user) => set({ user }),
+  setSpace: (space) => set({ space }),
   setAccounts: (accounts) => set({ accounts }),
   setCategories: (categories) => set({ categories }),
   setTransactions: (transactions) => set({ transactions }),

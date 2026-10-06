@@ -9,6 +9,7 @@ import { MobileNav } from "@/components/layout/mobile-nav";
 import { useAppStore } from "@/lib/store";
 import { getCurrentUser } from "@/lib/auth";
 import { OfflineBanner } from "@/components/ui/offline-banner";
+import { SpaceBanner } from "@/components/layout/space-switcher";
 import { cn } from "@/lib/utils";
 import ChatWidget from "@/components/chat/chat-widget";
 
@@ -50,6 +51,7 @@ export default function DashboardLayout({
         <Header />
         <main className="flex-1 space-y-4 p-4 pb-24 md:space-y-6 md:p-6">
           <OfflineBanner />
+          <SpaceBanner />
           {children}
         </main>
       </div>

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { signInWithGoogle } from '@/lib/auth';
+import { nextFromLocation, signInWithGoogle } from '@/lib/auth';
 
 const CALLBACK_ERRORS: Record<string, string> = {
   oauth: 'Masuk dengan Google gagal. Coba lagi.',
@@ -36,7 +36,7 @@ export function GoogleSignIn({ label = 'Lanjutkan dengan Google' }: { label?: st
   const start = async () => {
     setLoading(true);
     try {
-      await signInWithGoogle();
+      await signInWithGoogle(nextFromLocation());
       // The browser is now navigating to Google; keep the spinner.
     } catch (e) {
       setLoading(false);

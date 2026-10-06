@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server';
 import { createServerClient } from '@/lib/supabase/server';
-import { getUser } from '@/lib/auth/server';
+import { getSpace } from '@/lib/auth/server';
 
 export const revalidate = 60;
 
 export async function GET(req: Request) {
   const supabase = createServerClient();
   try {
-    const user = await getUser();
+    const space = await getSpace();
     const { searchParams } = new URL(req.url);
     const yearParam = searchParams.get('year');
     const year = yearParam ? parseInt(yearParam, 10) : new Date().getUTCFullYear();
@@ -19,7 +19,7 @@ export async function GET(req: Request) {
     const { data, error } = await supabase
       .from('transactions')
       .select('actual_date, type, amount')
-      .eq('user_id', user.id)
+      .eq('user_id', space.ownerId)
       .gte('actual_date', `${year}-01-01`)
       .lt('actual_date', `${year + 1}-01-01`);
 

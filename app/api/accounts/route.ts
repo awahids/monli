@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { getUser } from "@/lib/auth/server";
+import { getSpace, readOnlyResponse } from "@/lib/auth/server";
 import { accountSchema } from "@/lib/validation";
 import { z } from "zod";
 
 export async function GET(req: Request) {
   const supabase = createClient();
   try {
-    const user = await getUser();
+    const space = await getSpace();
     const { searchParams } = new URL(req.url);
     const includeArchived = searchParams.get("includeArchived") === "true";
     const page = parseInt(searchParams.get("page") ?? "1", 10);
@@ -18,7 +18,7 @@ export async function GET(req: Request) {
     let query = supabase
       .from("accounts")
       .select("*", { count: "exact" })
-      .eq("user_id", user.id);
+      .eq("user_id", space.ownerId);
 
     if (!includeArchived) {
       query = query.eq("archived", false);
@@ -58,18 +58,19 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: (e as Error).message }, { status: 400 });
   }
   try {
-    const user = await getUser();
+    const space = await getSpace();
+    if (!space.canWrite) return readOnlyResponse();
     const { data: profile } = await supabase
       .from("profiles")
       .select("plan")
-      .eq("id", user.id)
+      .eq("id", space.ownerId)
       .single();
 
     if (profile?.plan === "FREE") {
       const { count } = await supabase
         .from("accounts")
         .select("id", { count: "exact", head: true })
-        .eq("user_id", user.id);
+        .eq("user_id", space.ownerId);
       if ((count ?? 0) >= 1) {
         return NextResponse.json(
           { error: "Free plan limited to one account" },
@@ -81,7 +82,7 @@ export async function POST(req: Request) {
     const { data, error } = await supabase
       .from("accounts")
       .insert({
-        user_id: user.id,
+        user_id: space.ownerId,
         name: body.name,
         type: body.type,
         currency: body.currency ?? "IDR",

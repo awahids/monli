@@ -9,6 +9,26 @@ export interface User {
   budgetStartDay: number;
 }
 
+/** A shared space the user joined ("Kelola bersama"). */
+export interface JoinedSpace {
+  /** space_members row id, used to leave. */
+  membershipId: string;
+  ownerId: string;
+  ownerName: string;
+  role: 'editor' | 'viewer';
+}
+
+export interface ActiveSpace {
+  /** Profile id whose rows are shown (user_id of accounts, transactions...). */
+  ownerId: string;
+  ownerName: string;
+  role: 'owner' | 'editor' | 'viewer';
+  isOwn: boolean;
+  canWrite: boolean;
+  /** Spaces the user can switch to, besides their own. */
+  joined: JoinedSpace[];
+}
+
 export interface Account {
   id: string;
   userId: string;

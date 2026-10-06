@@ -32,6 +32,7 @@ import { Download, Filter } from 'lucide-react';
 import CategoryMovementChart from '@/components/reports/category-movement-chart';
 import { useAppStore } from '@/lib/store';
 import { currentMonth } from '@/lib/date';
+import { spacePlan } from '@/lib/plans';
 
 interface TrendRow {
   month: string;
@@ -56,7 +57,8 @@ export default function ReportsPage() {
   const defaultMonth = currentMonth(now);
   const defaultYear = defaultMonth.slice(0, 4);
 
-  const { user } = useAppStore();
+  const { user, space } = useAppStore();
+  const isPro = spacePlan(user, space) === 'PRO';
   const [month, setMonth] = useState(defaultMonth);
   const [year, setYear] = useState(defaultYear);
   const [summary, setSummary] = useState<SummaryResponse>({
@@ -87,7 +89,7 @@ export default function ReportsPage() {
   }, [year]);
 
   useEffect(() => {
-    if (user?.plan !== "PRO") {
+    if (!isPro) {
       setCategoryData([]);
       return;
     }
@@ -95,9 +97,7 @@ export default function ReportsPage() {
       .then((res) => res.json())
       .then((res) => setCategoryData(res.data || []))
       .catch(() => setCategoryData([]));
-  }, [month, user]);
-
-  const isPro = user?.plan === "PRO";
+  }, [month, isPro]);
 
   const exportCSV = (
     rows: Record<string, unknown>[],

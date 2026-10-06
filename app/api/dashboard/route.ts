@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createServerClient } from '@/lib/supabase/server';
-import { getUser } from '@/lib/auth/server';
+import { getSpace } from '@/lib/auth/server';
 import { budgetPeriod, daysBetweenInclusive, formatDate, nextMonthStart } from '@/lib/date';
 import type { Database } from '@/types/database';
 import { ensureDefaultCategories } from '@/lib/categories';
@@ -24,8 +24,8 @@ const querySchema = z.object({
 export async function GET(req: Request) {
   const supabase = createServerClient();
   try {
-    const user = await getUser();
-    await ensureDefaultCategories(supabase, user.id);
+    const space = await getSpace();
+    await ensureDefaultCategories(supabase, space.ownerId);
     const { searchParams } = new URL(req.url);
     const parse = querySchema.safeParse({
       month: searchParams.get('month') ?? undefined,
@@ -44,8 +44,8 @@ export async function GET(req: Request) {
     const end = nextMonthStart(month);
 
     const { data: totalBalanceData, error: balanceErr } = await supabase.rpc(
-      'get_total_balance',
-      { account_id: accountId ?? null }
+      'space_total_balance',
+      { account_id: accountId ?? null, space_owner: space.ownerId }
     );
     if (balanceErr) {
       return NextResponse.json({ error: balanceErr.message }, { status: 400 });
@@ -68,7 +68,7 @@ export async function GET(req: Request) {
           to_account:accounts!transactions_to_account_id_fkey(name, type),
           category:categories(name, color, icon)`
         )
-        .eq('user_id', user.id)
+        .eq('user_id', space.ownerId)
         .gte('actual_date', start)
         .lt('actual_date', end)
         .order('actual_date', { ascending: false })
@@ -82,7 +82,7 @@ export async function GET(req: Request) {
       supabase
         .from('transactions')
         .select('amount, category_id, category:categories(name)')
-        .eq('user_id', user.id)
+        .eq('user_id', space.ownerId)
         .eq('type', 'expense')
         .eq('budget_month', budgetMonth)
     ).returns<{ amount: number; category_id: string | null; category: { name: string } | null }[]>();
@@ -97,7 +97,7 @@ export async function GET(req: Request) {
     const { data: budgetData, error: budgetErr } = await supabase
       .from('budgets')
       .select('id, items:budget_items(amount, category_id, category:categories(name))')
-      .eq('user_id', user.id)
+      .eq('user_id', space.ownerId)
       .eq('month', budgetMonth)
       .maybeSingle<Budget>();
     if (budgetErr) {
@@ -170,7 +170,7 @@ export async function GET(req: Request) {
     const { data: profile } = await supabase
       .from('profiles')
       .select('budget_start_day')
-      .eq('id', user.id)
+      .eq('id', space.ownerId)
       .maybeSingle();
     const period = budgetPeriod(budgetMonth, profile?.budget_start_day ?? 1);
     const remainingDays =

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { getUser } from '@/lib/auth/server';
+import { getSpace, readOnlyResponse } from '@/lib/auth/server';
 import { savingsGoalPatchSchema } from '@/lib/validation';
 import { z } from 'zod';
 
@@ -24,12 +24,13 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   if (body.color !== undefined) updates.color = body.color;
   if (body.archived !== undefined) updates.archived = body.archived;
   try {
-    const user = await getUser();
+    const space = await getSpace();
+    if (!space.canWrite) return readOnlyResponse();
     const { data, error } = await supabase
       .from('savings_goals')
       .update(updates)
       .eq('id', params.id)
-      .eq('user_id', user.id)
+      .eq('user_id', space.ownerId)
       .select('*')
       .single();
     if (error || !data) {
@@ -44,12 +45,13 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
   const supabase = createClient();
   try {
-    const user = await getUser();
+    const space = await getSpace();
+    if (!space.canWrite) return readOnlyResponse();
     const { error } = await supabase
       .from('savings_goals')
       .delete()
       .eq('id', params.id)
-      .eq('user_id', user.id);
+      .eq('user_id', space.ownerId);
     if (error) return NextResponse.json({ error: error.message }, { status: 400 });
     return NextResponse.json({ success: true });
   } catch (e) {

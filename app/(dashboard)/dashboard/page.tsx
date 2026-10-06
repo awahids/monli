@@ -113,6 +113,7 @@ function DashboardSkeleton() {
 export default function DashboardPage() {
   const {
     user,
+    space,
     setUser,
     accounts,
     categories,
@@ -141,7 +142,7 @@ export default function DashboardPage() {
     const payload = toTransactionPayload(values);
 
     if (!isOnline) {
-      setTransactions([toOfflineTransaction(payload, user?.id || ''), ...transactions]);
+      setTransactions([toOfflineTransaction(payload, space?.ownerId ?? user?.id ?? ''), ...transactions]);
       await addOfflineChange('create', 'transactions', payload);
       toast.success('Transaksi disimpan offline, akan disinkronkan saat online');
       setFormOpen(false);
@@ -150,7 +151,7 @@ export default function DashboardPage() {
 
     const tx = await saveTransaction(payload);
     setTransactions([tx, ...transactions]);
-    if (user) await refreshActiveAccounts(user.id);
+    if (user) await refreshActiveAccounts((space?.ownerId ?? user.id));
     toast.success('Transaksi tersimpan');
     setFormOpen(false);
   };
@@ -169,8 +170,8 @@ export default function DashboardPage() {
         // Two months back covers this month and the comparison month.
         const since = `${shiftMonth(thisMonth, -2)}-01`;
         const [accountsRes, categoriesRes, transactionsRes, budgetsRes] = await Promise.all([
-          supabase.from('accounts').select('*').eq('user_id', user.id).eq('archived', false),
-          supabase.from('categories').select('*').eq('user_id', user.id),
+          supabase.from('accounts').select('*').eq('user_id', (space?.ownerId ?? user.id)).eq('archived', false),
+          supabase.from('categories').select('*').eq('user_id', (space?.ownerId ?? user.id)),
           supabase
             .from('transactions')
             .select(`
@@ -180,14 +181,14 @@ export default function DashboardPage() {
               to_account:accounts!transactions_to_account_id_fkey(name, type),
               category:categories(name, color, icon)
             `)
-            .eq('user_id', user.id)
+            .eq('user_id', (space?.ownerId ?? user.id))
             .gte('actual_date', since)
             .order('actual_date', { ascending: false })
             .order('created_at', { ascending: false }),
           supabase
             .from('budgets')
             .select(`*, items:budget_items(*, category:categories(*))`)
-            .eq('user_id', user.id)
+            .eq('user_id', (space?.ownerId ?? user.id))
             .eq('month', budgetMonth),
         ]);
 
@@ -204,7 +205,7 @@ export default function DashboardPage() {
     };
 
     fetchData();
-  }, [user, isOnline, thisMonth, budgetMonth, setAccounts, setTransactions, setBudgets, setCategories]);
+  }, [space?.ownerId, user, isOnline, thisMonth, budgetMonth, setAccounts, setTransactions, setBudgets, setCategories]);
 
   // Category breakdown and budget actuals come from the server so they match
   // Reports and Budgets exactly.
@@ -285,11 +286,15 @@ export default function DashboardPage() {
             {greeting()}
             {firstName ? `, ${firstName}` : ''}
           </h1>
-          <p className="text-muted-foreground">Ringkasan keuanganmu bulan ini.</p>
+          <p className="text-muted-foreground">
+            {space && !space.isOwn ? `Ringkasan keuangan bersama ${space.ownerName} bulan ini.` : 'Ringkasan keuanganmu bulan ini.'}
+          </p>
         </div>
-        <Button className="hidden md:inline-flex" onClick={() => setFormOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" /> Catat transaksi
-        </Button>
+        {space?.canWrite !== false && (
+          <Button className="hidden md:inline-flex" onClick={() => setFormOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" /> Catat transaksi
+          </Button>
+        )}
       </div>
 
       {showOnboarding && (

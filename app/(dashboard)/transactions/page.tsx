@@ -123,6 +123,7 @@ function ListSkeleton() {
 export default function TransactionsPage() {
   const {
     user,
+    space,
     accounts,
     categories,
     transactions,
@@ -233,21 +234,21 @@ export default function TransactionsPage() {
         const { data } = await supabase
           .from('accounts')
           .select('*')
-          .eq('user_id', user.id)
+          .eq('user_id', (space?.ownerId ?? user.id))
           .eq('archived', false);
         if (data) setAccounts(keysToCamel<Account[]>(data));
       }
       if (!categories.length) {
-        const { data } = await supabase.from('categories').select('*').eq('user_id', user.id);
+        const { data } = await supabase.from('categories').select('*').eq('user_id', (space?.ownerId ?? user.id));
         if (data) setCategories(keysToCamel<Category[]>(data));
       }
     })().catch(console.error);
-  }, [user, isOnline, accounts.length, categories.length, setAccounts, setCategories]);
+  }, [space?.ownerId, user, isOnline, accounts.length, categories.length, setAccounts, setCategories]);
 
   const refreshAccounts = useCallback(async () => {
     if (!user || !isOnline) return;
-    await refreshActiveAccounts(user.id);
-  }, [user, isOnline]);
+    await refreshActiveAccounts((space?.ownerId ?? user.id));
+  }, [space?.ownerId, user, isOnline]);
 
   const groups = useMemo(() => {
     const map = new Map<string, Transaction[]>();
@@ -275,12 +276,12 @@ export default function TransactionsPage() {
       if (isEditing) {
         setTransactions(
           transactions.map((tx) =>
-            tx.id === editing!.id ? { ...tx, ...toOfflineTransaction(payload, user.id), id: tx.id } : tx
+            tx.id === editing!.id ? { ...tx, ...toOfflineTransaction(payload, (space?.ownerId ?? user.id)), id: tx.id } : tx
           )
         );
         await addOfflineChange('update', 'transactions', { id: editing!.id, ...payload });
       } else {
-        setTransactions([toOfflineTransaction(payload, user.id), ...transactions]);
+        setTransactions([toOfflineTransaction(payload, (space?.ownerId ?? user.id)), ...transactions]);
         await addOfflineChange('create', 'transactions', payload);
       }
       toast.success('Disimpan offline, akan disinkronkan saat online');
@@ -456,9 +457,11 @@ export default function TransactionsPage() {
             </Button>
           )}
           {/* On mobile the bottom nav already has the add button. */}
-          <Button onClick={openNew} className="hidden md:inline-flex">
-            <Plus className="mr-2 h-4 w-4" /> Catat transaksi
-          </Button>
+          {space?.canWrite !== false && (
+            <Button onClick={openNew} className="hidden md:inline-flex">
+              <Plus className="mr-2 h-4 w-4" /> Catat transaksi
+            </Button>
+          )}
         </div>
       </div>
 

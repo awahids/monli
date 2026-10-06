@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createServerClient } from '@/lib/supabase/server';
-import { getUser } from '@/lib/auth/server';
+import { getSpace } from '@/lib/auth/server';
 import type { Database } from '@/types/database';
 
 export const revalidate = 60;
@@ -15,7 +15,7 @@ const querySchema = z.object({
 export async function GET(req: Request) {
   const supabase = createServerClient();
   try {
-    const user = await getUser();
+    const space = await getSpace();
     const { searchParams } = new URL(req.url);
     const parse = querySchema.safeParse(Object.fromEntries(searchParams));
     if (!parse.success) {
@@ -38,7 +38,7 @@ export async function GET(req: Request) {
       .select(
         'id, items:budget_items(amount, category_id, category:categories(name, color))'
       )
-      .eq('user_id', user.id)
+      .eq('user_id', space.ownerId)
       .eq('month', month)
       .maybeSingle<Budget>();
     if (budgetErr) {
@@ -62,7 +62,7 @@ export async function GET(req: Request) {
     const { data: txs, error: txErr } = await supabase
       .from('transactions')
       .select('amount, category_id, category:categories(name, color)')
-      .eq('user_id', user.id)
+      .eq('user_id', space.ownerId)
       .eq('type', 'expense')
       // Budget reports attribute spending by budget_month, not actual date.
       .eq('budget_month', month)

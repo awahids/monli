@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { getUser } from '@/lib/auth/server';
+import { getSpace, readOnlyResponse } from '@/lib/auth/server';
 import { recurringSchema } from '@/lib/validation';
 import { firstOccurrence } from '@/lib/recurring';
 import { formatDate } from '@/lib/date';
@@ -24,13 +24,14 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 
   const toggle = toggleSchema.strict().safeParse(raw);
   try {
-    const user = await getUser();
+    const space = await getSpace();
+    if (!space.canWrite) return readOnlyResponse();
     if (toggle.success) {
       const { data: rule } = await supabase
         .from('recurring_transactions')
         .select('frequency, day_of_month, start_date, end_date')
         .eq('id', params.id)
-        .eq('user_id', user.id)
+        .eq('user_id', space.ownerId)
         .single();
       if (!rule) return NextResponse.json({ error: 'Tidak ditemukan' }, { status: 404 });
       updates = { active: toggle.data.active };
@@ -59,7 +60,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       .from('recurring_transactions')
       .update(updates)
       .eq('id', params.id)
-      .eq('user_id', user.id)
+      .eq('user_id', space.ownerId)
       .select(RECURRING_SELECT)
       .single();
     if (error || !data) {
@@ -75,12 +76,13 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
   const supabase = createClient();
   try {
-    const user = await getUser();
+    const space = await getSpace();
+    if (!space.canWrite) return readOnlyResponse();
     const { error } = await supabase
       .from('recurring_transactions')
       .delete()
       .eq('id', params.id)
-      .eq('user_id', user.id);
+      .eq('user_id', space.ownerId);
     if (error) return NextResponse.json({ error: error.message }, { status: 400 });
     return NextResponse.json({ success: true });
   } catch (e) {

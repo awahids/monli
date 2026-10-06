@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createServerClient } from '@/lib/supabase/server';
-import { getUser } from '@/lib/auth/server';
+import { getSpace } from '@/lib/auth/server';
 import type { Database } from '@/types/database';
 
 const querySchema = z.object({
@@ -19,7 +19,7 @@ function escapeCSV(value: string): string {
 export async function GET(req: Request) {
   const supabase = createServerClient();
   try {
-    const user = await getUser();
+    const space = await getSpace();
     const { searchParams } = new URL(req.url);
     const parse = querySchema.safeParse(Object.fromEntries(searchParams));
     if (!parse.success) {
@@ -44,7 +44,7 @@ export async function GET(req: Request) {
         to_account:accounts!transactions_to_account_id_fkey(name),
         category:categories(name)`
       )
-      .eq('user_id', user.id)
+      .eq('user_id', space.ownerId)
       .order('actual_date', { ascending: true });
 
     if (from) {
