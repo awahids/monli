@@ -16,6 +16,7 @@ import {
   TransactionFormValues,
 } from './transaction-form';
 import { Account, Category } from '@/types';
+import { defaultBudgetMonth } from '@/lib/budget-period';
 
 export type OcrItem = { description: string; amount: number };
 
@@ -41,7 +42,7 @@ const OcrItemForm = forwardRef<ItemFormHandle, ItemFormProps>(
     >({
       resolver: zodResolver(formSchema),
       defaultValues: {
-        budgetMonth: format(date, 'yyyy-MM'),
+        budgetMonth: defaultBudgetMonth(date),
         actualDate: date,
         type: 'expense',
         accountId: accounts[0]?.id,

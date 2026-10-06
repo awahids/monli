@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { getUser } from '@/lib/auth/server';
 import { dueOccurrences, type RecurringFrequency } from '@/lib/recurring';
-import { formatDate } from '@/lib/date';
+import { budgetMonthFor, formatDate } from '@/lib/date';
 
 export const dynamic = 'force-dynamic';
 
@@ -39,6 +39,13 @@ export async function POST() {
       .lte('next_date', today);
     if (error) return NextResponse.json({ error: error.message }, { status: 400 });
 
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('budget_start_day')
+      .eq('id', user.id)
+      .maybeSingle();
+    const startDay = profile?.budget_start_day ?? 1;
+
     let created = 0;
     for (const rule of (rules ?? []) as Rule[]) {
       const { dates, nextDate } = dueOccurrences(
@@ -52,7 +59,7 @@ export async function POST() {
           recurring_id: rule.id,
           date: d,
           actual_date: d,
-          budget_month: d.slice(0, 7),
+          budget_month: budgetMonthFor(d, startDay),
           type: rule.type,
           account_id: rule.account_id,
           from_account_id: rule.from_account_id,

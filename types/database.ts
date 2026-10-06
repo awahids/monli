@@ -12,6 +12,7 @@ export interface Database {
           ai_unlimited: boolean;
           live_price_used_at: string | null;
           onboarding_completed: boolean;
+          budget_start_day: number;
           created_at: string;
           updated_at: string;
         };
@@ -24,6 +25,7 @@ export interface Database {
           ai_unlimited?: boolean;
           live_price_used_at?: string | null;
           onboarding_completed?: boolean;
+          budget_start_day?: number;
           created_at?: string;
           updated_at?: string;
         };
@@ -36,6 +38,7 @@ export interface Database {
           ai_unlimited?: boolean;
           live_price_used_at?: string | null;
           onboarding_completed?: boolean;
+          budget_start_day?: number;
           updated_at?: string;
         };
       };
