@@ -3,12 +3,29 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { motion } from "framer-motion";
+import {
+  BarChart3,
+  CreditCard,
+  Home,
+  LayoutGrid,
+  Package2,
+  PieChart,
+  Plus,
+  Receipt,
+  Repeat,
+  Settings,
+  Sparkles,
+  Target,
+} from "lucide-react";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { Home, Receipt, Plus, PieChart, Wallet } from "lucide-react";
 import TransactionForm, {
   TransactionFormValues,
 } from "@/components/transactions/transaction-form";
-import type { Transaction } from "@/types";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { QalaFamilyProducts } from "@/components/brand/qala-family";
 import { useAppStore } from "@/lib/store";
 import {
   refreshActiveAccounts,
@@ -16,42 +33,65 @@ import {
   toOfflineTransaction,
   toTransactionPayload,
 } from "@/lib/transactions-client";
-import { toast } from "sonner";
 import { READ_ONLY_MESSAGE } from "@/lib/space";
 import { useOffline } from "@/hooks/use-offline";
-import { motion } from "framer-motion";
-import { useTheme } from "next-themes";
 
-const links = [
+const tabs = [
   { href: "/dashboard", icon: Home, label: "Beranda" },
   { href: "/transactions", icon: Receipt, label: "Transaksi" },
-  // index 2 akan diisi tombol Plus
   { href: "/budgets", icon: PieChart, label: "Budget" },
-  { href: "/accounts", icon: Wallet, label: "Akun" },
 ];
 
+/** Everything without its own tab, shown as a grid under "Lainnya". */
+const more = [
+  { href: "/accounts", icon: CreditCard, label: "Akun" },
+  { href: "/goals", icon: Target, label: "Target tabungan" },
+  { href: "/recurring", icon: Repeat, label: "Transaksi rutin" },
+  { href: "/reports", icon: BarChart3, label: "Laporan" },
+  { href: "/zakat", icon: Package2, label: "Zakat" },
+  { href: "/settings", icon: Settings, label: "Pengaturan" },
+];
+
+const isAt = (pathname: string | null, href: string) =>
+  pathname === href || Boolean(pathname?.startsWith(`${href}/`));
+
+function TabLink({ href, icon: Icon, label, active }: (typeof tabs)[number] & { active: boolean }) {
+  return (
+    <Link
+      href={href}
+      aria-current={active ? "page" : undefined}
+      className={cn(
+        "relative flex flex-1 flex-col items-center gap-1 rounded-xl py-2 text-[11px] leading-none transition-colors touch-manipulation",
+        active ? "font-semibold text-primary" : "text-muted-foreground hover:text-foreground"
+      )}
+    >
+      {active && (
+        <motion.span
+          layoutId="nav-active"
+          className="absolute inset-0 rounded-xl bg-primary/10"
+          transition={{ type: "spring", stiffness: 500, damping: 40 }}
+        />
+      )}
+      <Icon className="relative h-5 w-5" />
+      <span className="relative">{label}</span>
+    </Link>
+  );
+}
+
+/** Bottom tab bar with the add-transaction button in the middle. */
 export function MobileNav() {
   const pathname = usePathname();
   const [formOpen, setFormOpen] = useState(false);
-  const [transaction, setTransaction] = useState<Transaction | undefined>();
-  const {
-    user,
-    space,
-    accounts,
-    categories,
-    transactions,
-    setTransactions,
-  } = useAppStore();
+  const [moreOpen, setMoreOpen] = useState(false);
+  const { user, space, accounts, categories, transactions, setTransactions } = useAppStore();
   const { isOnline, addOfflineChange } = useOffline();
-  const { theme } = useTheme();
-  const isDarkTheme = theme === "dark";
+  const moreActive = more.some((m) => isAt(pathname, m.href)) || isAt(pathname, "/upgrade");
 
   const handleAddTransaction = () => {
     if (space && !space.canWrite) {
       toast.info(READ_ONLY_MESSAGE);
       return;
     }
-    setTransaction(undefined);
     setFormOpen(true);
   };
 
@@ -70,94 +110,95 @@ export function MobileNav() {
     const tx = await saveTransaction(payload);
     setTransactions([tx, ...transactions]);
     // Keep balances on Dashboard/Accounts in sync with the new transaction.
-    if (user) await refreshActiveAccounts((space?.ownerId ?? user.id));
+    if (user) await refreshActiveAccounts(space?.ownerId ?? user.id);
     toast.success('Transaksi tersimpan');
     setFormOpen(false);
   };
 
-  // Sisipkan tombol Plus pada index ke-2 (0-based)
-  const navWithPlus = [
-    links[0],
-    links[1],
-    "PLUS", // marker untuk tombol tambah
-    links[2],
-    links[3],
-  ] as const;
-
   return (
     <>
-      <nav className={cn(
-        "fixed bottom-0 left-0 right-0 z-40 border-t border-border/40 backdrop-blur-md md:hidden",
-        isDarkTheme
-          ? "bg-card/90 shadow-lg shadow-black/10"
-          : "bg-card/95 shadow-lg"
-      )}
+      <nav
+        aria-label="Navigasi utama"
+        className="fixed inset-x-0 bottom-0 z-40 mx-auto max-w-md px-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)]"
       >
-
-        <div className="safe-area-bottom flex items-center justify-around px-2 py-3" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 0.2rem)' }}>
-          {navWithPlus.map((item, idx) => {
-            if (item === "PLUS") {
-              return (
-                <div className="relative -mt-4 z-10" key={`plus-${idx}`}>
-                  <motion.button
-                    onClick={handleAddTransaction}
-                    aria-label="Catat transaksi"
-                    whileTap={{ scale: 0.95 }}
-                    className={cn(
-                      "relative flex h-16 w-16 items-center justify-center rounded-full",
-                      "bg-gradient-to-tr from-primary to-primary/80 shadow-xl focus:outline-none focus:ring-2 focus:ring-primary/40",
-                    )}
-                  >
-                    <Plus className="h-8 w-8 text-white" />
-                    <span className="sr-only">Catat transaksi</span>
-                  </motion.button>
-                </div>
-              );
-            }
-
-            const Icon = item.icon;
-            const isActive =
-              pathname === item.href ||
-              (pathname?.startsWith(item.href) && item.href !== "/");
-
-            return (
-              <div key={item.href} className="relative">
-                {isActive && (
-                  <motion.div
-                    className={cn(
-                      "absolute inset-0 rounded-xl",
-                      isDarkTheme ? "bg-primary/15" : "bg-primary/10"
-                    )}
-                    layoutId="activeNavBackground"
-                  />
-                )}
-                <Link
-                  href={item.href}
-                  aria-label={item.label}
-                  className={cn(
-                    "relative flex min-w-[64px] flex-col items-center justify-center rounded-xl px-2 py-1.5 transition-colors duration-200 touch-manipulation overflow-hidden",
-                    isActive
-                      ? "text-primary font-medium"
-                      : "text-muted-foreground hover:text-primary active:scale-95",
-                  )}
-                >
-
-                  <Icon className={cn("mb-1 h-5 w-5 flex-shrink-0", isActive ? "text-primary" : "text-muted-foreground")} />
-                  <span className={cn("text-[11px] leading-none", isActive ? "font-semibold" : "")}>{item.label}</span>
-                </Link>
-              </div>
-            );
-          })}
+        <div className="flex items-center gap-1 rounded-2xl border bg-card/95 p-1.5 shadow-lg shadow-black/5 backdrop-blur-md dark:shadow-black/40">
+          <TabLink {...tabs[0]} active={isAt(pathname, tabs[0].href)} />
+          <TabLink {...tabs[1]} active={isAt(pathname, tabs[1].href)} />
+          <motion.button
+            type="button"
+            onClick={handleAddTransaction}
+            whileTap={{ scale: 0.92 }}
+            aria-label="Catat transaksi"
+            className="mx-1 -mt-7 flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 ring-4 ring-background focus:outline-none focus-visible:ring-primary/40"
+          >
+            <Plus className="h-7 w-7" />
+          </motion.button>
+          <TabLink {...tabs[2]} active={isAt(pathname, tabs[2].href)} />
+          <button
+            type="button"
+            onClick={() => setMoreOpen(true)}
+            aria-haspopup="dialog"
+            className={cn(
+              "relative flex flex-1 flex-col items-center gap-1 rounded-xl py-2 text-[11px] leading-none transition-colors touch-manipulation",
+              moreActive ? "font-semibold text-primary" : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            {moreActive && (
+              <motion.span layoutId="nav-active" className="absolute inset-0 rounded-xl bg-primary/10" />
+            )}
+            <LayoutGrid className="relative h-5 w-5" />
+            <span className="relative">Lainnya</span>
+          </button>
         </div>
       </nav>
+
+      <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
+        <SheetContent side="bottom" className="max-h-[85dvh] overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>Menu</SheetTitle>
+          </SheetHeader>
+          <ul className="mt-4 grid grid-cols-3 gap-2">
+            {more.map(({ href, icon: Icon, label }) => (
+              <li key={href}>
+                <Link
+                  href={href}
+                  onClick={() => setMoreOpen(false)}
+                  aria-current={isAt(pathname, href) ? "page" : undefined}
+                  className={cn(
+                    "flex h-full flex-col items-center gap-2 rounded-xl border p-3 text-center text-xs font-medium transition-colors",
+                    isAt(pathname, href) ? "border-primary/40 bg-primary/10 text-primary" : "hover:bg-muted"
+                  )}
+                >
+                  <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+                    <Icon className="h-5 w-5" />
+                  </span>
+                  {label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+          {user?.plan !== 'PRO' && (
+            <div className="mt-4 flex items-center gap-3 rounded-xl bg-muted/60 p-4">
+              <Sparkles className="h-5 w-5 shrink-0 text-brand-gold" />
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium">Coba Qala Saku PRO</p>
+                <p className="text-xs text-muted-foreground">Scan struk, asisten AI, laporan lengkap.</p>
+              </div>
+              <Button asChild size="sm">
+                <Link href="/upgrade" onClick={() => setMoreOpen(false)}>Lihat</Link>
+              </Button>
+            </div>
+          )}
+          <QalaFamilyProducts className="mt-4 border-t pt-4" />
+        </SheetContent>
+      </Sheet>
 
       {formOpen && (
         <TransactionForm
           open={formOpen}
-          transaction={transaction}
           accounts={accounts}
           categories={categories}
-          onOpenChange={(open) => setFormOpen(open)}
+          onOpenChange={setFormOpen}
           onSubmit={handleSubmit}
         />
       )}

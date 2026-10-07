@@ -6,7 +6,7 @@ import { format } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
 import type { DateRange } from 'react-day-picker';
 import Link from 'next/link';
-import { Camera, Plus, ReceiptText, Repeat, Search, SearchX, SlidersHorizontal, X } from 'lucide-react';
+import { Camera, ReceiptText, Repeat, Search, SearchX, SlidersHorizontal, X } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { useAppStore } from '@/lib/store';
@@ -435,31 +435,24 @@ export default function TransactionsPage() {
 
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Transaksi</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Transaksi</h1>
           <p className="text-sm text-muted-foreground">Semua pemasukan, pengeluaran, dan transfer.</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" asChild aria-label="Transaksi rutin">
+          <Button variant="outline" size="icon" asChild aria-label="Transaksi rutin">
             <Link href="/recurring">
-              <Repeat className="h-4 w-4 md:mr-2" />
-              <span className="hidden md:inline">Rutin</span>
+              <Repeat className="h-4 w-4" />
             </Link>
           </Button>
           {user?.plan === 'PRO' && (
             <Button
               variant="outline"
+              size="icon"
               onClick={() => fileInputRef.current?.click()}
               disabled={scanning}
               aria-label="Scan struk"
             >
-              <Camera className="h-4 w-4 md:mr-2" />
-              <span className="hidden md:inline">{scanning ? 'Membaca...' : 'Scan struk'}</span>
-            </Button>
-          )}
-          {/* On mobile the bottom nav already has the add button. */}
-          {space?.canWrite !== false && (
-            <Button onClick={openNew} className="hidden md:inline-flex">
-              <Plus className="mr-2 h-4 w-4" /> Catat transaksi
+              <Camera className="h-4 w-4" />
             </Button>
           )}
         </div>
@@ -477,9 +470,8 @@ export default function TransactionsPage() {
             aria-label="Cari transaksi"
           />
         </div>
-        <Button variant="outline" onClick={() => setFiltersOpen(true)} className="relative">
-          <SlidersHorizontal className="h-4 w-4 sm:mr-2" />
-          <span className="hidden sm:inline">Filter</span>
+        <Button variant="outline" size="icon" onClick={() => setFiltersOpen(true)} className="relative shrink-0" aria-label="Filter">
+          <SlidersHorizontal className="h-4 w-4" />
           {activeFilters.length > 0 && (
             <span className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[11px] font-semibold text-primary-foreground">
               {activeFilters.length}
@@ -489,7 +481,7 @@ export default function TransactionsPage() {
       </div>
 
       {/* Period presets + active filter chips */}
-      <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0">
+      <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
         {PRESETS.map((p) => (
           <button
             key={p.value}
@@ -671,7 +663,7 @@ export default function TransactionsPage() {
 
       {/* Filter sheet */}
       <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
-        <SheetContent side="bottom" className="max-h-[85vh] overflow-y-auto rounded-t-xl sm:mx-auto sm:max-w-lg">
+        <SheetContent side="bottom" className="max-h-[85vh] overflow-y-auto rounded-t-xl">
           <SheetHeader>
             <SheetTitle>Filter transaksi</SheetTitle>
           </SheetHeader>

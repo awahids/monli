@@ -21,7 +21,6 @@ import { toast } from 'sonner';
 import { useTheme } from 'next-themes';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { MobileSidebar } from './sidebar';
 import { SpaceSwitcher } from './space-switcher';
 import { QalaLogo } from '@/components/brand/qala-mark';
 
@@ -108,14 +107,10 @@ function UserNav() {
 
 export function Header() {
   return (
-    <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="flex h-16 sm:h-14 items-center justify-between px-4 md:px-6">
-        <div className="flex items-center space-x-3 sm:space-x-4">
-          <MobileSidebar />
-          {/* The desktop sidebar already shows the logo. */}
-          <QalaLogo className="md:hidden" />
-        </div>
-        <div className="flex items-center space-x-2 sm:space-x-4">
+    <header className="sticky top-0 z-40 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/70">
+      <div className="flex h-[calc(3.5rem+env(safe-area-inset-top))] items-center justify-between gap-2 px-4 pt-[env(safe-area-inset-top)]">
+        <QalaLogo />
+        <div className="flex items-center gap-2">
           <OfflineIndicator />
           <SpaceSwitcher />
           <UserNav />

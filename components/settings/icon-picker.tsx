@@ -84,7 +84,7 @@ export function IconPicker({ value, onChange, color }: IconPickerProps) {
     <div
       role="radiogroup"
       aria-label="Ikon"
-      className="grid max-h-56 grid-cols-7 gap-1.5 overflow-y-auto rounded-lg border p-2 sm:grid-cols-8"
+      className="grid max-h-56 grid-cols-7 gap-1.5 overflow-y-auto rounded-lg border p-2"
     >
       {options.map(({ name, label }) => {
         const selected = value === name;

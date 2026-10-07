@@ -89,7 +89,7 @@ export function GettingStarted({
             <li
               key={step.title}
               className={cn(
-                'flex flex-col gap-3 rounded-lg border p-3 sm:flex-row sm:items-center',
+                'flex flex-col gap-3 rounded-lg border p-3',
                 i === next && 'bg-accent/50'
               )}
             >

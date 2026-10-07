@@ -33,7 +33,7 @@ function inviteLink(token: string) {
 function RolePicker({ value, onChange, id }: { value: Role; onChange: (r: Role) => void; id?: string }) {
   return (
     <Select value={value} onValueChange={(v) => onChange(v as Role)}>
-      <SelectTrigger id={id} className="w-full sm:w-36">
+      <SelectTrigger id={id} className="w-full">
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
@@ -172,7 +172,7 @@ export function SharedSpaceCard() {
         {isPro ? (
           <>
             <form onSubmit={invite} className="space-y-3" noValidate>
-              <div className="grid gap-3 sm:grid-cols-[1fr_auto_auto] sm:items-end">
+              <div className="grid gap-3">
                 <div className="space-y-2">
                   <Label htmlFor="invite-email">Email yang diundang</Label>
                   <Input
@@ -208,7 +208,7 @@ export function SharedSpaceCard() {
             {loaded && members.length > 0 && (
               <ul className="divide-y rounded-lg border">
                 {members.map((m) => (
-                  <li key={m.id} className="flex flex-col gap-3 p-3 sm:flex-row sm:items-center">
+                  <li key={m.id} className="flex flex-col gap-3 p-3">
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-medium">{m.member_name || m.email}</p>
                       <p className="flex items-center gap-2 truncate text-xs text-muted-foreground">
@@ -232,7 +232,9 @@ export function SharedSpaceCard() {
                           </Button>
                         </>
                       )}
-                      <RolePicker value={m.role} onChange={(r) => changeRole(m, r)} />
+                      <div className="min-w-[8rem] flex-1">
+                        <RolePicker value={m.role} onChange={(r) => changeRole(m, r)} />
+                      </div>
                       <Button
                         type="button"
                         variant="ghost"
@@ -249,7 +251,7 @@ export function SharedSpaceCard() {
             )}
           </>
         ) : (
-          <div className="flex flex-col gap-3 rounded-lg border border-dashed p-4 sm:flex-row sm:items-center">
+          <div className="flex flex-col gap-3 rounded-lg border border-dashed p-4">
             <p className="flex-1 text-sm text-muted-foreground">
               Upgrade ke PRO untuk mengundang keluarga. Orang yang kamu undang tidak perlu berlangganan.
             </p>

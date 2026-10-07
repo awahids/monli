@@ -121,7 +121,7 @@ export default function OcrReviewDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-3xl" ref={contentRef}>
+      <DialogContent ref={contentRef}>
         <DialogHeader>
           <DialogTitle>Periksa hasil scan struk ({items.length} item)</DialogTitle>
         </DialogHeader>

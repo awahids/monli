@@ -50,9 +50,9 @@ export function CategoryFormDialog({ open, onOpenChange, initialData, onSubmit }
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         aria-label={initialData ? 'Edit kategori' : 'Tambah kategori'}
-        className="sm:max-w-md w-full h-full sm:h-auto sm:max-h-[90vh] overflow-y-auto p-0 sm:p-6"
+        className="p-0"
       >
-        <DialogHeader className="px-4 pt-4 sm:px-0 sm:pt-0">
+        <DialogHeader className="px-4 pt-4">
           <DialogTitle>{initialData ? 'Edit kategori' : 'Tambah kategori'}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
@@ -61,7 +61,7 @@ export function CategoryFormDialog({ open, onOpenChange, initialData, onSubmit }
               await onSubmit(v);
               onOpenChange(false);
             })}
-            className="space-y-4 px-4 pb-24 sm:px-0 sm:pb-0"
+            className="space-y-4 px-4"
           >
               <FormField
                 control={form.control}
@@ -162,7 +162,7 @@ export function CategoryFormDialog({ open, onOpenChange, initialData, onSubmit }
             />
             <DialogFooter
               className="sticky bottom-0 justify-end gap-2 border-t bg-background px-4 py-4"
-              style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+              style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 1rem)' }}
             >
               <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
                 Batal

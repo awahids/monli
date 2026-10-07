@@ -142,7 +142,7 @@ export default function UpgradePage() {
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <div className="text-center">
-        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Upgrade ke Qala Saku PRO</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Upgrade ke Qala Saku PRO</h1>
         <p className="mt-2 text-muted-foreground">
           Scan struk, asisten AI, laporan lengkap, dan akun maupun budget tanpa batas.
         </p>
@@ -170,7 +170,7 @@ export default function UpgradePage() {
       </Card>
 
       <Card>
-        <CardContent className="flex flex-col gap-4 pt-6 sm:flex-row sm:items-center sm:justify-between">
+        <CardContent className="flex flex-col gap-4 pt-6">
           <div>
             <p className="text-sm text-muted-foreground">Harga promo · sekali bayar</p>
             <div className="flex items-baseline gap-2">

@@ -42,7 +42,7 @@ export function GoalsSummary() {
           <Link href="/goals">Lihat semua</Link>
         </Button>
       </CardHeader>
-      <CardContent className="grid gap-4 sm:grid-cols-3">
+      <CardContent className="grid gap-4">
         {goals.slice(0, 3).map((g) => {
           const p = goalProgress(g, today);
           const color = g.color || '#14A7A0';

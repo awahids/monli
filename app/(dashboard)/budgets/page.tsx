@@ -71,9 +71,9 @@ export default function BudgetsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <div className="flex flex-col gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Budget</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Budget</h1>
           <p className="text-sm text-muted-foreground">Batas belanja bulanan dan seberapa banyak yang sudah terpakai.</p>
         </div>
         <div className="flex gap-2">
@@ -111,7 +111,7 @@ export default function BudgetsPage() {
       )}
 
       {loading ? (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" aria-busy="true" aria-label="Memuat budget">
+        <div className="grid gap-4" aria-busy="true" aria-label="Memuat budget">
           {Array.from({ length: 3 }).map((_, i) => (
             <Skeleton key={i} className="h-36 rounded-xl" />
           ))}
@@ -132,7 +132,7 @@ export default function BudgetsPage() {
       ) : (
         <>
           {!hasThisMonth && !disableAdd && (
-            <Card className="flex flex-col gap-3 border-dashed p-4 sm:flex-row sm:items-center sm:justify-between">
+            <Card className="flex flex-col gap-3 border-dashed p-4">
               <p className="text-sm">
                 Belum ada budget untuk{' '}
                 <span className="font-medium capitalize">
@@ -145,7 +145,7 @@ export default function BudgetsPage() {
               </Button>
             </Card>
           )}
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4">
             {filteredBudgets.map((b) => {
               const status = budgetStatus(b.actual, b.planned);
               const pct = b.planned ? Math.min((b.actual / b.planned) * 100, 100) : 0;

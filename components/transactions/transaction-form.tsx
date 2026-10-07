@@ -333,7 +333,7 @@ export function TransactionFields({
                   </Link>
                 </p>
               ) : (
-                <div className="grid grid-cols-4 gap-2 sm:grid-cols-5">
+                <div className="grid grid-cols-4 gap-2">
                   {typeCategories.map((c) => {
                     const selected = field.value === c.id;
                     return (
@@ -667,15 +667,15 @@ export function TransactionForm({
       <DialogContent
         id={id}
         ref={setContentEl}
-        className="fixed top-auto bottom-0 left-0 right-0 w-full h-[92vh] overflow-y-auto p-0 rounded-t-xl sm:h-auto sm:max-h-[90vh] sm:max-w-lg sm:rounded-xl sm:p-6"
+        className="p-0"
       >
-        <DialogHeader className="px-4 sm:px-0 pt-4 sm:pt-0">
+        <DialogHeader className="px-4 pt-4">
           <DialogTitle>{transaction ? 'Edit transaksi' : 'Tambah transaksi'}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(handleSubmit)}
-            className="space-y-4 pb-24 px-4 sm:px-0 sm:pb-0"
+            className="space-y-4 px-4"
           >
             <TransactionFields
               form={form}
@@ -686,7 +686,7 @@ export function TransactionForm({
             />
 
             <DialogFooter
-              className="fixed sm:sticky bottom-0 left-0 right-0 flex flex-row justify-between gap-2 border-t bg-background px-4 py-4 z-10 sm:px-0"
+              className="sticky bottom-0 z-10 -mx-4 flex-row justify-between gap-2 border-t bg-background px-4 py-4"
               style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 0.5rem)' }}
             >
               {transaction && onDelete ? (

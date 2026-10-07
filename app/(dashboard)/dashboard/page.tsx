@@ -8,7 +8,6 @@ import {
   ArrowUpRight,
   Minus,
   PiggyBank,
-  Plus,
   TrendingDown,
   TrendingUp,
   Wallet,
@@ -73,20 +72,23 @@ function KpiCard({
   icon: Icon,
   value,
   children,
+  half = false,
 }: {
   title: string;
   icon: typeof Wallet;
   value: string;
   children?: React.ReactNode;
+  /** Half-width tile in the two-column grid. */
+  half?: boolean;
 }) {
   return (
-    <Card>
+    <Card className={half ? undefined : 'col-span-2'}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
         <Icon className="h-4 w-4 text-muted-foreground" />
       </CardHeader>
       <CardContent>
-        <div className="truncate font-display text-2xl font-bold tabular-nums">{value}</div>
+        <div className={cn('truncate font-display font-bold tabular-nums', half ? 'text-lg' : 'text-2xl')}>{value}</div>
         {children}
       </CardContent>
     </Card>
@@ -97,12 +99,12 @@ function DashboardSkeleton() {
   return (
     <div className="space-y-6" aria-busy="true" aria-label="Memuat dashboard">
       <Skeleton className="h-9 w-64" />
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3">
         {Array.from({ length: 4 }).map((_, i) => (
-          <Skeleton key={i} className="h-32 rounded-xl" />
+          <Skeleton key={i} className={cn('h-32 rounded-xl', (i === 0 || i === 3) && 'col-span-2')} />
         ))}
       </div>
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid gap-4">
         <Skeleton className="h-80 rounded-xl" />
         <Skeleton className="h-80 rounded-xl" />
       </div>
@@ -280,21 +282,14 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
+      <div>
+          <h1 className="text-2xl font-bold tracking-tight">
             {greeting()}
             {firstName ? `, ${firstName}` : ''}
           </h1>
           <p className="text-muted-foreground">
             {space && !space.isOwn ? `Ringkasan keuangan bersama ${space.ownerName} bulan ini.` : 'Ringkasan keuanganmu bulan ini.'}
           </p>
-        </div>
-        {space?.canWrite !== false && (
-          <Button className="hidden md:inline-flex" onClick={() => setFormOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" /> Catat transaksi
-          </Button>
-        )}
       </div>
 
       {showOnboarding && (
@@ -307,7 +302,7 @@ export default function DashboardPage() {
         />
       )}
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3">
         <KpiCard title="Saldo total" icon={Wallet} value={formatMoney(kpis.totalBalance)}>
           <p className="mt-1 text-xs text-muted-foreground">
             {accounts.length} akun aktif · arus bersih bulan ini{' '}
@@ -322,10 +317,10 @@ export default function DashboardPage() {
             </span>
           </p>
         </KpiCard>
-        <KpiCard title="Pemasukan bulan ini" icon={TrendingUp} value={formatMoney(kpis.now.income)}>
+        <KpiCard half title="Pemasukan" icon={TrendingUp} value={formatMoney(kpis.now.income)}>
           <DeltaLine delta={monthDelta(kpis.now.income, kpis.prev.income, true)} />
         </KpiCard>
-        <KpiCard title="Pengeluaran bulan ini" icon={TrendingDown} value={formatMoney(kpis.now.expense)}>
+        <KpiCard half title="Pengeluaran" icon={TrendingDown} value={formatMoney(kpis.now.expense)}>
           <DeltaLine delta={monthDelta(kpis.now.expense, kpis.prev.expense, false)} />
         </KpiCard>
         {budgetCard ? (
@@ -348,7 +343,7 @@ export default function DashboardPage() {
             </p>
           </KpiCard>
         ) : (
-          <Card className="flex flex-col justify-center border-dashed">
+          <Card className="col-span-2 flex flex-col justify-center border-dashed">
             <CardContent className="space-y-2 pt-6">
               <p className="text-sm font-medium">Belum ada budget bulan ini</p>
               <p className="text-xs text-muted-foreground">

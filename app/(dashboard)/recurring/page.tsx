@@ -133,7 +133,7 @@ export default function RecurringPage() {
     <div className="space-y-6">
       <div className="flex items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Transaksi rutin</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Transaksi rutin</h1>
           <p className="text-sm text-muted-foreground">
             Gaji, tagihan, dan langganan dicatat otomatis saat jatuh tempo.
           </p>
@@ -202,7 +202,7 @@ export default function RecurringPage() {
           <ul className="space-y-2">
             {rules.map((r) => (
               <li key={r.id}>
-                <Card className={cn('flex items-center gap-3 p-3 sm:p-4', !r.active && 'opacity-60')}>
+                <Card className={cn('flex items-center gap-3 p-3', !r.active && 'opacity-60')}>
                   <span
                     className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full"
                     style={
