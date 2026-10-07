@@ -115,6 +115,9 @@ export interface Database {
           user_id: string;
           month: string;
           total_amount: number;
+          rollover: boolean;
+          /** Computed field (saku.carry): leftover carried in from last period. */
+          carry: number;
           created_at: string;
           updated_at: string;
         };
@@ -123,12 +126,14 @@ export interface Database {
           user_id: string;
           month: string;
           total_amount?: number;
+          rollover?: boolean;
           created_at?: string;
           updated_at?: string;
         };
         Update: {
           month?: string;
           total_amount?: number;
+          rollover?: boolean;
           updated_at?: string;
         };
       };

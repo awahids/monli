@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
+import { Switch } from '@/components/ui/switch';
 import { Skeleton } from '@/components/ui/skeleton';
 import { MoneyInput } from '@/components/ui/money-input';
 import { ProLock } from '@/components/ui/pro-lock';
@@ -92,7 +93,7 @@ export function BudgetDetailDialog({
       try {
         const { data: budgetData, error } = await supabase
           .from('budgets')
-          .select(`*, items:budget_items(*, category:categories(*))`)
+          .select(`*, carry, items:budget_items(*, category:categories(*))`)
           .eq('user_id', (space?.ownerId ?? user.id))
           .eq('id', budgetId)
           .single();
@@ -142,7 +143,8 @@ export function BudgetDetailDialog({
     }
   }, [open]);
 
-  const totalBudget = budget?.totalAmount ?? 0;
+  const carry = budget?.carry ?? 0;
+  const totalBudget = (budget?.totalAmount ?? 0) + carry;
   const overall = budgetStatus(totalSpent, totalBudget);
   const remaining = totalBudget - totalSpent;
 
@@ -162,6 +164,18 @@ export function BudgetDetailDialog({
       return;
     }
     setBudget({ ...budget, totalAmount });
+  };
+
+  const handleRollover = async (rollover: boolean) => {
+    if (!budget) return;
+    const { error } = await supabase.from('budgets').update({ rollover }).eq('id', budget.id);
+    if (error) {
+      toast.error('Gagal menyimpan');
+      return;
+    }
+    setBudget({ ...budget, rollover });
+    toast.success(rollover ? 'Sisa budget akan dibawa ke periode berikutnya' : 'Sisa budget tidak dibawa');
+    onChanged?.();
   };
 
   const handleUpdateItem = async (itemId: string, amount: number) => {
@@ -259,7 +273,17 @@ export function BudgetDetailDialog({
                 />
                 <p className="text-sm text-muted-foreground">
                   Terpakai {formatMoney(totalSpent)} dari {formatMoney(totalBudget)}
+                  {carry > 0 && ` (termasuk sisa ${formatMoney(carry)} dari periode lalu)`}
                 </p>
+                <label className="flex items-center justify-between gap-3 border-t pt-3 text-sm">
+                  <span>
+                    Bawa sisa ke periode berikutnya
+                    <span className="block text-xs text-muted-foreground">
+                      Sisa yang tidak terpakai menambah budget periode depan.
+                    </span>
+                  </span>
+                  <Switch checked={budget.rollover ?? false} onCheckedChange={handleRollover} />
+                </label>
               </div>
 
               <ProLock

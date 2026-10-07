@@ -79,7 +79,7 @@ export async function POST(req: Request) {
           .eq('user_id', space.ownerId),
         supabase
           .from('budgets')
-          .select('id, month, total_amount, items:budget_items(category_id, amount)')
+          .select('id, month, total_amount, carry, items:budget_items(category_id, amount)')
           .eq('user_id', space.ownerId)
           .gte('month', since.slice(0, 7)),
         supabase
@@ -112,7 +112,7 @@ export async function POST(req: Request) {
       categories: (categoriesRes.data ?? []).map((c) => ({ name: c.name, type: c.type })),
       budgets: (budgetsRes.data ?? []).map((b) => ({
         month: b.month,
-        total: b.total_amount,
+        total: b.total_amount + (b.carry ?? 0),
         items: ((b.items as { category_id: string; amount: number }[] | null) ?? []).map((i) => ({
           category: categoryName.get(i.category_id) ?? '',
           amount: i.amount,

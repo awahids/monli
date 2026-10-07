@@ -201,7 +201,7 @@ export default function DashboardPage() {
           ),
           supabase
             .from('budgets')
-            .select(`*, items:budget_items(*, category:categories(*))`)
+            .select(`*, carry, items:budget_items(*, category:categories(*))`)
             .eq('user_id', (space?.ownerId ?? user.id))
             .eq('month', budgetMonth),
         ]);
@@ -260,7 +260,7 @@ export default function DashboardPage() {
   const budget = budgets.find((b) => b.month === budgetMonth);
   const budgetCard = useMemo(() => {
     if (!budget) return null;
-    const planned = budget.totalAmount;
+    const planned = budget.totalAmount + (budget.carry ?? 0);
     const actual = budgetSummary?.totalActual ?? 0;
     const remaining = planned - actual;
     const { end } = budgetPeriod(budgetMonth, budgetStartDay);
