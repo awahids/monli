@@ -1,5 +1,6 @@
 import type { Transaction } from '@/types';
 import { TIMEZONE } from '@/lib/date';
+import { indonesian, type Translate } from './locale';
 
 export type MonthTotals = { income: number; expense: number };
 
@@ -27,31 +28,31 @@ export type Delta = { label: string; tone: DeltaTone; direction: 'up' | 'down' |
  * income is good, more spending is bad. Avoids nonsense percentages when the
  * previous value is zero or negative.
  */
-export function monthDelta(current: number, previous: number, upIsGood: boolean): Delta {
+export function monthDelta(current: number, previous: number, upIsGood: boolean, t: Translate = indonesian): Delta {
   if (previous === 0) {
     return current === 0
-      ? { label: 'Sama seperti bulan lalu', tone: 'neutral', direction: 'flat' }
-      : { label: 'Belum ada data bulan lalu', tone: 'neutral', direction: 'flat' };
+      ? { label: t('Sama seperti bulan lalu', 'Same as last month'), tone: 'neutral', direction: 'flat' }
+      : { label: t('Belum ada data bulan lalu', 'No data for last month'), tone: 'neutral', direction: 'flat' };
   }
   const change = current - previous;
-  if (change === 0) return { label: 'Sama seperti bulan lalu', tone: 'neutral', direction: 'flat' };
+  if (change === 0) return { label: t('Sama seperti bulan lalu', 'Same as last month'), tone: 'neutral', direction: 'flat' };
   const pct = Math.round((Math.abs(change) / Math.abs(previous)) * 100);
   const shown = pct > 999 ? '>999' : String(pct);
   const up = change > 0;
   return {
-    label: `${up ? 'Naik' : 'Turun'} ${shown}% dari bulan lalu`,
+    label: t(`${up ? 'Naik' : 'Turun'} ${shown}% dari bulan lalu`, `${up ? 'Up' : 'Down'} ${shown}% from last month`),
     tone: up === upIsGood ? 'good' : 'bad',
     direction: up ? 'up' : 'down',
   };
 }
 
 /** "Selamat pagi/siang/sore/malam" by the hour in Jakarta. */
-export function greeting(now: Date = new Date()): string {
+export function greeting(now: Date = new Date(), t: Translate = indonesian): string {
   const hour = Number(
     new Intl.DateTimeFormat('en-US', { timeZone: TIMEZONE, hour: 'numeric', hourCycle: 'h23' }).format(now)
   );
-  if (hour >= 4 && hour < 11) return 'Selamat pagi';
-  if (hour >= 11 && hour < 15) return 'Selamat siang';
-  if (hour >= 15 && hour < 18) return 'Selamat sore';
-  return 'Selamat malam';
+  if (hour >= 4 && hour < 11) return t('Selamat pagi', 'Good morning');
+  if (hour >= 11 && hour < 15) return t('Selamat siang', 'Good afternoon');
+  if (hour >= 15 && hour < 18) return t('Selamat sore', 'Good afternoon');
+  return t('Selamat malam', 'Good evening');
 }

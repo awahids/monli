@@ -3,6 +3,7 @@ import { createServerClient } from '@/lib/supabase/server';
 import { getSpace } from '@/lib/auth/server';
 import { selectAll } from '@/lib/select-all';
 import { buildWrapped, type WrappedTx } from '@/lib/wrapped';
+import { serverT } from '@/lib/locale-server';
 
 export const dynamic = 'force-dynamic';
 
@@ -27,7 +28,7 @@ export async function GET(req: Request) {
         .returns<WrappedTx[]>()
     );
     if (error) return NextResponse.json({ error: error.message }, { status: 400 });
-    return NextResponse.json(buildWrapped(year, data ?? []));
+    return NextResponse.json(buildWrapped(year, data ?? [], serverT()));
   } catch (e) {
     return NextResponse.json({ error: (e as Error).message }, { status: 401 });
   }

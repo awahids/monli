@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/input';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { IconPicker } from './icon-picker';
 import { cn } from '@/lib/utils';
+import { useT } from '@/lib/i18n';
 
 const COLORS = ['#ef4444', '#f59e0b', '#22c55e', '#14A7A0', '#3b82f6', '#6366f1', '#a855f7', '#ec4899', '#64748b'];
 
@@ -45,15 +46,16 @@ export function CategoryFormDialog({ open, onOpenChange, initialData, onSubmit }
       icon: initialData?.icon ?? 'ShoppingBag',
     });
   }, [initialData, form]);
+  const { t } = useT();
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        aria-label={initialData ? 'Edit kategori' : 'Tambah kategori'}
+        aria-label={initialData ? t('Edit kategori', 'Edit category') : t('Tambah kategori', 'Add category')}
         className="p-0"
       >
         <DialogHeader className="px-4 pt-4">
-          <DialogTitle>{initialData ? 'Edit kategori' : 'Tambah kategori'}</DialogTitle>
+          <DialogTitle>{initialData ? t('Edit kategori', 'Edit category') : t('Tambah kategori', 'Add category')}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form
@@ -68,7 +70,7 @@ export function CategoryFormDialog({ open, onOpenChange, initialData, onSubmit }
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Nama</FormLabel>
+                    <FormLabel>{t('Nama', 'Name')}</FormLabel>
                     <FormControl>
                       <Input {...field} />
                     </FormControl>
@@ -81,7 +83,7 @@ export function CategoryFormDialog({ open, onOpenChange, initialData, onSubmit }
               name="type"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Jenis</FormLabel>
+                  <FormLabel>{t('Jenis', 'Type')}</FormLabel>
                   <FormControl>
                     <ToggleGroup
                       type="single"
@@ -89,8 +91,8 @@ export function CategoryFormDialog({ open, onOpenChange, initialData, onSubmit }
                       onValueChange={field.onChange}
                       className="justify-start"
                     >
-                      <ToggleGroupItem value="expense">Pengeluaran</ToggleGroupItem>
-                      <ToggleGroupItem value="income">Pemasukan</ToggleGroupItem>
+                      <ToggleGroupItem value="expense">{t('Pengeluaran', 'Expense')}</ToggleGroupItem>
+                      <ToggleGroupItem value="income">{t('Pemasukan', 'Income')}</ToggleGroupItem>
                     </ToggleGroup>
                   </FormControl>
                   <FormMessage />
@@ -102,7 +104,7 @@ export function CategoryFormDialog({ open, onOpenChange, initialData, onSubmit }
               name="color"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Warna</FormLabel>
+                  <FormLabel>{t('Warna', 'Color')}</FormLabel>
                   <div className="flex flex-wrap items-center gap-2" role="radiogroup" aria-label="Warna">
                     {COLORS.map((c) => (
                       <button
@@ -110,7 +112,7 @@ export function CategoryFormDialog({ open, onOpenChange, initialData, onSubmit }
                         type="button"
                         role="radio"
                         aria-checked={field.value === c}
-                        aria-label={`Warna ${c}`}
+                        aria-label={t(`Warna ${c}`, `Color ${c}`)}
                         onClick={() => field.onChange(c)}
                         className={cn(
                           'h-8 w-8 rounded-full ring-offset-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
@@ -121,7 +123,7 @@ export function CategoryFormDialog({ open, onOpenChange, initialData, onSubmit }
                     ))}
                     {/* Native picker hidden under a swatch: rainbow until a custom colour is chosen. */}
                     <label
-                      title="Warna lain"
+                      title={t('Warna lain', 'Other color')}
                       className={cn(
                         'relative h-8 w-8 cursor-pointer rounded-full ring-offset-2 ring-offset-background focus-within:ring-2 focus-within:ring-ring',
                         field.value && !COLORS.includes(field.value) && 'ring-2 ring-foreground'
@@ -136,7 +138,7 @@ export function CategoryFormDialog({ open, onOpenChange, initialData, onSubmit }
                       <FormControl>
                         <input
                           type="color"
-                          aria-label="Warna lain"
+                          aria-label={t('Warna lain', 'Other color')}
                           className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
                           {...field}
                         />
@@ -152,7 +154,7 @@ export function CategoryFormDialog({ open, onOpenChange, initialData, onSubmit }
               name="icon"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Ikon</FormLabel>
+                  <FormLabel>{t('Ikon', 'Icon')}</FormLabel>
                   <FormControl>
                     <IconPicker value={field.value} onChange={field.onChange} color={form.watch('color')} />
                   </FormControl>
@@ -165,9 +167,9 @@ export function CategoryFormDialog({ open, onOpenChange, initialData, onSubmit }
               style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 1rem)' }}
             >
               <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
-                Batal
+                {t('Batal', 'Cancel')}
               </Button>
-              <Button type="submit">Simpan</Button>
+              <Button type="submit">{t('Simpan', 'Save')}</Button>
             </DialogFooter>
           </form>
         </Form>

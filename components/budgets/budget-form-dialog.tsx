@@ -29,6 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useT } from '@/lib/i18n';
 
 type ItemInput = { categoryId: string; amount: number };
 
@@ -46,6 +47,7 @@ function roundUp(amount: number, currency: string) {
 
 export function BudgetFormDialog({ open, onOpenChange, onCreated }: BudgetFormDialogProps) {
   const { user, space } = useAppStore();
+  const { t } = useT();
   const [categories, setCategories] = useState<Category[]>([]);
   const [month, setMonth] = useState<string>(() => thisBudgetMonth());
   const [items, setItems] = useState<ItemInput[]>([{ categoryId: '', amount: 0 }]);
@@ -100,13 +102,13 @@ export function BudgetFormDialog({ open, onOpenChange, onCreated }: BudgetFormDi
           amount: roundUp(Math.max(r.actual, r.planned), currency),
         }));
       if (!suggested.length) {
-        toast.info('Belum ada pengeluaran berkategori di bulan lalu');
+        toast.info(t('Belum ada pengeluaran berkategori di bulan lalu', 'No categorized spending last month'));
         return;
       }
       setItems(suggested);
-      toast.success(`${suggested.length} kategori diisi dari pengeluaran bulan lalu`);
+      toast.success(t(`${suggested.length} kategori diisi dari pengeluaran bulan lalu`, `${suggested.length} categories filled from last month's spending`));
     } catch {
-      toast.error('Gagal mengambil data bulan lalu');
+      toast.error(t('Gagal mengambil data bulan lalu', "Could not get last month's data"));
     } finally {
       setSuggesting(false);
     }
@@ -131,12 +133,12 @@ export function BudgetFormDialog({ open, onOpenChange, onCreated }: BudgetFormDi
       if (!res.ok) {
         toast.error(
           res.status === 403
-            ? 'Paket FREE dibatasi 2 budget. Upgrade ke PRO untuk budget tanpa batas.'
-            : data.error || 'Gagal membuat budget'
+            ? t('Paket FREE dibatasi 2 budget. Upgrade ke PRO untuk budget tanpa batas.', 'The FREE plan is limited to 2 budgets. Upgrade to PRO for unlimited budgets.')
+            : data.error || t('Gagal membuat budget', 'Could not create the budget')
         );
         return;
       }
-      toast.success('Budget dibuat');
+      toast.success(t('Budget dibuat', 'Budget created'));
       onOpenChange(false);
       onCreated?.();
       reset();
@@ -151,20 +153,20 @@ export function BudgetFormDialog({ open, onOpenChange, onCreated }: BudgetFormDi
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="p-0">
         <DialogHeader className="px-4 pt-4">
-          <DialogTitle>Buat budget</DialogTitle>
+          <DialogTitle>{t('Buat budget', 'Create budget')}</DialogTitle>
           <DialogDescription>
-            Tentukan batas belanja per kategori. Total budget dihitung otomatis.
+            {t('Tentukan batas belanja per kategori. Total budget dihitung otomatis.', 'Set spending limits per category. The budget total is calculated for you.')}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-5 px-4">
           <div className="space-y-2">
-            <Label htmlFor="budget-month">Bulan</Label>
+            <Label htmlFor="budget-month">{t('Bulan', 'Month')}</Label>
             <Input id="budget-month" type="month" value={month} onChange={(e) => setMonth(e.target.value)} />
           </div>
 
           <div className="space-y-2">
             <div className="flex items-center justify-between gap-2">
-              <Label>Kategori</Label>
+              <Label>{t('Kategori', 'Categories')}</Label>
               <Button
                 type="button"
                 variant="ghost"
@@ -173,14 +175,14 @@ export function BudgetFormDialog({ open, onOpenChange, onCreated }: BudgetFormDi
                 disabled={suggesting || !categories.length}
               >
                 <Sparkles className="mr-1 h-4 w-4" />
-                {suggesting ? 'Mengambil...' : 'Isi dari bulan lalu'}
+                {suggesting ? t('Mengambil...', 'Loading...') : t('Isi dari bulan lalu', 'Fill from last month')}
               </Button>
             </div>
             {items.map((item, idx) => (
               <div key={idx} className="flex gap-2">
                 <Select value={item.categoryId} onValueChange={(v) => updateItem(idx, { categoryId: v })}>
                   <SelectTrigger className="w-2/5 shrink-0">
-                    <SelectValue placeholder="Pilih kategori" />
+                    <SelectValue placeholder={t('Pilih kategori', 'Choose category')} />
                   </SelectTrigger>
                   <SelectContent>
                     {categories
@@ -196,13 +198,13 @@ export function BudgetFormDialog({ open, onOpenChange, onCreated }: BudgetFormDi
                   className="flex-1"
                   value={item.amount}
                   onValueChange={(amount) => updateItem(idx, { amount })}
-                  aria-label="Batas kategori"
+                  aria-label={t('Batas kategori', 'Category limit')}
                 />
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon"
-                  aria-label="Hapus baris"
+                  aria-label={t('Hapus baris', 'Remove row')}
                   onClick={() =>
                     setItems((prev) =>
                       prev.length === 1 ? [{ categoryId: '', amount: 0 }] : prev.filter((_, i) => i !== idx)
@@ -220,25 +222,25 @@ export function BudgetFormDialog({ open, onOpenChange, onCreated }: BudgetFormDi
               onClick={() => setItems((prev) => [...prev, { categoryId: '', amount: 0 }])}
               disabled={usedIds.size >= categories.length}
             >
-              <Plus className="mr-1 h-4 w-4" /> Tambah kategori
+              <Plus className="mr-1 h-4 w-4" /> {t('Tambah kategori', 'Add category')}
             </Button>
           </div>
 
           <div className="space-y-2">
-            <Label>Cadangan di luar kategori (opsional)</Label>
-            <MoneyInput value={extraTotal} onValueChange={setExtraTotal} aria-label="Cadangan" />
+            <Label>{t('Cadangan di luar kategori (opsional)', 'Buffer outside categories (optional)')}</Label>
+            <MoneyInput value={extraTotal} onValueChange={setExtraTotal} aria-label={t('Cadangan', 'Buffer')} />
             <p className="text-xs text-muted-foreground">
-              Untuk pengeluaran yang tidak masuk kategori di atas.
+              {t('Untuk pengeluaran yang tidak masuk kategori di atas.', "For spending that doesn't fit the categories above.")}
             </p>
           </div>
 
           <div className="rounded-lg bg-muted p-3 text-sm">
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Dialokasikan ke kategori</span>
+              <span className="text-muted-foreground">{t('Dialokasikan ke kategori', 'Allocated to categories')}</span>
               <span className="tabular-nums">{formatMoney(allocated)}</span>
             </div>
             <div className="mt-1 flex justify-between font-semibold">
-              <span>Total budget</span>
+              <span>{t('Total budget', 'Budget total')}</span>
               <span className="tabular-nums">{formatMoney(total)}</span>
             </div>
           </div>
@@ -248,7 +250,7 @@ export function BudgetFormDialog({ open, onOpenChange, onCreated }: BudgetFormDi
           style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 1rem)' }}
         >
           <Button onClick={handleSubmit} disabled={submitting || !month || total < 1} className="w-full">
-            {submitting ? 'Menyimpan...' : 'Simpan budget'}
+            {submitting ? t('Menyimpan...', 'Saving...') : t('Simpan budget', 'Save budget')}
           </Button>
         </DialogFooter>
       </DialogContent>

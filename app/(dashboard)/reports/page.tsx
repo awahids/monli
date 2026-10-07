@@ -33,6 +33,7 @@ import CategoryMovementChart from '@/components/reports/category-movement-chart'
 import { useAppStore } from '@/lib/store';
 import { currentBudgetMonth, periodRange } from '@/lib/date';
 import { spacePlan } from '@/lib/plans';
+import { useT } from '@/lib/i18n';
 
 interface TrendRow {
   month: string;
@@ -60,6 +61,7 @@ export default function ReportsPage() {
   const defaultMonth = currentBudgetMonth(startDay);
   const defaultYear = defaultMonth.slice(0, 4);
   const isPro = spacePlan(user, space) === 'PRO';
+  const { t, locale } = useT();
   const [month, setMonth] = useState(defaultMonth);
   const [year, setYear] = useState(defaultYear);
   const [summary, setSummary] = useState<SummaryResponse>({
@@ -190,10 +192,10 @@ export default function ReportsPage() {
         <div className="flex flex-col gap-4">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">
-              Laporan
+              {t('Laporan', 'Reports')}
             </h1>
             <p className="text-muted-foreground text-sm">
-              Tren, kategori, dan budget vs realisasi.
+              {t('Tren, kategori, dan budget vs realisasi.', 'Trends, categories and budget vs actual.')}
             </p>
           </div>
           <CollapsibleTrigger asChild>
@@ -202,25 +204,25 @@ export default function ReportsPage() {
               size="sm"
               className="gap-1 w-full"
             >
-              <Filter className="h-4 w-4" /> Filter
+              <Filter className="h-4 w-4" /> {t('Filter', 'Filter')}
             </Button>
           </CollapsibleTrigger>
         </div>
         <CollapsibleContent>
           <div className="mt-4 grid gap-4 grid-cols-1">
             <div className="space-y-2">
-              <label className="text-sm font-medium">{startDay > 1 ? 'Periode (bulan budget)' : 'Bulan'}</label>
+              <label className="text-sm font-medium">{startDay > 1 ? t('Periode (bulan budget)', 'Period (budget month)') : t('Bulan', 'Month')}</label>
               <Input
                 type="month"
                 value={month}
                 onChange={(e) => setMonth(e.target.value)}
               />
-              {periodRange(month, startDay) && (
-                <p className="text-xs text-muted-foreground">{periodRange(month, startDay)}</p>
+              {periodRange(month, startDay, locale) && (
+                <p className="text-xs text-muted-foreground">{periodRange(month, startDay, locale)}</p>
               )}
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">Tahun</label>
+              <label className="text-sm font-medium">{t('Tahun', 'Year')}</label>
               <Input
                 type="number"
                 value={year}
@@ -233,8 +235,8 @@ export default function ReportsPage() {
 
       <ProLock
         locked={!isPro}
-        title="Laporan lengkap ada di PRO"
-        description="Tren tahunan, rincian kategori, budget vs realisasi, dan export CSV."
+        title={t('Laporan lengkap ada di PRO', 'Full reports are in PRO')}
+        description={t('Tren tahunan, rincian kategori, budget vs realisasi, dan export CSV.', 'Yearly trends, category breakdown, budget vs actual and CSV export.')}
       >
       <Tabs defaultValue="summary" className="space-y-4">
         <TabsList className="grid h-auto w-full grid-cols-4">
@@ -242,19 +244,19 @@ export default function ReportsPage() {
             value="summary"
             className="w-full px-1 text-xs"
           >
-            Ringkasan
+            {t('Ringkasan', 'Summary')}
           </TabsTrigger>
           <TabsTrigger
             value="trend"
             className="w-full px-1 text-xs"
           >
-            Tren
+            {t('Tren', 'Trend')}
           </TabsTrigger>
           <TabsTrigger
             value="category"
             className="w-full px-1 text-xs"
           >
-            Kategori
+            {t('Kategori', 'Category')}
           </TabsTrigger>
           <TabsTrigger
             value="movement"
@@ -272,13 +274,13 @@ export default function ReportsPage() {
               className="gap-1 w-full"
               onClick={exportDailyCSV}
             >
-              <Download className="h-4 w-4" /> Export CSV
+              <Download className="h-4 w-4" /> {t('Export CSV', 'Export CSV')}
             </Button>
           </div>
           <div className="grid gap-4 grid-cols-1">
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Pengeluaran harian</CardTitle>
+                <CardTitle className="text-base">{t('Pengeluaran harian', 'Daily spending')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="h-56">
@@ -321,7 +323,7 @@ export default function ReportsPage() {
             </Card>
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Pengeluaran per kategori</CardTitle>
+                <CardTitle className="text-base">{t('Pengeluaran per kategori', 'Spending by category')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="h-56">
@@ -361,12 +363,12 @@ export default function ReportsPage() {
               className="gap-1 w-full"
               onClick={exportTrendCSV}
             >
-              <Download className="h-4 w-4" /> Export CSV
+              <Download className="h-4 w-4" /> {t('Export CSV', 'Export CSV')}
             </Button>
           </div>
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Pemasukan vs pengeluaran ({year})</CardTitle>
+              <CardTitle className="text-base">{t('Pemasukan vs pengeluaran', 'Income vs expenses')} ({year})</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="h-64">
@@ -377,8 +379,8 @@ export default function ReportsPage() {
                     <YAxis width={56} tick={{ fontSize: 11 }} tickFormatter={(v) => formatMoneyCompact(v)} />
                     <Tooltip formatter={(v: number) => formatMoney(v)} />
                     <Legend />
-                    <Line type="monotone" dataKey="income" name="Pemasukan" stroke="#16a34a" strokeWidth={2} />
-                    <Line type="monotone" dataKey="expense" name="Pengeluaran" stroke="#dc2626" strokeWidth={2} />
+                    <Line type="monotone" dataKey="income" name={t('Pemasukan', 'Income')} stroke="#16a34a" strokeWidth={2} />
+                    <Line type="monotone" dataKey="expense" name={t('Pengeluaran', 'Expenses')} stroke="#dc2626" strokeWidth={2} />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
@@ -394,12 +396,12 @@ export default function ReportsPage() {
               className="gap-1 w-full"
               onClick={exportCategoryCSV}
             >
-              <Download className="h-4 w-4" /> Export CSV
+              <Download className="h-4 w-4" /> {t('Export CSV', 'Export CSV')}
             </Button>
           </div>
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Rincian kategori ({month})</CardTitle>
+              <CardTitle className="text-base">{t('Rincian kategori', 'Category breakdown')} ({month})</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="h-64">

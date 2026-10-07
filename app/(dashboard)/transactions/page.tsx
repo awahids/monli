@@ -3,7 +3,6 @@
 import { ChangeEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { format } from 'date-fns';
-import { id as localeId } from 'date-fns/locale';
 import type { DateRange } from 'react-day-picker';
 import Link from 'next/link';
 import { Camera, ReceiptText, Repeat, Search, SearchX, SlidersHorizontal, Split, X } from 'lucide-react';
@@ -58,20 +57,21 @@ import {
 } from '@/lib/transactions-client';
 import { useDebounce } from '@/hooks/use-debounce';
 import { useOffline } from '@/hooks/use-offline';
+import { type I18n, useT } from '@/lib/i18n';
 
 const PAGE_SIZE = 30;
 
 type Preset = 'this-month' | 'last-month' | '30d' | 'all' | 'custom';
-const PRESETS: { value: Exclude<Preset, 'custom'>; label: string }[] = [
-  { value: 'this-month', label: 'Bulan ini' },
-  { value: 'last-month', label: 'Bulan lalu' },
-  { value: '30d', label: '30 hari' },
-  { value: 'all', label: 'Semua' },
+const PRESETS: { value: Exclude<Preset, 'custom'>; label: [string, string] }[] = [
+  { value: 'this-month', label: ['Bulan ini', 'This month'] },
+  { value: 'last-month', label: ['Bulan lalu', 'Last month'] },
+  { value: '30d', label: ['30 hari', '30 days'] },
+  { value: 'all', label: ['Semua', 'All'] },
 ];
-const TYPE_LABELS: Record<string, string> = {
-  expense: 'Pengeluaran',
-  income: 'Pemasukan',
-  transfer: 'Transfer',
+const TYPE_LABELS: Record<string, [string, string]> = {
+  expense: ['Pengeluaran', 'Expense'],
+  income: ['Pemasukan', 'Income'],
+  transfer: ['Transfer', 'Transfer'],
 };
 
 /** The budget month for "Bulan/Periode ini" and "… lalu"; these follow the pay-day period. */
@@ -97,17 +97,18 @@ function presetRange(preset: Preset, custom: DateRange): { from?: string; to?: s
   }
 }
 
-function dayLabel(date: string): string {
+function dayLabel(date: string, { t, dateLocale }: I18n): string {
   const today = formatDate(new Date());
   const yesterday = formatDate(new Date(Date.now() - 86400000));
-  if (date === today) return 'Hari ini';
-  if (date === yesterday) return 'Kemarin';
-  return format(new Date(`${date}T00:00:00`), 'EEEE, d MMM yyyy', { locale: localeId });
+  if (date === today) return t('Hari ini', 'Today');
+  if (date === yesterday) return t('Kemarin', 'Yesterday');
+  return format(new Date(`${date}T00:00:00`), 'EEEE, d MMM yyyy', { locale: dateLocale });
 }
 
 function ListSkeleton() {
+  const { t } = useT();
   return (
-    <div className="space-y-3" aria-busy="true" aria-label="Memuat transaksi">
+    <div className="space-y-3" aria-busy="true" aria-label={t('Memuat transaksi', 'Loading transactions')}>
       {Array.from({ length: 6 }).map((_, i) => (
         <div key={i} className="flex items-center gap-3">
           <Skeleton className="h-10 w-10 rounded-full" />
@@ -136,6 +137,8 @@ export default function TransactionsPage() {
   } = useAppStore();
   const searchParams = useSearchParams();
   const { isOnline, addOfflineChange } = useOffline();
+  const i18n = useT();
+  const { t, dateLocale, locale } = i18n;
 
   // Filters
   // Opened from the header's search button: search all time.
@@ -181,6 +184,7 @@ export default function TransactionsPage() {
   const startDay = user?.budgetStartDay || 1;
   const period = presetPeriod(preset, startDay);
   const unit = startDay > 1 ? 'Periode' : 'Bulan';
+  const unitEn = startDay > 1 ? 'period' : 'month';
 
   const buildParams = useCallback(
     (pageNumber: number) => {
@@ -221,7 +225,7 @@ export default function TransactionsPage() {
         // Ignore responses that arrive after a newer request was sent.
         if (requestId !== requestIdRef.current) return;
         if (!res.ok) {
-          toast.error(data.error || 'Gagal memuat transaksi');
+          toast.error(data.error || t('Gagal memuat transaksi', 'Could not load transactions'));
           return;
         }
         const rows = keysToCamel<Transaction[]>(data.rows);
@@ -237,7 +241,7 @@ export default function TransactionsPage() {
         }
       }
     },
-    [user, isOnline, buildParams, setTransactions]
+    [user, isOnline, buildParams, setTransactions, t]
   );
 
   // dataVersion: reload after a change made anywhere (e.g. the + button).
@@ -303,7 +307,7 @@ export default function TransactionsPage() {
         setTransactions([toOfflineTransaction(payload, (space?.ownerId ?? user.id)), ...transactions]);
         await addOfflineChange('create', 'transactions', payload);
       }
-      toast.success('Disimpan offline, akan disinkronkan saat online');
+      toast.success(t('Disimpan offline, akan disinkronkan saat online', 'Saved offline, will sync when online'));
       closeForm();
       return;
     }
@@ -311,7 +315,7 @@ export default function TransactionsPage() {
     // Saving bumps dataVersion, which reloads the list and totals.
     const receiptPath = isEditing ? undefined : await storeReceipt();
     await saveTransaction({ ...payload, ...(receiptPath && { receiptPath }) }, editing?.id);
-    toast.success(isEditing ? 'Transaksi diperbarui' : 'Transaksi tersimpan');
+    toast.success(isEditing ? t('Transaksi diperbarui', 'Transaction updated') : t('Transaksi tersimpan', 'Transaction saved'));
     closeForm();
     await refreshAccounts();
   };
@@ -323,12 +327,12 @@ export default function TransactionsPage() {
       setTransactions(transactions.filter((t) => t.id !== pendingDelete.id));
       if (editing?.id === pendingDelete.id) closeForm();
       setPendingDelete(null);
-      toast.success('Dihapus offline, akan disinkronkan saat online');
+      toast.success(t('Dihapus offline, akan disinkronkan saat online', 'Deleted offline, will sync when online'));
       return;
     }
     try {
       await deleteTransaction(pendingDelete.id);
-      toast.success('Transaksi dihapus');
+      toast.success(t('Transaksi dihapus', 'Transaction deleted'));
       if (editing?.id === pendingDelete.id) closeForm();
       setPendingDelete(null);
       await refreshAccounts();
@@ -363,7 +367,7 @@ export default function TransactionsPage() {
       const data = await res.json();
       if (!res.ok) {
         receiptRef.current = null;
-        toast.error(data.error || 'Gagal membaca struk');
+        toast.error(data.error || t('Gagal membaca struk', 'Could not read the receipt'));
         return;
       }
       const date = data.date ? new Date(`${data.date}T00:00:00+07:00`) : new Date();
@@ -384,7 +388,7 @@ export default function TransactionsPage() {
       }
     } catch {
       receiptRef.current = null;
-      toast.error('Gagal membaca struk');
+      toast.error(t('Gagal membaca struk', 'Could not read the receipt'));
     } finally {
       setScanning(false);
       e.target.value = '';
@@ -400,14 +404,14 @@ export default function TransactionsPage() {
         await saveTransaction({ ...toTransactionPayload(values), ...(receiptPath && { receiptPath }) });
         saved += 1;
       }
-      toast.success(`${saved} transaksi tersimpan`);
+      toast.success(t(`${saved} transaksi tersimpan`, `${saved} transactions saved`));
       receiptRef.current = null;
       setOcrOpen(false);
     } catch (e) {
       // Drop the rows that were already saved so a retry does not duplicate them.
       setOcrItems((prev) => prev.slice(saved));
       toast.error(
-        `${(e as Error).message}${saved ? ` (${saved} dari ${items.length} sudah tersimpan)` : ''}`
+        `${(e as Error).message}${saved ? t(` (${saved} dari ${items.length} sudah tersimpan)`, ` (${saved} of ${items.length} already saved)`) : ''}`
       );
     } finally {
       await refreshAccounts();
@@ -424,22 +428,22 @@ export default function TransactionsPage() {
   const activeFilters = [
     accountFilter !== 'all' && {
       key: 'account',
-      label: accounts.find((a) => a.id === accountFilter)?.name ?? 'Akun',
+      label: accounts.find((a) => a.id === accountFilter)?.name ?? t('Akun', 'Account'),
       clear: () => setAccountFilter('all'),
     },
     categoryFilter !== 'all' && {
       key: 'category',
-      label: categories.find((c) => c.id === categoryFilter)?.name ?? 'Kategori',
+      label: categories.find((c) => c.id === categoryFilter)?.name ?? t('Kategori', 'Category'),
       clear: () => setCategoryFilter('all'),
     },
     typeFilter !== 'all' && {
       key: 'type',
-      label: TYPE_LABELS[typeFilter],
+      label: t(...TYPE_LABELS[typeFilter]),
       clear: () => setTypeFilter('all'),
     },
     dateField === 'budget' && {
       key: 'field',
-      label: 'Per bulan budget',
+      label: t('Per bulan budget', 'By budget month'),
       clear: () => setDateField('actual'),
     },
   ].filter(Boolean) as { key: string; label: string; clear: () => void }[];
@@ -455,10 +459,10 @@ export default function TransactionsPage() {
 
   const customLabel =
     preset === 'custom' && customRange.from
-      ? `${format(customRange.from, 'd MMM', { locale: localeId })}${
-          customRange.to ? ` – ${format(customRange.to, 'd MMM', { locale: localeId })}` : ''
+      ? `${format(customRange.from, 'd MMM', { locale: dateLocale })}${
+          customRange.to ? ` – ${format(customRange.to, 'd MMM', { locale: dateLocale })}` : ''
         }`
-      : 'Pilih tanggal';
+      : t('Pilih tanggal', 'Pick dates');
 
   return (
     <div className="space-y-4">
@@ -485,14 +489,16 @@ export default function TransactionsPage() {
 
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Transaksi</h1>
-          <p className="text-sm text-muted-foreground">Semua pemasukan, pengeluaran, dan transfer.</p>
+          <h1 className="text-2xl font-bold tracking-tight">{t('Transaksi', 'Transactions')}</h1>
+          <p className="text-sm text-muted-foreground">
+            {t('Semua pemasukan, pengeluaran, dan transfer.', 'All income, expenses and transfers.')}
+          </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="icon" onClick={() => setSplitOpen(true)} aria-label="Bagi tagihan">
+          <Button variant="outline" size="icon" onClick={() => setSplitOpen(true)} aria-label={t('Bagi tagihan', 'Split bill')}>
             <Split className="h-4 w-4" />
           </Button>
-          <Button variant="outline" size="icon" asChild aria-label="Transaksi rutin">
+          <Button variant="outline" size="icon" asChild aria-label={t('Transaksi rutin', 'Recurring transactions')}>
             <Link href="/recurring">
               <Repeat className="h-4 w-4" />
             </Link>
@@ -503,7 +509,7 @@ export default function TransactionsPage() {
               size="icon"
               onClick={() => fileInputRef.current?.click()}
               disabled={scanning}
-              aria-label="Scan struk"
+              aria-label={t('Scan struk', 'Scan receipt')}
             >
               <Camera className="h-4 w-4" />
             </Button>
@@ -516,7 +522,7 @@ export default function TransactionsPage() {
         <div className="relative flex-1">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Cari catatan, tag, kategori, nominal"
+            placeholder={t('Cari catatan, tag, kategori, nominal', 'Search notes, tags, categories, amounts')}
             className="pl-9"
             value={search}
             onChange={(e) => {
@@ -525,10 +531,10 @@ export default function TransactionsPage() {
               setSearch(e.target.value);
             }}
             autoFocus={searchParams.has('search')}
-            aria-label="Cari transaksi"
+            aria-label={t('Cari transaksi', 'Search transactions')}
           />
         </div>
-        <Button variant="outline" size="icon" onClick={() => setFiltersOpen(true)} className="relative shrink-0" aria-label="Filter">
+        <Button variant="outline" size="icon" onClick={() => setFiltersOpen(true)} className="relative shrink-0" aria-label={t('Filter', 'Filters')}>
           <SlidersHorizontal className="h-4 w-4" />
           {activeFilters.length > 0 && (
             <span className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[11px] font-semibold text-primary-foreground">
@@ -551,7 +557,11 @@ export default function TransactionsPage() {
               preset === p.value ? 'border-primary bg-primary text-primary-foreground' : 'hover:bg-muted'
             )}
           >
-            {p.value === 'this-month' ? `${unit} ini` : p.value === 'last-month' ? `${unit} lalu` : p.label}
+            {p.value === 'this-month'
+              ? t(`${unit} ini`, `This ${unitEn}`)
+              : p.value === 'last-month'
+                ? t(`${unit} lalu`, `Last ${unitEn}`)
+                : t(...p.label)}
           </button>
         ))}
         <Popover>
@@ -575,7 +585,7 @@ export default function TransactionsPage() {
                 setPreset(r?.from ? 'custom' : 'all');
               }}
               numberOfMonths={1}
-              locale={localeId}
+              locale={dateLocale}
             />
           </PopoverContent>
         </Popover>
@@ -585,7 +595,7 @@ export default function TransactionsPage() {
             className="inline-flex shrink-0 items-center gap-1 rounded-full bg-accent px-3 py-1.5 text-sm text-accent-foreground"
           >
             {f.label}
-            <button type="button" onClick={f.clear} aria-label={`Hapus filter ${f.label}`}>
+            <button type="button" onClick={f.clear} aria-label={t(`Hapus filter ${f.label}`, `Remove filter ${f.label}`)}>
               <X className="h-3.5 w-3.5" />
             </button>
           </span>
@@ -594,23 +604,25 @@ export default function TransactionsPage() {
 
       {/* Totals for the current view */}
       {period && periodRange(period, startDay) && (
-        <p className="-mt-2 text-xs text-muted-foreground">Periode {periodRange(period, startDay)}</p>
+        <p className="-mt-2 text-xs text-muted-foreground">
+          {t('Periode', 'Period')} {periodRange(period, startDay, locale)}
+        </p>
       )}
 
       {summary && !loading && total > 0 && (
         <Card className="grid grid-cols-3 divide-x p-0 text-center">
           <div className="p-3">
-            <p className="text-xs text-muted-foreground">Pemasukan</p>
+            <p className="text-xs text-muted-foreground">{t('Pemasukan', 'Income')}</p>
             <p className="truncate text-sm font-semibold text-green-600 dark:text-green-400">
               {formatMoney(summary.income)}
             </p>
           </div>
           <div className="p-3">
-            <p className="text-xs text-muted-foreground">Pengeluaran</p>
+            <p className="text-xs text-muted-foreground">{t('Pengeluaran', 'Expenses')}</p>
             <p className="truncate text-sm font-semibold">{formatMoney(summary.expense)}</p>
           </div>
           <div className="p-3">
-            <p className="text-xs text-muted-foreground">Selisih</p>
+            <p className="text-xs text-muted-foreground">{t('Selisih', 'Net')}</p>
             <p
               className={cn(
                 'truncate text-sm font-semibold',
@@ -632,13 +644,13 @@ export default function TransactionsPage() {
         preset === 'this-month' && activeFilters.length === 0 && !debouncedSearch ? (
           <EmptyState
             icon={ReceiptText}
-            title={`Belum ada transaksi ${unit.toLowerCase()} ini`}
-            description="Catat pengeluaran atau pemasukan, atau lihat periode sebelumnya."
+            title={t(`Belum ada transaksi ${unit.toLowerCase()} ini`, `No transactions this ${unitEn}`)}
+            description={t('Catat pengeluaran atau pemasukan, atau lihat periode sebelumnya.', 'Record an expense or income, or look at earlier periods.')}
             action={
               <div className="flex flex-wrap justify-center gap-2">
-                <Button onClick={openNew}>Catat transaksi</Button>
+                <Button onClick={openNew}>{t('Catat transaksi', 'Add transaction')}</Button>
                 <Button variant="outline" onClick={() => setPreset('all')}>
-                  Lihat semua periode
+                  {t('Lihat semua periode', 'See all periods')}
                 </Button>
               </div>
             }
@@ -646,20 +658,20 @@ export default function TransactionsPage() {
         ) : hasNarrowing ? (
           <EmptyState
             icon={SearchX}
-            title="Tidak ada transaksi yang cocok"
-            description="Coba ganti periode atau hapus filter."
+            title={t('Tidak ada transaksi yang cocok', 'No matching transactions')}
+            description={t('Coba ganti periode atau hapus filter.', 'Try another period or clear the filters.')}
             action={
               <Button variant="outline" onClick={clearAll}>
-                Hapus semua filter
+                {t('Hapus semua filter', 'Clear all filters')}
               </Button>
             }
           />
         ) : (
           <EmptyState
             icon={ReceiptText}
-            title="Belum ada transaksi"
-            description="Catat pengeluaran atau pemasukan pertamamu."
-            action={<Button onClick={openNew}>Catat transaksi</Button>}
+            title={t('Belum ada transaksi', 'No transactions yet')}
+            description={t('Catat pengeluaran atau pemasukan pertamamu.', 'Record your first expense or income.')}
+            action={<Button onClick={openNew}>{t('Catat transaksi', 'Add transaction')}</Button>}
           />
         )
       ) : (
@@ -674,8 +686,8 @@ export default function TransactionsPage() {
                 <div className="flex items-baseline justify-between px-2 pb-1">
                   <h2 className="font-sans text-sm font-semibold capitalize text-muted-foreground">
                     {dateField === 'budget'
-                      ? `Budget ${format(new Date(`${key}-01T00:00:00`), 'MMMM yyyy', { locale: localeId })}`
-                      : dayLabel(key)}
+                      ? `Budget ${format(new Date(`${key}-01T00:00:00`), 'MMMM yyyy', { locale: dateLocale })}`
+                      : dayLabel(key, i18n)}
                   </h2>
                   {net !== 0 && (
                     <span
@@ -713,10 +725,10 @@ export default function TransactionsPage() {
                 onClick={() => fetchTransactions(page + 1)}
                 disabled={loadingMore}
               >
-                {loadingMore ? 'Memuat...' : 'Muat lebih banyak'}
+                {loadingMore ? t('Memuat...', 'Loading...') : t('Muat lebih banyak', 'Load more')}
               </Button>
               <p className="text-xs text-muted-foreground">
-                {transactions.length} dari {total} transaksi
+                {t(`${transactions.length} dari ${total} transaksi`, `${transactions.length} of ${total} transactions`)}
               </p>
             </div>
           )}
@@ -727,17 +739,17 @@ export default function TransactionsPage() {
       <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
         <SheetContent side="bottom" className="max-h-[85vh] overflow-y-auto rounded-t-xl">
           <SheetHeader>
-            <SheetTitle>Filter transaksi</SheetTitle>
+            <SheetTitle>{t('Filter transaksi', 'Filter transactions')}</SheetTitle>
           </SheetHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label>Akun</Label>
+              <Label>{t('Akun', 'Account')}</Label>
               <Select value={accountFilter} onValueChange={setAccountFilter}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Semua akun</SelectItem>
+                  <SelectItem value="all">{t('Semua akun', 'All accounts')}</SelectItem>
                   {accounts.map((a) => (
                     <SelectItem key={a.id} value={a.id}>
                       {a.name}
@@ -747,13 +759,13 @@ export default function TransactionsPage() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Kategori</Label>
+              <Label>{t('Kategori', 'Category')}</Label>
               <Select value={categoryFilter} onValueChange={setCategoryFilter}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Semua kategori</SelectItem>
+                  <SelectItem value="all">{t('Semua kategori', 'All categories')}</SelectItem>
                   {categories.map((c) => (
                     <SelectItem key={c.id} value={c.id}>
                       {c.name}
@@ -763,9 +775,9 @@ export default function TransactionsPage() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Jenis</Label>
+              <Label>{t('Jenis', 'Type')}</Label>
               <div className="grid grid-cols-4 gap-1 rounded-lg bg-muted p-1 text-sm">
-                {[['all', 'Semua'], ...Object.entries(TYPE_LABELS)].map(([value, label]) => (
+                {[['all', t('Semua', 'All')] as const, ...Object.entries(TYPE_LABELS).map(([v, l]) => [v, t(...l)] as const)].map(([value, label]) => (
                   <button
                     key={value}
                     type="button"
@@ -782,27 +794,30 @@ export default function TransactionsPage() {
               </div>
             </div>
             <div className="space-y-2">
-              <Label>Periode dihitung dari</Label>
+              <Label>{t('Periode dihitung dari', 'Period based on')}</Label>
               <Select value={dateField} onValueChange={(v) => setDateField(v as 'actual' | 'budget')}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="actual">Tanggal transaksi</SelectItem>
-                  <SelectItem value="budget">Bulan budget</SelectItem>
+                  <SelectItem value="actual">{t('Tanggal transaksi', 'Transaction date')}</SelectItem>
+                  <SelectItem value="budget">{t('Bulan budget', 'Budget month')}</SelectItem>
                 </SelectContent>
               </Select>
               <p className="text-xs text-muted-foreground">
-                &quot;Bulan budget&quot; mengelompokkan transaksi sesuai budget bulan yang dipilih saat mencatat.
+                {t(
+                  '"Bulan budget" mengelompokkan transaksi sesuai budget bulan yang dipilih saat mencatat.',
+                  '"Budget month" groups transactions by the budget month chosen when recording.'
+                )}
               </p>
             </div>
           </div>
           <SheetFooter className="flex-row gap-2">
             <Button variant="outline" className="flex-1" onClick={clearAll}>
-              Reset
+              {t('Reset', 'Reset')}
             </Button>
             <Button className="flex-1" onClick={() => setFiltersOpen(false)}>
-              Tampilkan
+              {t('Tampilkan', 'Show')}
             </Button>
           </SheetFooter>
         </SheetContent>
@@ -825,14 +840,17 @@ export default function TransactionsPage() {
       <ConfirmDialog
         open={pendingDelete !== null}
         onOpenChange={(o) => !o && setPendingDelete(null)}
-        title="Hapus transaksi?"
+        title={t('Hapus transaksi?', 'Delete transaction?')}
         description={
           pendingDelete
-            ? `${pendingDelete.note || pendingDelete.category?.name || 'Transaksi ini'} (${formatMoney(pendingDelete.amount)}) akan dihapus dan saldo akun diperbarui. Tindakan ini tidak bisa dibatalkan.`
+            ? t(
+                `${pendingDelete.note || pendingDelete.category?.name || 'Transaksi ini'} (${formatMoney(pendingDelete.amount)}) akan dihapus dan saldo akun diperbarui. Tindakan ini tidak bisa dibatalkan.`,
+                `${pendingDelete.note || pendingDelete.category?.name || 'This transaction'} (${formatMoney(pendingDelete.amount)}) will be deleted and account balances updated. This cannot be undone.`
+              )
             : undefined
         }
-        confirmLabel="Hapus"
-        cancelLabel="Batal"
+        confirmLabel={t('Hapus', 'Delete')}
+        cancelLabel={t('Batal', 'Cancel')}
         onConfirm={confirmDelete}
       />
     </div>

@@ -19,6 +19,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { CategoryIcon } from '@/components/transactions/category-icon';
+import { useT } from '@/lib/i18n';
 
 export const GOAL_ICONS = ['PiggyBank', 'Plane', 'House', 'Car', 'GraduationCap', 'Smartphone', 'HeartPulse', 'Gift'];
 export const GOAL_COLORS = ['#14A7A0', '#F9A620', '#6366F1', '#EC4899', '#22C55E', '#0EA5E9'];
@@ -32,6 +33,7 @@ interface GoalFormProps {
 
 export function GoalFormDialog({ open, onOpenChange, goal, onSaved }: GoalFormProps) {
   const [name, setName] = useState('');
+  const { t } = useT();
   const [targetAmount, setTargetAmount] = useState(0);
   const [savedAmount, setSavedAmount] = useState(0);
   const [targetDate, setTargetDate] = useState('');
@@ -63,7 +65,13 @@ export function GoalFormDialog({ open, onOpenChange, goal, onSaved }: GoalFormPr
     });
     if (!parsed.success) {
       const field = parsed.error.issues[0]?.path[0];
-      setError(field === 'name' ? 'Beri nama target' : field === 'targetAmount' ? 'Isi target lebih dari 0' : 'Periksa isian');
+      setError(
+        field === 'name'
+          ? t('Beri nama target', 'Give the goal a name')
+          : field === 'targetAmount'
+            ? t('Isi target lebih dari 0', 'Enter a target above 0')
+            : t('Periksa isian', 'Check the fields')
+      );
       return;
     }
     setSaving(true);
@@ -74,12 +82,12 @@ export function GoalFormDialog({ open, onOpenChange, goal, onSaved }: GoalFormPr
         body: JSON.stringify(parsed.data),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || 'Gagal menyimpan');
-      toast.success(goal ? 'Target diperbarui' : 'Target tabungan dibuat');
+      if (!res.ok) throw new Error(data.error || t('Gagal menyimpan', 'Could not save'));
+      toast.success(goal ? t('Target diperbarui', 'Goal updated') : t('Target tabungan dibuat', 'Savings goal created'));
       onOpenChange(false);
       onSaved();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Gagal menyimpan');
+      setError(err instanceof Error ? err.message : t('Gagal menyimpan', 'Could not save'));
     } finally {
       setSaving(false);
     }
@@ -89,38 +97,40 @@ export function GoalFormDialog({ open, onOpenChange, goal, onSaved }: GoalFormPr
     <Dialog open={open} onOpenChange={(o) => !saving && onOpenChange(o)}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{goal ? 'Ubah target' : 'Target tabungan baru'}</DialogTitle>
-          <DialogDescription>Dana darurat, liburan, DP rumah: tentukan jumlah dan kapan ingin tercapai.</DialogDescription>
+          <DialogTitle>{goal ? t('Ubah target', 'Edit goal') : t('Target tabungan baru', 'New savings goal')}</DialogTitle>
+          <DialogDescription>
+            {t('Dana darurat, liburan, DP rumah: tentukan jumlah dan kapan ingin tercapai.', 'Emergency fund, holiday, house deposit: set the amount and when you want to reach it.')}
+          </DialogDescription>
         </DialogHeader>
         <form onSubmit={submit} className="space-y-4" noValidate>
           <div className="space-y-2">
-            <Label htmlFor="goal-name">Nama</Label>
+            <Label htmlFor="goal-name">{t('Nama', 'Name')}</Label>
             <Input
               id="goal-name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Mis. Dana darurat"
+              placeholder={t('Mis. Dana darurat', 'e.g. Emergency fund')}
               maxLength={80}
               autoFocus
             />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
-              <Label htmlFor="goal-target">Target</Label>
+              <Label htmlFor="goal-target">{t('Target', 'Target')}</Label>
               <MoneyInput id="goal-target" value={targetAmount} onValueChange={setTargetAmount} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="goal-saved">Sudah terkumpul</Label>
+              <Label htmlFor="goal-saved">{t('Sudah terkumpul', 'Already saved')}</Label>
               <MoneyInput id="goal-saved" value={savedAmount} onValueChange={setSavedAmount} />
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="goal-date">Tercapai pada (opsional)</Label>
+            <Label htmlFor="goal-date">{t('Tercapai pada (opsional)', 'Reach by (optional)')}</Label>
             <Input id="goal-date" type="date" value={targetDate} onChange={(e) => setTargetDate(e.target.value)} />
           </div>
           <div className="space-y-2">
-            <Label>Ikon & warna</Label>
-            <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Ikon">
+            <Label>{t('Ikon & warna', 'Icon & color')}</Label>
+            <div className="flex flex-wrap gap-2" role="radiogroup" aria-label={t('Ikon', 'Icon')}>
               {GOAL_ICONS.map((name) => (
                 <button
                   key={name}
@@ -139,14 +149,14 @@ export function GoalFormDialog({ open, onOpenChange, goal, onSaved }: GoalFormPr
                 </button>
               ))}
             </div>
-            <div className="flex gap-2" role="radiogroup" aria-label="Warna">
+            <div className="flex gap-2" role="radiogroup" aria-label={t('Warna', 'Color')}>
               {GOAL_COLORS.map((c) => (
                 <button
                   key={c}
                   type="button"
                   role="radio"
                   aria-checked={color === c}
-                  aria-label={`Warna ${c}`}
+                  aria-label={t(`Warna ${c}`, `Color ${c}`)}
                   onClick={() => setColor(c)}
                   className={cn('h-7 w-7 rounded-full ring-offset-2 ring-offset-background', color === c && 'ring-2 ring-ring')}
                   style={{ backgroundColor: c }}
@@ -161,10 +171,10 @@ export function GoalFormDialog({ open, onOpenChange, goal, onSaved }: GoalFormPr
           )}
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>
-              Batal
+              {t('Batal', 'Cancel')}
             </Button>
             <Button type="submit" disabled={saving}>
-              {saving ? 'Menyimpan...' : 'Simpan'}
+              {saving ? t('Menyimpan...', 'Saving...') : t('Simpan', 'Save')}
             </Button>
           </DialogFooter>
         </form>
@@ -182,6 +192,7 @@ interface ContributeProps {
 /** Deposit to or withdraw from a goal's saved amount. */
 export function ContributeDialog({ goal, onOpenChange, onSaved }: ContributeProps) {
   const [mode, setMode] = useState<'in' | 'out'>('in');
+  const { t } = useT();
   const [amount, setAmount] = useState(0);
   const [saving, setSaving] = useState(false);
 
@@ -206,12 +217,12 @@ export function ContributeDialog({ goal, onOpenChange, onSaved }: ContributeProp
         body: JSON.stringify({ amount: mode === 'in' ? amount : -amount }),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || 'Gagal menyimpan');
+      if (!res.ok) throw new Error(data.error || t('Gagal menyimpan', 'Could not save'));
       onSaved(data);
-      toast.success(mode === 'in' ? 'Setoran dicatat' : 'Penarikan dicatat');
+      toast.success(mode === 'in' ? t('Setoran dicatat', 'Deposit recorded') : t('Penarikan dicatat', 'Withdrawal recorded'));
       onOpenChange(false);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Gagal menyimpan');
+      toast.error(err instanceof Error ? err.message : t('Gagal menyimpan', 'Could not save'));
     } finally {
       setSaving(false);
     }
@@ -223,11 +234,14 @@ export function ContributeDialog({ goal, onOpenChange, onSaved }: ContributeProp
         <DialogHeader>
           <DialogTitle>{goal.name}</DialogTitle>
           <DialogDescription>
-            Terkumpul {formatMoney(goal.savedAmount)} dari {formatMoney(goal.targetAmount)}.
+            {t(
+              `Terkumpul ${formatMoney(goal.savedAmount)} dari ${formatMoney(goal.targetAmount)}.`,
+              `${formatMoney(goal.savedAmount)} saved of ${formatMoney(goal.targetAmount)}.`
+            )}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={submit} className="space-y-4">
-          <div role="radiogroup" aria-label="Jenis" className="grid grid-cols-2 gap-1 rounded-lg bg-muted p-1">
+          <div role="radiogroup" aria-label={t('Jenis', 'Type')} className="grid grid-cols-2 gap-1 rounded-lg bg-muted p-1">
             {(['in', 'out'] as const).map((m) => (
               <button
                 key={m}
@@ -240,26 +254,29 @@ export function ContributeDialog({ goal, onOpenChange, onSaved }: ContributeProp
                   mode === m ? 'bg-background shadow-sm' : 'text-muted-foreground'
                 )}
               >
-                {m === 'in' ? 'Setor' : 'Tarik'}
+                {m === 'in' ? t('Setor', 'Deposit') : t('Tarik', 'Withdraw')}
               </button>
             ))}
           </div>
-          <MoneyInput value={amount} onValueChange={setAmount} size="lg" aria-label="Nominal" autoFocus />
+          <MoneyInput value={amount} onValueChange={setAmount} size="lg" aria-label={t('Nominal', 'Amount')} autoFocus />
           {mode === 'in' && remaining > 0 && (
             <button
               type="button"
               onClick={() => setAmount(remaining)}
               className="rounded-full border px-3 py-1 text-xs hover:bg-muted"
             >
-              Lunasi sisa {formatMoney(remaining)}
+              {t(`Lunasi sisa ${formatMoney(remaining)}`, `Add the remaining ${formatMoney(remaining)}`)}
             </button>
           )}
           <p className="text-xs text-muted-foreground">
-            Ini hanya mencatat progres target. Pindahkan uangnya lewat transfer antar akun bila perlu.
+            {t(
+              'Ini hanya mencatat progres target. Pindahkan uangnya lewat transfer antar akun bila perlu.',
+              'This only records goal progress. Move the money with a transfer between accounts if needed.'
+            )}
           </p>
           <DialogFooter>
             <Button type="submit" className="w-full" disabled={saving || amount <= 0}>
-              {saving ? 'Menyimpan...' : mode === 'in' ? 'Catat setoran' : 'Catat penarikan'}
+              {saving ? t('Menyimpan...', 'Saving...') : mode === 'in' ? t('Catat setoran', 'Record deposit') : t('Catat penarikan', 'Record withdrawal')}
             </Button>
           </DialogFooter>
         </form>

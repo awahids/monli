@@ -11,6 +11,7 @@ import { useAppStore } from '@/lib/store';
 import OcrReviewDialog from '@/components/transactions/ocr-review-dialog';
 import type { TransactionFormValues } from '@/components/transactions/transaction-form';
 import { ensureFormOptions, saveTransaction, toTransactionPayload } from '@/lib/transactions-client';
+import { useT } from '@/lib/i18n';
 
 // Web Speech API (Chrome/Android, Safari/iOS); not in TypeScript's DOM types yet.
 type Recognition = {
@@ -32,17 +33,18 @@ function speechRecognition(): (new () => Recognition) | undefined {
 
 type Usage = { used: number; limit: number; unlimited: boolean };
 
-const SUGGESTIONS = [
-  'Catat makan siang 25rb',
-  'Ringkas pengeluaranku bulan ini',
-  'Kategori apa yang paling boros?',
-  'Apakah budget bulan ini masih aman?',
-  'Bandingkan pengeluaran dengan bulan lalu',
+const SUGGESTIONS: [string, string][] = [
+  ['Catat makan siang 25rb', 'Record lunch 25k'],
+  ['Ringkas pengeluaranku bulan ini', 'Summarize my spending this month'],
+  ['Kategori apa yang paling boros?', 'Which category costs me the most?'],
+  ['Apakah budget bulan ini masih aman?', 'Is my budget still on track this month?'],
+  ['Bandingkan pengeluaran dengan bulan lalu', 'Compare spending with last month'],
 ];
 
 export function ChatWidget() {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState('');
+  const { t, locale } = useT();
   const { chatMessages, addChatMessage, clearChatMessages, accounts, categories, user, space } = useAppStore();
   const [loading, setLoading] = useState(false);
   const [usage, setUsage] = useState<Usage | null>(null);
@@ -88,11 +90,11 @@ export function ChatWidget() {
         body: JSON.stringify({ message, history }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Gagal mendapat jawaban');
+      if (!res.ok) throw new Error(data.error || t('Gagal mendapat jawaban', 'Could not get an answer'));
       addChatMessage({ role: 'assistant', content: data.answer, drafts: data.drafts });
       if (data.usage) setUsage(data.usage);
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : 'Gagal mengirim pesan');
+      toast.error(e instanceof Error ? e.message : t('Gagal mengirim pesan', 'Could not send the message'));
     } finally {
       setLoading(false);
     }
@@ -106,7 +108,7 @@ export function ChatWidget() {
     const Ctor = speechRecognition();
     if (!Ctor) return;
     const recognition = new Ctor();
-    recognition.lang = 'id-ID';
+    recognition.lang = locale === 'en' ? 'en-US' : 'id-ID';
     recognition.interimResults = false;
     recognition.onresult = (e) => {
       const text = Array.from(e.results, (r) => r[0].transcript).join(' ').trim();
@@ -114,9 +116,9 @@ export function ChatWidget() {
     };
     recognition.onerror = (e) => {
       if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
-        toast.error('Izinkan akses mikrofon untuk mencatat lewat suara');
+        toast.error(t('Izinkan akses mikrofon untuk mencatat lewat suara', 'Allow microphone access to record by voice'));
       } else if (e.error !== 'no-speech' && e.error !== 'aborted') {
-        toast.error('Suara tidak tertangkap, coba lagi');
+        toast.error(t('Suara tidak tertangkap, coba lagi', "Didn't catch that, try again"));
       }
     };
     recognition.onend = () => setListening(false);
@@ -137,11 +139,13 @@ export function ChatWidget() {
         await saveTransaction(toTransactionPayload(v));
         count += 1;
       }
-      toast.success(`${count} transaksi tersimpan`);
+      toast.success(t(`${count} transaksi tersimpan`, `${count} transactions saved`));
       setSaved((prev) => new Set(prev).add(reviewing!));
       setReviewing(null);
     } catch (e) {
-      toast.error(`${(e as Error).message}${count ? ` (${count} dari ${values.length} sudah tersimpan)` : ''}`);
+      toast.error(
+        `${(e as Error).message}${count ? t(` (${count} dari ${values.length} sudah tersimpan)`, ` (${count} of ${values.length} already saved)`) : ''}`
+      );
     }
   };
 
@@ -150,7 +154,7 @@ export function ChatWidget() {
       {open ? (
         <div
           role="dialog"
-          aria-label="Asisten keuangan AI"
+          aria-label={t('Asisten keuangan AI', 'AI finance assistant')}
           className="flex h-[calc(100dvh-8rem)] w-[calc(100vw-2rem)] max-w-sm flex-col overflow-hidden rounded-xl border bg-background shadow-xl"
         >
           <div className="flex items-center justify-between border-b px-3 py-2">
@@ -159,23 +163,23 @@ export function ChatWidget() {
                 <Sparkles className="h-4 w-4" />
               </span>
               <div>
-                <p className="text-sm font-semibold leading-tight">Asisten Qala Saku</p>
+                <p className="text-sm font-semibold leading-tight">{t('Asisten Qala Saku', 'Qala Saku assistant')}</p>
                 <p className="text-xs text-muted-foreground">
                   {usage?.unlimited
-                    ? 'Tanpa batas'
+                    ? t('Tanpa batas', 'Unlimited')
                     : remaining !== null
-                    ? `${remaining} dari ${usage!.limit} pertanyaan tersisa bulan ini`
-                    : 'Bertanya soal keuanganmu'}
+                    ? t(`${remaining} dari ${usage!.limit} pertanyaan tersisa bulan ini`, `${remaining} of ${usage!.limit} questions left this month`)
+                    : t('Bertanya soal keuanganmu', 'Ask about your finances')}
                 </p>
               </div>
             </div>
             <div className="flex">
               {chatMessages.length > 0 && (
-                <Button variant="ghost" size="icon" onClick={clearChatMessages} aria-label="Hapus percakapan">
+                <Button variant="ghost" size="icon" onClick={clearChatMessages} aria-label={t('Hapus percakapan', 'Clear conversation')}>
                   <Trash2 className="h-4 w-4" />
                 </Button>
               )}
-              <Button variant="ghost" size="icon" onClick={() => setOpen(false)} aria-label="Tutup chat">
+              <Button variant="ghost" size="icon" onClick={() => setOpen(false)} aria-label={t('Tutup chat', 'Close chat')}>
                 <X className="h-4 w-4" />
               </Button>
             </div>
@@ -185,11 +189,14 @@ export function ChatWidget() {
             {chatMessages.length === 0 && (
               <div className="space-y-3 pt-2">
                 <p className="text-sm text-muted-foreground">
-                  Tanyakan soal transaksi, budget, dan saldomu, atau minta catat transaksi, misalnya
-                  &ldquo;catat bensin 50rb pakai Dompet&rdquo;.{canListen && ' Bisa juga lewat suara.'}
+                  {t(
+                    'Tanyakan soal transaksi, budget, dan saldomu, atau minta catat transaksi, misalnya “catat bensin 50rb pakai Dompet”.',
+                    'Ask about your transactions, budget and balances, or ask to record one, e.g. “record fuel 50k from Wallet”.'
+                  )}
+                  {canListen && t(' Bisa juga lewat suara.', ' You can also use your voice.')}
                 </p>
                 <div className="flex flex-wrap gap-2">
-                  {SUGGESTIONS.map((s) => (
+                  {SUGGESTIONS.map(([idText, enText]) => t(idText, enText)).map((s) => (
                     <button
                       key={s}
                       type="button"
@@ -215,7 +222,7 @@ export function ChatWidget() {
                         </p>
                       ) : (
                         <Button size="sm" className="mt-1" onClick={() => openReview(i)}>
-                          Periksa &amp; simpan
+                          {t('Periksa & simpan', 'Review & save')}
                         </Button>
                       )
                     ) : null}
@@ -228,7 +235,7 @@ export function ChatWidget() {
               </div>
             ))}
             {loading && (
-              <div className="flex gap-1 px-1" aria-label="Sedang menjawab">
+              <div className="flex gap-1 px-1" aria-label={t('Sedang menjawab', 'Answering')}>
                 {[0, 150, 300].map((d) => (
                   <span
                     key={d}
@@ -242,7 +249,7 @@ export function ChatWidget() {
 
           {outOfQuota ? (
             <p className="border-t p-3 text-center text-xs text-muted-foreground">
-              Kuota pertanyaan bulan ini sudah habis. Kuota direset tiap awal bulan.
+              {t('Kuota pertanyaan bulan ini sudah habis. Kuota direset tiap awal bulan.', "This month's questions are used up. They reset at the start of each month.")}
             </p>
           ) : (
             <form
@@ -255,9 +262,9 @@ export function ChatWidget() {
               <Input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder={listening ? 'Mendengarkan...' : 'Tanya atau catat transaksi...'}
+                placeholder={listening ? t('Mendengarkan...', 'Listening...') : t('Tanya atau catat transaksi...', 'Ask or record a transaction...')}
                 disabled={loading || listening}
-                aria-label="Pertanyaan"
+                aria-label={t('Pertanyaan', 'Question')}
                 maxLength={2000}
               />
               {canListen && (
@@ -267,13 +274,13 @@ export function ChatWidget() {
                   variant={listening ? 'destructive' : 'outline'}
                   onClick={toggleVoice}
                   disabled={loading}
-                  aria-label={listening ? 'Berhenti merekam' : 'Bicara'}
+                  aria-label={listening ? t('Berhenti merekam', 'Stop recording') : t('Bicara', 'Speak')}
                   aria-pressed={listening}
                 >
                   {listening ? <Square className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
                 </Button>
               )}
-              <Button type="submit" size="icon" disabled={loading || !input.trim()} aria-label="Kirim">
+              <Button type="submit" size="icon" disabled={loading || !input.trim()} aria-label={t('Kirim', 'Send')}>
                 <SendHorizontal className="h-4 w-4" />
               </Button>
             </form>
@@ -284,7 +291,7 @@ export function ChatWidget() {
           size="icon"
           className="h-12 w-12 rounded-full shadow-lg"
           onClick={() => setOpen(true)}
-          aria-label="Buka asisten AI"
+          aria-label={t('Buka asisten AI', 'Open AI assistant')}
         >
           <MessageCircle className="h-5 w-5" />
         </Button>
@@ -297,7 +304,7 @@ export function ChatWidget() {
         categories={categories}
         date={new Date()}
         onSave={saveDrafts}
-        title="Periksa transaksi"
+        title={t('Periksa transaksi', 'Review transactions')}
       />
     </div>
   );

@@ -36,8 +36,8 @@ export function Pricing() {
                   <span className={f.free === false ? 'text-foreground/35' : 'text-foreground/80'}>{f.label}</span>
                   {f.free === false ? (
                     <Minus className="mt-0.5 h-4 w-4 shrink-0 text-foreground/25" aria-label="Tidak termasuk" />
-                  ) : typeof f.free === 'string' ? (
-                    <span className="shrink-0 text-muted-foreground">{f.free}</span>
+                  ) : Array.isArray(f.free) ? (
+                    <span className="shrink-0 text-muted-foreground">{f.free[0]}</span>
                   ) : (
                     <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-label="Termasuk" />
                   )}
@@ -67,8 +67,8 @@ export function Pricing() {
               {PLAN_FEATURES.map((f) => (
                 <li key={f.label} className="flex items-start justify-between gap-4 py-2.5 font-editorial text-sm">
                   <span className="text-foreground/85">{f.label}</span>
-                  {typeof f.pro === 'string' ? (
-                    <span className="shrink-0 text-primary">{valueText(f.pro)}</span>
+                  {Array.isArray(f.pro) ? (
+                    <span className="shrink-0 text-primary">{valueText(f.pro[0])}</span>
                   ) : (
                     <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-label="Termasuk" />
                   )}

@@ -19,11 +19,12 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useMessage, useT } from '@/lib/i18n';
 
 const TYPE_OPTIONS = [
-  { value: 'expense', label: 'Pengeluaran', active: 'bg-red-600 text-white' },
-  { value: 'income', label: 'Pemasukan', active: 'bg-green-600 text-white' },
-  { value: 'transfer', label: 'Transfer', active: 'bg-blue-600 text-white' },
+  { value: 'expense', label: 'Pengeluaran', en: 'Expense', active: 'bg-red-600 text-white' },
+  { value: 'income', label: 'Pemasukan', en: 'Income', active: 'bg-green-600 text-white' },
+  { value: 'transfer', label: 'Transfer', en: 'Transfer', active: 'bg-blue-600 text-white' },
 ] as const;
 
 type Values = {
@@ -68,6 +69,8 @@ interface Props {
 
 export function RecurringFormDialog({ open, onOpenChange, rule, accounts, categories, onSaved }: Props) {
   const [values, setValues] = useState<Values>(() => initialValues(rule, accounts));
+  const { t } = useT();
+  const message = useMessage();
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -102,7 +105,7 @@ export function RecurringFormDialog({ open, onOpenChange, rule, accounts, catego
     });
     if (!parsed.success) {
       const issue = parsed.error.issues[0];
-      setError(issue.path[0] === 'amount' ? 'Isi nominal lebih dari 0' : issue.message);
+      setError(issue.path[0] === 'amount' ? t('Isi nominal lebih dari 0', 'Enter an amount above 0') : message(issue.message));
       return;
     }
     setSaving(true);
@@ -113,12 +116,12 @@ export function RecurringFormDialog({ open, onOpenChange, rule, accounts, catego
         body: JSON.stringify(parsed.data),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || 'Gagal menyimpan');
-      toast.success(rule ? 'Transaksi rutin diperbarui' : 'Transaksi rutin dibuat');
+      if (!res.ok) throw new Error(data.error || t('Gagal menyimpan', 'Could not save'));
+      toast.success(rule ? t('Transaksi rutin diperbarui', 'Recurring transaction updated') : t('Transaksi rutin dibuat', 'Recurring transaction created'));
       onOpenChange(false);
       onSaved();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Gagal menyimpan');
+      setError(err instanceof Error ? err.message : t('Gagal menyimpan', 'Could not save'));
     } finally {
       setSaving(false);
     }
@@ -128,14 +131,14 @@ export function RecurringFormDialog({ open, onOpenChange, rule, accounts, catego
     <Dialog open={open} onOpenChange={(o) => !saving && onOpenChange(o)}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{rule ? 'Ubah transaksi rutin' : 'Transaksi rutin baru'}</DialogTitle>
+          <DialogTitle>{rule ? t('Ubah transaksi rutin', 'Edit recurring transaction') : t('Transaksi rutin baru', 'New recurring transaction')}</DialogTitle>
           <DialogDescription>
-            Dicatat otomatis setiap jatuh tempo, saat kamu membuka aplikasi.
+            {t('Dicatat otomatis setiap jatuh tempo, saat kamu membuka aplikasi.', 'Recorded automatically when due, as you open the app.')}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={submit} className="space-y-4" noValidate>
-          <div role="radiogroup" aria-label="Jenis transaksi" className="grid grid-cols-3 gap-1 rounded-lg bg-muted p-1">
+          <div role="radiogroup" aria-label={t('Jenis transaksi', 'Transaction type')} className="grid grid-cols-3 gap-1 rounded-lg bg-muted p-1">
             {TYPE_OPTIONS.map((opt) => (
               <button
                 key={opt.value}
@@ -148,23 +151,29 @@ export function RecurringFormDialog({ open, onOpenChange, rule, accounts, catego
                   values.type === opt.value ? opt.active : 'text-muted-foreground hover:text-foreground'
                 )}
               >
-                {opt.label}
+                {t(opt.label, opt.en)}
               </button>
             ))}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="recurring-amount">Nominal</Label>
+            <Label htmlFor="recurring-amount">{t('Nominal', 'Amount')}</Label>
             <MoneyInput id="recurring-amount" value={values.amount} onValueChange={(n) => set('amount', n)} />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="recurring-note">Nama</Label>
+            <Label htmlFor="recurring-note">{t('Nama', 'Name')}</Label>
             <Input
               id="recurring-note"
               value={values.note}
               onChange={(e) => set('note', e.target.value)}
-              placeholder={isTransfer ? 'Mis. Tabungan bulanan' : values.type === 'income' ? 'Mis. Gaji' : 'Mis. Listrik, Netflix, kos'}
+              placeholder={
+                isTransfer
+                  ? t('Mis. Tabungan bulanan', 'e.g. Monthly savings')
+                  : values.type === 'income'
+                    ? t('Mis. Gaji', 'e.g. Salary')
+                    : t('Mis. Listrik, Netflix, kos', 'e.g. Electricity, Netflix, rent')
+              }
               maxLength={200}
             />
           </div>
@@ -172,25 +181,25 @@ export function RecurringFormDialog({ open, onOpenChange, rule, accounts, catego
           {isTransfer ? (
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <Label>Dari akun</Label>
+                <Label>{t('Dari akun', 'From account')}</Label>
                 <AccountSelect accounts={accounts} value={values.fromAccountId} onChange={(id) => set('fromAccountId', id)} />
               </div>
               <div className="space-y-2">
-                <Label>Ke akun</Label>
+                <Label>{t('Ke akun', 'To account')}</Label>
                 <AccountSelect accounts={accounts} value={values.toAccountId} onChange={(id) => set('toAccountId', id)} />
               </div>
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <Label>Akun</Label>
+                <Label>{t('Akun', 'Account')}</Label>
                 <AccountSelect accounts={accounts} value={values.accountId} onChange={(id) => set('accountId', id)} />
               </div>
               <div className="space-y-2">
-                <Label>Kategori</Label>
+                <Label>{t('Kategori', 'Category')}</Label>
                 <Select value={values.categoryId || undefined} onValueChange={(id) => set('categoryId', id)}>
-                  <SelectTrigger aria-label="Kategori">
-                    <SelectValue placeholder="Pilih" />
+                  <SelectTrigger aria-label={t('Kategori', 'Category')}>
+                    <SelectValue placeholder={t('Pilih', 'Choose')} />
                   </SelectTrigger>
                   <SelectContent>
                     {typeCategories.map((c) => (
@@ -205,9 +214,9 @@ export function RecurringFormDialog({ open, onOpenChange, rule, accounts, catego
           )}
 
           <div className="space-y-2">
-            <Label>Ulangi</Label>
+            <Label>{t('Ulangi', 'Repeat')}</Label>
             <div className="grid grid-cols-[1fr_auto] gap-3">
-              <div role="radiogroup" aria-label="Frekuensi" className="grid grid-cols-2 gap-1 rounded-lg bg-muted p-1">
+              <div role="radiogroup" aria-label={t('Frekuensi', 'Frequency')} className="grid grid-cols-2 gap-1 rounded-lg bg-muted p-1">
                 {(['monthly', 'weekly'] as const).map((f) => (
                   <button
                     key={f}
@@ -220,19 +229,19 @@ export function RecurringFormDialog({ open, onOpenChange, rule, accounts, catego
                       values.frequency === f ? 'bg-background shadow-sm' : 'text-muted-foreground'
                     )}
                   >
-                    {f === 'monthly' ? 'Bulanan' : 'Mingguan'}
+                    {f === 'monthly' ? t('Bulanan', 'Monthly') : t('Mingguan', 'Weekly')}
                   </button>
                 ))}
               </div>
               {values.frequency === 'monthly' && (
                 <Select value={String(values.dayOfMonth)} onValueChange={(d) => set('dayOfMonth', Number(d))}>
-                  <SelectTrigger className="w-32" aria-label="Tanggal">
+                  <SelectTrigger className="w-32" aria-label={t('Tanggal', 'Day')}>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
                       <SelectItem key={d} value={String(d)}>
-                        Tanggal {d}
+                        {t(`Tanggal ${d}`, `Day ${d}`)}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -241,14 +250,14 @@ export function RecurringFormDialog({ open, onOpenChange, rule, accounts, catego
             </div>
             {values.frequency === 'monthly' && values.dayOfMonth > 28 && (
               <p className="text-xs text-muted-foreground">
-                Di bulan yang lebih pendek, dicatat di tanggal terakhir bulan itu.
+                {t('Di bulan yang lebih pendek, dicatat di tanggal terakhir bulan itu.', 'In shorter months it is recorded on the last day.')}
               </p>
             )}
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
-              <Label htmlFor="recurring-start">Mulai</Label>
+              <Label htmlFor="recurring-start">{t('Mulai', 'Start')}</Label>
               <Input
                 id="recurring-start"
                 type="date"
@@ -257,7 +266,7 @@ export function RecurringFormDialog({ open, onOpenChange, rule, accounts, catego
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="recurring-end">Selesai (opsional)</Label>
+              <Label htmlFor="recurring-end">{t('Selesai (opsional)', 'End (optional)')}</Label>
               <Input
                 id="recurring-end"
                 type="date"
@@ -269,7 +278,7 @@ export function RecurringFormDialog({ open, onOpenChange, rule, accounts, catego
           </div>
           {isBackfill && (
             <p className="rounded-md bg-muted px-3 py-2 text-xs text-muted-foreground">
-              Tanggal mulai sudah lewat: transaksi sejak tanggal itu ikut dicatat (maksimal 12).
+              {t('Tanggal mulai sudah lewat: transaksi sejak tanggal itu ikut dicatat (maksimal 12).', 'The start date has passed: transactions since then will be recorded too (up to 12).')}
             </p>
           )}
 
@@ -281,10 +290,10 @@ export function RecurringFormDialog({ open, onOpenChange, rule, accounts, catego
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>
-              Batal
+              {t('Batal', 'Cancel')}
             </Button>
             <Button type="submit" disabled={saving}>
-              {saving ? 'Menyimpan...' : 'Simpan'}
+              {saving ? t('Menyimpan...', 'Saving...') : t('Simpan', 'Save')}
             </Button>
           </DialogFooter>
         </form>
@@ -302,10 +311,11 @@ function AccountSelect({
   value: string;
   onChange: (id: string) => void;
 }) {
+  const { t } = useT();
   return (
     <Select value={value || undefined} onValueChange={onChange}>
-      <SelectTrigger aria-label="Akun">
-        <SelectValue placeholder="Pilih akun" />
+      <SelectTrigger aria-label={t('Akun', 'Account')}>
+        <SelectValue placeholder={t('Pilih akun', 'Choose account')} />
       </SelectTrigger>
       <SelectContent>
         {accounts.map((a) => (

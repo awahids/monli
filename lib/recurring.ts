@@ -77,11 +77,17 @@ export function dueOccurrences(
   return { dates, nextDate: ended ? null : cursor };
 }
 
-export function describeSchedule(frequency: RecurringFrequency, dayOfMonth?: number | null, startDate?: string) {
-  if (frequency === 'monthly') return `Tiap bulan, tanggal ${dayOfMonth}`;
-  if (!startDate) return 'Tiap minggu';
-  const weekday = new Intl.DateTimeFormat('id-ID', { weekday: 'long', timeZone: 'UTC' }).format(
+export function describeSchedule(
+  frequency: RecurringFrequency,
+  dayOfMonth?: number | null,
+  startDate?: string,
+  locale: 'id' | 'en' = 'id',
+) {
+  const en = locale === 'en';
+  if (frequency === 'monthly') return en ? `Monthly, on day ${dayOfMonth}` : `Tiap bulan, tanggal ${dayOfMonth}`;
+  if (!startDate) return en ? 'Weekly' : 'Tiap minggu';
+  const weekday = new Intl.DateTimeFormat(en ? 'en-US' : 'id-ID', { weekday: 'long', timeZone: 'UTC' }).format(
     new Date(`${startDate}T00:00:00Z`),
   );
-  return `Tiap minggu, hari ${weekday}`;
+  return en ? `Weekly, on ${weekday}` : `Tiap minggu, hari ${weekday}`;
 }

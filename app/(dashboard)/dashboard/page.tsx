@@ -47,6 +47,7 @@ import {
 import { useOffline } from '@/hooks/use-offline';
 import { cn } from '@/lib/utils';
 import { selectAll } from '@/lib/select-all';
+import { useT } from '@/lib/i18n';
 
 // The chart library is large; load it after the numbers are on screen.
 const DashboardCharts = dynamic(
@@ -102,8 +103,9 @@ function KpiCard({
 }
 
 function DashboardSkeleton() {
+  const { t } = useT();
   return (
-    <div className="space-y-6" aria-busy="true" aria-label="Memuat dashboard">
+    <div className="space-y-6" aria-busy="true" aria-label={t('Memuat dashboard', 'Loading dashboard')}>
       <Skeleton className="h-9 w-64" />
       <div className="grid grid-cols-2 gap-3">
         {Array.from({ length: 4 }).map((_, i) => (
@@ -138,6 +140,7 @@ export default function DashboardPage() {
   const [budgetSummary, setBudgetSummary] = useState<BudgetSummary | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const { isOnline, addOfflineChange } = useOffline();
+  const { t, locale } = useT();
 
   // Everything here follows the budget period, which may start on payday
   // (e.g. 26 Sep – 25 Oct is "October"), so KPIs, charts and the budget card agree.
@@ -145,7 +148,7 @@ export default function DashboardPage() {
   const budgetMonth = currentBudgetMonth(budgetStartDay);
   const thisMonth = budgetMonth;
   const prevMonth = shiftMonth(thisMonth, -1);
-  const range = periodRange(thisMonth, budgetStartDay);
+  const range = periodRange(thisMonth, budgetStartDay, locale);
 
   // Throws on failure so the form keeps the user's input and shows the error.
   const handleSave = async (values: TransactionFormValues) => {
@@ -154,14 +157,14 @@ export default function DashboardPage() {
     if (!isOnline) {
       setTransactions([toOfflineTransaction(payload, space?.ownerId ?? user?.id ?? ''), ...transactions]);
       await addOfflineChange('create', 'transactions', payload);
-      toast.success('Transaksi disimpan offline, akan disinkronkan saat online');
+      toast.success(t('Transaksi disimpan offline, akan disinkronkan saat online', 'Transaction saved offline, will sync when online'));
       setFormOpen(false);
       return;
     }
 
     // Saving bumps dataVersion, which reloads balances and totals below.
     await saveTransaction(payload);
-    toast.success('Transaksi tersimpan');
+    toast.success(t('Transaksi tersimpan', 'Transaction saved'));
     setFormOpen(false);
   };
 
@@ -212,14 +215,14 @@ export default function DashboardPage() {
         if (budgetsRes.data) setBudgets(keysToCamel<Budget[]>(budgetsRes.data));
       } catch (error) {
         console.error('Failed to fetch dashboard data:', error);
-        toast.error('Gagal memuat data dashboard');
+        toast.error(t('Gagal memuat data dashboard', 'Could not load the dashboard'));
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, [space?.ownerId, user, isOnline, thisMonth, prevMonth, budgetMonth, dataVersion, setAccounts, setTransactions, setBudgets, setCategories]);
+  }, [space?.ownerId, user, isOnline, thisMonth, prevMonth, budgetMonth, dataVersion, setAccounts, setTransactions, setBudgets, setCategories, t]);
 
   // Category breakdown and budget actuals come from the server so they match
   // Reports and Budgets exactly.
@@ -296,12 +299,14 @@ export default function DashboardPage() {
     <div className="space-y-6">
       <div>
           <h1 className="text-2xl font-bold tracking-tight">
-            {greeting()}
+            {greeting(new Date(), t)}
             {firstName ? `, ${firstName}` : ''}
           </h1>
           <p className="text-muted-foreground">
-            {space && !space.isOwn ? `Ringkasan keuangan bersama ${space.ownerName}` : 'Ringkasan keuanganmu'}{' '}
-            {range ? `periode ${range}.` : 'bulan ini.'}
+            {space && !space.isOwn
+              ? t(`Ringkasan keuangan bersama ${space.ownerName}`, `Shared finances of ${space.ownerName}`)
+              : t('Ringkasan keuanganmu', 'Your finances')}{' '}
+            {range ? t(`periode ${range}.`, `for ${range}.`) : t('bulan ini.', 'this month.')}
           </p>
       </div>
 
@@ -316,9 +321,9 @@ export default function DashboardPage() {
       )}
 
       <div className="grid grid-cols-2 gap-3">
-        <KpiCard title="Saldo total" icon={Wallet} value={formatMoney(kpis.totalBalance)}>
+        <KpiCard title={t('Saldo total', 'Total balance')} icon={Wallet} value={formatMoney(kpis.totalBalance)}>
           <p className="mt-1 text-xs text-muted-foreground">
-            {accounts.length} akun aktif · arus bersih bulan ini{' '}
+            {t(`${accounts.length} akun aktif · arus bersih bulan ini`, `${accounts.length} active accounts · net flow this month`)}{' '}
             <span
               className={cn(
                 'font-medium',
@@ -330,15 +335,15 @@ export default function DashboardPage() {
             </span>
           </p>
         </KpiCard>
-        <KpiCard half title="Pemasukan" icon={TrendingUp} value={formatMoney(kpis.now.income)}>
-          <DeltaLine delta={monthDelta(kpis.now.income, kpis.prev.income, true)} />
+        <KpiCard half title={t('Pemasukan', 'Income')} icon={TrendingUp} value={formatMoney(kpis.now.income)}>
+          <DeltaLine delta={monthDelta(kpis.now.income, kpis.prev.income, true, t)} />
         </KpiCard>
-        <KpiCard half title="Pengeluaran" icon={TrendingDown} value={formatMoney(kpis.now.expense)}>
-          <DeltaLine delta={monthDelta(kpis.now.expense, kpis.prev.expense, false)} />
+        <KpiCard half title={t('Pengeluaran', 'Expenses')} icon={TrendingDown} value={formatMoney(kpis.now.expense)}>
+          <DeltaLine delta={monthDelta(kpis.now.expense, kpis.prev.expense, false, t)} />
         </KpiCard>
         {budgetCard ? (
           <KpiCard
-            title={budgetCard.over ? 'Budget terlampaui' : 'Sisa budget'}
+            title={budgetCard.over ? t('Budget terlampaui', 'Over budget') : t('Sisa budget', 'Budget left')}
             icon={PiggyBank}
             value={formatMoney(Math.abs(budgetCard.remaining))}
           >
@@ -351,19 +356,25 @@ export default function DashboardPage() {
             />
             <p className="mt-1.5 text-xs text-muted-foreground">
               {budgetCard.over
-                ? `Lebih ${formatMoney(-budgetCard.remaining)} dari rencana ${formatMoney(budgetCard.planned)}`
-                : `Jatah harian ${formatMoney(budgetCard.daily)} untuk ${budgetCard.daysLeft} hari lagi`}
+                ? t(
+                    `Lebih ${formatMoney(-budgetCard.remaining)} dari rencana ${formatMoney(budgetCard.planned)}`,
+                    `${formatMoney(-budgetCard.remaining)} over the plan of ${formatMoney(budgetCard.planned)}`
+                  )
+                : t(
+                    `Jatah harian ${formatMoney(budgetCard.daily)} untuk ${budgetCard.daysLeft} hari lagi`,
+                    `${formatMoney(budgetCard.daily)} a day for the next ${budgetCard.daysLeft} days`
+                  )}
             </p>
           </KpiCard>
         ) : (
           <Card className="col-span-2 flex flex-col justify-center border-dashed">
             <CardContent className="space-y-2 pt-6">
-              <p className="text-sm font-medium">Belum ada budget bulan ini</p>
+              <p className="text-sm font-medium">{t('Belum ada budget bulan ini', 'No budget this month')}</p>
               <p className="text-xs text-muted-foreground">
-                Tentukan batas belanja supaya tahu jatah harianmu.
+                {t('Tentukan batas belanja supaya tahu jatah harianmu.', 'Set a spending limit to know your daily allowance.')}
               </p>
               <Button asChild size="sm" variant="outline">
-                <Link href="/budgets">Buat budget</Link>
+                <Link href="/budgets">{t('Buat budget', 'Create budget')}</Link>
               </Button>
             </CardContent>
           </Card>

@@ -2,6 +2,7 @@
 
 import { CategoryIcon } from '@/components/transactions/category-icon';
 import { cn } from '@/lib/utils';
+import { useT } from '@/lib/i18n';
 
 /**
  * Curated lucide icons for money categories, with Indonesian labels for screen
@@ -74,6 +75,9 @@ interface IconPickerProps {
 }
 
 export function IconPicker({ value, onChange, color }: IconPickerProps) {
+  const { t } = useT();
+  // English labels come from the icon name: "ShoppingBag" -> "Shopping bag".
+  const english = (name: string) => name.replace(/(?<=[a-z0-9])([A-Z])/g, ' $1').replace(/ \S/g, (m) => m.toLowerCase());
   // Keep an icon picked with the old picker visible and selected.
   const options =
     value && !CATEGORY_ICONS.some((i) => i.name === value)
@@ -83,7 +87,7 @@ export function IconPicker({ value, onChange, color }: IconPickerProps) {
   return (
     <div
       role="radiogroup"
-      aria-label="Ikon"
+      aria-label={t('Ikon', 'Icon')}
       className="grid max-h-56 grid-cols-7 gap-1.5 overflow-y-auto rounded-lg border p-2"
     >
       {options.map(({ name, label }) => {
@@ -94,8 +98,8 @@ export function IconPicker({ value, onChange, color }: IconPickerProps) {
             type="button"
             role="radio"
             aria-checked={selected}
-            aria-label={label}
-            title={label}
+            aria-label={t(label, english(name))}
+            title={t(label, english(name))}
             onClick={() => onChange(name)}
             className={cn(
               'flex aspect-square items-center justify-center rounded-md border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',

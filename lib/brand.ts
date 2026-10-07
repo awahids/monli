@@ -19,6 +19,7 @@ export const BRAND = {
 export type QalaProduct = {
   name: string;
   description: string;
+  descriptionEn: string;
   url: string;
 };
 
@@ -27,11 +28,13 @@ export const QALA_FAMILY: QalaProduct[] = [
   {
     name: 'Qala Saku',
     description: 'Keuangan pribadi',
+    descriptionEn: 'Personal finance',
     url: 'https://monli.fun',
   },
   {
     name: 'Qala Invoice',
     description: 'Invoice untuk UMKM',
+    descriptionEn: 'Invoices for small businesses',
     url: 'https://invoice.monli.fun',
   },
 ];

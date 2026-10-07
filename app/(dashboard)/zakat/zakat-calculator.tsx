@@ -16,6 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { MoreVertical } from "lucide-react";
+import { useT } from '@/lib/i18n';
 
 type Plan = "FREE" | "PRO";
 
@@ -27,6 +28,7 @@ export default function ZakatCalculator({
   canUseLivePrice: boolean;
 }) {
   const [idrPerGram, setIdrPerGram] = useState<number>(0);
+  const { t } = useT();
   const [ts, setTs] = useState<string | null>(null);
   const [standard, setStandard] = useState<"gold" | "silver">("gold");
   const [assets, setAssets] = useState({
@@ -55,13 +57,16 @@ export default function ZakatCalculator({
       const r = await fetch("/api/metal/gold", { cache: "no-store" });
       if (r.status === 429) {
         alert(
-          "Kuota harga live 1x per tahun telah digunakan. Silakan input manual.",
+          t(
+            "Kuota harga live 1x per tahun telah digunakan. Silakan input manual.",
+            "The once-a-year live price has been used. Please enter it manually.",
+          ),
         );
         setCanUseLive(false);
         return;
       }
       if (!r.ok) {
-        alert("Gagal mengambil harga emas terkini, coba lagi.");
+        alert(t("Gagal mengambil harga emas terkini, coba lagi.", "Could not get the current gold price, try again."));
         return;
       }
       const d = await r.json();
@@ -69,7 +74,7 @@ export default function ZakatCalculator({
       setTs(d.tsJakarta ?? null);
       setCanUseLive(false);
     } catch {
-      alert("Koneksi bermasalah. Silakan isi harga secara manual.");
+      alert(t("Koneksi bermasalah. Silakan isi harga secara manual.", "Connection problem. Please enter the price manually."));
     }
   }
 
@@ -85,10 +90,9 @@ export default function ZakatCalculator({
     <main className="mx-auto max-w-xl p-4 space-y-6">
       <header className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-semibold">Kalkulator Zakat Maal</h1>
+          <h1 className="text-2xl font-semibold">{t("Kalkulator Zakat Maal", "Zakat al-Maal calculator")}</h1>
           <p className="text-sm text-muted-foreground">
-            Hitung nisab & zakat 2,5% secara cepat. (Halaman ini memerlukan
-            login)
+            {t("Hitung nisab & zakat 2,5% secara cepat.", "Work out the nisab and 2.5% zakat quickly.")}
           </p>
         </div>
         <DropdownMenu>
@@ -96,9 +100,9 @@ export default function ZakatCalculator({
             <MoreVertical className="h-4 w-4" />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={resetAll}>Reset</DropdownMenuItem>
+            <DropdownMenuItem onClick={resetAll}>{t("Reset", "Reset")}</DropdownMenuItem>
             <DropdownMenuItem asChild>
-              <Link href="/dashboard">Dahsboard</Link>
+              <Link href="/dashboard">{t("Beranda", "Home")}</Link>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -108,7 +112,7 @@ export default function ZakatCalculator({
       <section className="space-y-2">
         <div className="flex items-center justify-between">
           <label className="text-sm font-medium">
-            Harga emas per gram (IDR)
+            {t("Harga emas per gram (IDR)", "Gold price per gram (IDR)")}
           </label>
           {plan === "PRO" ? (
             canUseLive ? (
@@ -116,16 +120,16 @@ export default function ZakatCalculator({
                 onClick={useLivePrice}
                 className="rounded-md bg-primary px-2 py-1 text-xs text-primary-foreground"
               >
-                Gunakan harga live
+                {t("Gunakan harga live", "Use live price")}
               </button>
             ) : (
               <span className="text-xs text-muted-foreground">
-                Kuota harga live telah digunakan tahun ini
+                {t("Kuota harga live telah digunakan tahun ini", "Live price already used this year")}
               </span>
             )
           ) : (
             <span className="text-xs text-muted-foreground">
-              Live price tersedia untuk PRO
+              {t("Harga live tersedia untuk PRO", "Live price is available on PRO")}
             </span>
           )}
         </div>
@@ -135,28 +139,28 @@ export default function ZakatCalculator({
           className="w-full rounded-md border p-2"
           value={Number.isFinite(idrPerGram) ? idrPerGram : 0}
           onChange={(e) => setIdrPerGram(parseFloat(e.target.value) || 0)}
-          placeholder="Isi manual, contoh: 1750000"
+          placeholder={t("Isi manual, contoh: 1750000", "Enter manually, e.g. 1750000")}
         />
         {ts && (
-          <p className="text-xs text-muted-foreground">Diperbarui: {ts}</p>
+          <p className="text-xs text-muted-foreground">{t("Diperbarui", "Updated")}: {ts}</p>
         )}
       </section>
 
       {/* Standard */}
       <section className="space-y-2">
-        <label className="text-sm font-medium">Standar nisab</label>
+        <label className="text-sm font-medium">{t("Standar nisab", "Nisab standard")}</label>
         <div className="flex gap-3">
           <button
             className={`rounded-md border px-3 py-1 text-sm ${standard === "gold" ? "bg-primary text-primary-foreground" : ""}`}
             onClick={() => setStandard("gold")}
           >
-            Emas (85g)
+            {t("Emas (85g)", "Gold (85g)")}
           </button>
           <button
             className={`rounded-md border px-3 py-1 text-sm ${standard === "silver" ? "bg-primary text-primary-foreground" : ""}`}
             onClick={() => setStandard("silver")}
           >
-            Perak (595g)
+            {t("Perak (595g)", "Silver (595g)")}
           </button>
         </div>
       </section>
@@ -164,7 +168,7 @@ export default function ZakatCalculator({
       {/* Inputs: assets/liabilities */}
       <section className="grid gap-3">
         <div className="grid gap-1">
-          <label className="text-sm">Aset likuid (Kas/Bank/E-wallet)</label>
+          <label className="text-sm">{t("Aset likuid (Kas/Bank/E-wallet)", "Liquid assets (cash/bank/e-wallet)")}</label>
           <input
             type="number"
             className="rounded-md border p-2"
@@ -178,7 +182,7 @@ export default function ZakatCalculator({
           />
         </div>
         <div className="grid gap-1">
-          <label className="text-sm">Emas/Perak (nilai IDR)</label>
+          <label className="text-sm">{t("Emas/Perak (nilai IDR)", "Gold/silver (IDR value)")}</label>
           <input
             type="number"
             className="rounded-md border p-2"
@@ -192,7 +196,7 @@ export default function ZakatCalculator({
           />
         </div>
         <div className="grid gap-1">
-          <label className="text-sm">Piutang tertagih</label>
+          <label className="text-sm">{t("Piutang tertagih", "Collectible receivables")}</label>
           <input
             type="number"
             className="rounded-md border p-2"
@@ -206,7 +210,7 @@ export default function ZakatCalculator({
           />
         </div>
         <div className="grid gap-1">
-          <label className="text-sm">Persediaan dagang</label>
+          <label className="text-sm">{t("Persediaan dagang", "Trade inventory")}</label>
           <input
             type="number"
             className="rounded-md border p-2"
@@ -220,7 +224,7 @@ export default function ZakatCalculator({
           />
         </div>
         <div className="grid gap-1">
-          <label className="text-sm">Utang jangka pendek (≤ 1 tahun)</label>
+          <label className="text-sm">{t("Utang jangka pendek (≤ 1 tahun)", "Short-term debts (≤ 1 year)")}</label>
           <input
             type="number"
             className="rounded-md border p-2"
@@ -239,12 +243,12 @@ export default function ZakatCalculator({
           <span>{toIDR(nisab)}</span>
         </div>
         <div className="flex justify-between text-sm">
-          <span>Harta Kena Zakat</span>
+          <span>{t("Harta Kena Zakat", "Zakatable wealth")}</span>
           <span>{toIDR(zakatable)}</span>
         </div>
         <div className="flex justify-between text-sm">
           <span>Status</span>
-          <span>{obligatory ? "Wajib" : "Belum wajib"}</span>
+          <span>{obligatory ? t("Wajib", "Due") : t("Belum wajib", "Not due yet")}</span>
         </div>
         <div className="mt-2 flex justify-between font-medium">
           <span>Zakat (2,5%)</span>
@@ -254,8 +258,10 @@ export default function ZakatCalculator({
 
       {/* Disclaimer */}
       <p className="text-xs text-muted-foreground">
-        Kalkulator ini bersifat panduan. Untuk penetapan akhir, silakan
-        konsultasi dengan otoritas keagamaan setempat.
+        {t(
+          "Kalkulator ini bersifat panduan. Untuk penetapan akhir, silakan konsultasi dengan otoritas keagamaan setempat.",
+          "This calculator is a guide. For a final ruling, please consult your local religious authority.",
+        )}
       </p>
     </main>
   );

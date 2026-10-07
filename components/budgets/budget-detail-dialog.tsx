@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState, useMemo } from 'react';
 import { format } from 'date-fns';
-import { id as localeId } from 'date-fns/locale';
 import { Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -37,6 +36,8 @@ import { cn } from '@/lib/utils';
 import { spacePlan } from '@/lib/plans';
 import { getBudgetStartDay } from '@/lib/budget-period';
 import { periodRange } from '@/lib/date';
+import { indonesian, type Translate } from '@/lib/locale';
+import { useT } from '@/lib/i18n';
 
 type BudgetDetailDialogProps = {
   budgetId: string | null;
@@ -51,13 +52,13 @@ const sumAmounts = (items: { amount: number }[]) => items.reduce((sum, i) => sum
 export type BudgetStatus = { label: string; badge: string; bar: string };
 
 /** Aman < 80%, Hampir habis 80–100%, Lewat > 100%. */
-export function budgetStatus(spent: number, planned: number): BudgetStatus {
+export function budgetStatus(spent: number, planned: number, t: Translate = indonesian): BudgetStatus {
   const pct = planned > 0 ? (spent / planned) * 100 : spent > 0 ? 101 : 0;
   if (pct > 100)
-    return { label: 'Lewat', badge: 'bg-red-500/15 text-red-700 dark:text-red-300', bar: 'bg-red-500' };
+    return { label: t('Lewat', 'Over'), badge: 'bg-red-500/15 text-red-700 dark:text-red-300', bar: 'bg-red-500' };
   if (pct >= 80)
-    return { label: 'Hampir habis', badge: 'bg-amber-500/15 text-amber-700 dark:text-amber-300', bar: 'bg-amber-500' };
-  return { label: 'Aman', badge: 'bg-green-500/15 text-green-700 dark:text-green-300', bar: 'bg-primary' };
+    return { label: t('Hampir habis', 'Almost used'), badge: 'bg-amber-500/15 text-amber-700 dark:text-amber-300', bar: 'bg-amber-500' };
+  return { label: t('Aman', 'On track'), badge: 'bg-green-500/15 text-green-700 dark:text-green-300', bar: 'bg-primary' };
 }
 
 export function BudgetDetailDialog({
@@ -67,6 +68,7 @@ export function BudgetDetailDialog({
   onChanged,
 }: BudgetDetailDialogProps) {
   const { user, space, categories, setCategories } = useAppStore();
+  const { t, dateLocale, locale } = useT();
 
   const [budget, setBudget] = useState<Budget | null>(null);
   const [items, setItems] = useState<BudgetItem[]>([]);
@@ -124,7 +126,7 @@ export function BudgetDetailDialog({
         if (categoriesData) setCategories(keysToCamel<Category[]>(categoriesData));
       } catch (error) {
         console.error('Failed to fetch budget:', error);
-        toast.error('Gagal memuat budget');
+        toast.error(t('Gagal memuat budget', 'Could not load the budget'));
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -134,7 +136,7 @@ export function BudgetDetailDialog({
     return () => {
       cancelled = true;
     };
-  }, [space?.ownerId, budgetId, user, setCategories]);
+  }, [space?.ownerId, budgetId, user, setCategories, t]);
 
   useEffect(() => {
     if (!open) {
@@ -145,7 +147,7 @@ export function BudgetDetailDialog({
 
   const carry = budget?.carry ?? 0;
   const totalBudget = (budget?.totalAmount ?? 0) + carry;
-  const overall = budgetStatus(totalSpent, totalBudget);
+  const overall = budgetStatus(totalSpent, totalBudget, t);
   const remaining = totalBudget - totalSpent;
 
   const availableCategories = useMemo(
@@ -160,7 +162,7 @@ export function BudgetDetailDialog({
     if (totalAmount === budget.totalAmount) return;
     const { error } = await supabase.from('budgets').update({ total_amount: totalAmount }).eq('id', budget.id);
     if (error) {
-      toast.error('Gagal menyimpan total budget');
+      toast.error(t('Gagal menyimpan total budget', 'Could not save the budget total'));
       return;
     }
     setBudget({ ...budget, totalAmount });
@@ -170,18 +172,22 @@ export function BudgetDetailDialog({
     if (!budget) return;
     const { error } = await supabase.from('budgets').update({ rollover }).eq('id', budget.id);
     if (error) {
-      toast.error('Gagal menyimpan');
+      toast.error(t('Gagal menyimpan', 'Could not save'));
       return;
     }
     setBudget({ ...budget, rollover });
-    toast.success(rollover ? 'Sisa budget akan dibawa ke periode berikutnya' : 'Sisa budget tidak dibawa');
+    toast.success(
+      rollover
+        ? t('Sisa budget akan dibawa ke periode berikutnya', 'Leftover budget will carry into the next period')
+        : t('Sisa budget tidak dibawa', 'Leftover budget will not carry over')
+    );
     onChanged?.();
   };
 
   const handleUpdateItem = async (itemId: string, amount: number) => {
     const { error } = await supabase.from('budget_items').update({ amount }).eq('id', itemId);
     if (error) {
-      toast.error('Gagal menyimpan batas kategori');
+      toast.error(t('Gagal menyimpan batas kategori', 'Could not save the category limit'));
       return;
     }
     await saveTotal(items);
@@ -191,7 +197,7 @@ export function BudgetDetailDialog({
   const handleRemoveItem = async (itemId: string) => {
     const { error } = await supabase.from('budget_items').delete().eq('id', itemId);
     if (error) {
-      toast.error('Gagal menghapus kategori');
+      toast.error(t('Gagal menghapus kategori', 'Could not remove the category'));
       return;
     }
     const next = items.filter((i) => i.id !== itemId);
@@ -208,7 +214,7 @@ export function BudgetDetailDialog({
       .select(`*, category:categories(*)`)
       .single();
     if (error || !data) {
-      toast.error('Gagal menambah kategori');
+      toast.error(t('Gagal menambah kategori', 'Could not add the category'));
       return;
     }
     const next = [...items, keysToCamel<BudgetItem>(data)];
@@ -245,10 +251,10 @@ export function BudgetDetailDialog({
               style={{ paddingTop: '1.5rem' }}
             >
               <DialogTitle className="text-xl font-bold capitalize">
-                Budget {format(new Date(`${budget.month}-01T00:00:00`), 'MMMM yyyy', { locale: localeId })}
-                {periodRange(budget.month, getBudgetStartDay()) && (
+                Budget {format(new Date(`${budget.month}-01T00:00:00`), 'MMMM yyyy', { locale: dateLocale })}
+                {periodRange(budget.month, getBudgetStartDay(), locale) && (
                   <span className="block text-sm font-normal normal-case text-muted-foreground">
-                    Periode {periodRange(budget.month, getBudgetStartDay())}
+                    {t('Periode', 'Period')} {periodRange(budget.month, getBudgetStartDay(), locale)}
                   </span>
                 )}
               </DialogTitle>
@@ -258,7 +264,7 @@ export function BudgetDetailDialog({
               <div className="space-y-3 rounded-xl bg-muted/60 p-4">
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    <p className="text-sm text-muted-foreground">{remaining >= 0 ? 'Sisa' : 'Lewat'}</p>
+                    <p className="text-sm text-muted-foreground">{remaining >= 0 ? t('Sisa', 'Left') : t('Lewat', 'Over')}</p>
                     <p className="font-display text-2xl font-bold tabular-nums">
                       {formatMoney(Math.abs(remaining))}
                     </p>
@@ -272,14 +278,21 @@ export function BudgetDetailDialog({
                   indicatorClassName={overall.bar}
                 />
                 <p className="text-sm text-muted-foreground">
-                  Terpakai {formatMoney(totalSpent)} dari {formatMoney(totalBudget)}
-                  {carry > 0 && ` (termasuk sisa ${formatMoney(carry)} dari periode lalu)`}
+                  {t(
+                    `Terpakai ${formatMoney(totalSpent)} dari ${formatMoney(totalBudget)}`,
+                    `Used ${formatMoney(totalSpent)} of ${formatMoney(totalBudget)}`
+                  )}
+                  {carry > 0 &&
+                    t(
+                      ` (termasuk sisa ${formatMoney(carry)} dari periode lalu)`,
+                      ` (including ${formatMoney(carry)} left from last period)`
+                    )}
                 </p>
                 <label className="flex items-center justify-between gap-3 border-t pt-3 text-sm">
                   <span>
-                    Bawa sisa ke periode berikutnya
+                    {t('Bawa sisa ke periode berikutnya', 'Carry leftover to next period')}
                     <span className="block text-xs text-muted-foreground">
-                      Sisa yang tidak terpakai menambah budget periode depan.
+                      {t('Sisa yang tidak terpakai menambah budget periode depan.', "Unused budget is added to next period's budget.")}
                     </span>
                   </span>
                   <Switch checked={budget.rollover ?? false} onCheckedChange={handleRollover} />
@@ -288,18 +301,24 @@ export function BudgetDetailDialog({
 
               <ProLock
                 locked={!isPro}
-                title="Rincian per kategori ada di PRO"
-                description="Lihat kategori mana yang aman, hampir habis, atau sudah lewat batas, lalu atur ulang batasnya."
+                title={t('Rincian per kategori ada di PRO', 'Per-category details are in PRO')}
+                description={t(
+                  'Lihat kategori mana yang aman, hampir habis, atau sudah lewat batas, lalu atur ulang batasnya.',
+                  'See which categories are on track, almost used up or over the limit, and adjust the limits.'
+                )}
               >
                 <div className="space-y-2">
                   {sortedItems.length === 0 && !isEditing && (
                     <p className="rounded-lg border border-dashed p-4 text-center text-sm text-muted-foreground">
-                      Budget ini belum dibagi per kategori. Ketuk &quot;Atur kategori&quot; untuk menambahkan.
+                      {t(
+                        'Budget ini belum dibagi per kategori. Ketuk "Atur kategori" untuk menambahkan.',
+                        'This budget is not split by category yet. Tap "Manage categories" to add some.'
+                      )}
                     </p>
                   )}
                   {sortedItems.map((item) => {
                     const spent = actuals[item.categoryId] ?? 0;
-                    const status = budgetStatus(spent, item.amount);
+                    const status = budgetStatus(spent, item.amount, t);
                     const pct = item.amount ? Math.min((spent / item.amount) * 100, 100) : 0;
                     return (
                       <div key={item.id} className="space-y-2 rounded-lg border p-3">
@@ -321,7 +340,7 @@ export function BudgetDetailDialog({
                               <MoneyInput
                                 className="w-36"
                                 value={item.amount}
-                                aria-label={`Batas ${item.category?.name}`}
+                                aria-label={t(`Batas ${item.category?.name}`, `Limit ${item.category?.name}`)}
                                 onValueChange={(amount) =>
                                   setItems((prev) => prev.map((i) => (i.id === item.id ? { ...i, amount } : i)))
                                 }
@@ -330,7 +349,7 @@ export function BudgetDetailDialog({
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                aria-label={`Hapus ${item.category?.name}`}
+                                aria-label={t(`Hapus ${item.category?.name}`, `Remove ${item.category?.name}`)}
                                 onClick={() => handleRemoveItem(item.id)}
                               >
                                 <Trash2 className="h-4 w-4" />
@@ -346,8 +365,9 @@ export function BudgetDetailDialog({
                           <>
                             <Progress value={pct} className="h-1.5" indicatorClassName={status.bar} />
                             <p className="text-xs text-muted-foreground">
-                              {formatMoney(spent)} dari {formatMoney(item.amount)}
-                              {spent > item.amount && ` · lewat ${formatMoney(spent - item.amount)}`}
+                              {t(`${formatMoney(spent)} dari ${formatMoney(item.amount)}`, `${formatMoney(spent)} of ${formatMoney(item.amount)}`)}
+                              {spent > item.amount &&
+                                t(` · lewat ${formatMoney(spent - item.amount)}`, ` · ${formatMoney(spent - item.amount)} over`)}
                             </p>
                           </>
                         )}
@@ -359,7 +379,7 @@ export function BudgetDetailDialog({
                     <div className="flex gap-2 rounded-lg border border-dashed p-3">
                       <Select value={newCategoryId} onValueChange={setNewCategoryId}>
                         <SelectTrigger className="w-2/5 shrink-0">
-                          <SelectValue placeholder="Kategori" />
+                          <SelectValue placeholder={t('Kategori', 'Category')} />
                         </SelectTrigger>
                         <SelectContent>
                           {availableCategories.map((c) => (
@@ -369,12 +389,12 @@ export function BudgetDetailDialog({
                           ))}
                         </SelectContent>
                       </Select>
-                      <MoneyInput className="flex-1" value={newAmount} onValueChange={setNewAmount} aria-label="Batas kategori baru" />
+                      <MoneyInput className="flex-1" value={newAmount} onValueChange={setNewAmount} aria-label={t('Batas kategori baru', 'New category limit')} />
                       <Button
                         size="icon"
                         onClick={handleAddItem}
                         disabled={!newCategoryId || newAmount <= 0}
-                        aria-label="Tambah kategori"
+                        aria-label={t('Tambah kategori', 'Add category')}
                       >
                         <Plus className="h-4 w-4" />
                       </Button>
@@ -383,7 +403,10 @@ export function BudgetDetailDialog({
 
                   {unbudgetedSpent > 0 && !isEditing && (
                     <p className="px-1 text-xs text-muted-foreground">
-                      {formatMoney(unbudgetedSpent)} dipakai di kategori yang tidak dianggarkan.
+                      {t(
+                        `${formatMoney(unbudgetedSpent)} dipakai di kategori yang tidak dianggarkan.`,
+                        `${formatMoney(unbudgetedSpent)} spent in categories without a budget.`
+                      )}
                     </p>
                   )}
                 </div>
@@ -395,11 +418,11 @@ export function BudgetDetailDialog({
               style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 0.75rem)' }}
             >
               <Button variant="ghost" onClick={() => onOpenChange(false)} className="flex-1">
-                Tutup
+                {t('Tutup', 'Close')}
               </Button>
               {isPro && (
                 <Button onClick={() => setIsEditing((v) => !v)} className="flex-1">
-                  {isEditing ? 'Selesai' : 'Atur kategori'}
+                  {isEditing ? t('Selesai', 'Done') : t('Atur kategori', 'Manage categories')}
                 </Button>
               )}
             </DialogFooter>

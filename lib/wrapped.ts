@@ -1,3 +1,5 @@
+import { type Translate, indonesian } from './locale';
+
 export type WrappedTx = {
   type: 'expense' | 'income' | 'transfer';
   amount: number;
@@ -23,7 +25,8 @@ export type Wrapped = {
 };
 
 /** A year in numbers, from that year's transactions (by actual date). */
-export function buildWrapped(year: number, txs: WrappedTx[]): Wrapped {
+export function buildWrapped(year: number, txs: WrappedTx[], translate: Translate = indonesian): Wrapped {
+  const uncategorized = translate('Tanpa kategori', 'Uncategorized');
   let income = 0;
   let expense = 0;
   const byCategory = new Map<string, { name: string; color: string; amount: number }>();
@@ -36,7 +39,7 @@ export function buildWrapped(year: number, txs: WrappedTx[]): Wrapped {
     if (t.type === 'income') income += t.amount;
     if (t.type !== 'expense') continue;
     expense += t.amount;
-    const name = t.category?.name ?? 'Tanpa kategori';
+    const name = t.category?.name ?? uncategorized;
     const cat = byCategory.get(name) ?? { name, color: t.category?.color || '#6B7280', amount: 0 };
     cat.amount += t.amount;
     byCategory.set(name, cat);
@@ -64,7 +67,7 @@ export function buildWrapped(year: number, txs: WrappedTx[]): Wrapped {
           amount: biggest.amount,
           note: biggest.note ?? '',
           date: biggest.actual_date,
-          category: biggest.category?.name ?? 'Tanpa kategori',
+          category: biggest.category?.name ?? uncategorized,
         }
       : null,
   };

@@ -81,17 +81,21 @@ export function daysBetweenInclusive(from: string, to: string): number {
   return Math.floor(ms / 86_400_000) + 1;
 }
 
-const SHORT_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
-const shortDate = (d: string) => `${Number(d.slice(8, 10))} ${SHORT_MONTHS[Number(d.slice(5, 7)) - 1]}`;
+const SHORT_MONTHS = {
+  id: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'],
+  en: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+};
+const shortDate = (d: string, locale: 'id' | 'en') =>
+  `${Number(d.slice(8, 10))} ${SHORT_MONTHS[locale][Number(d.slice(5, 7)) - 1]}`;
 
 /**
  * "26 Sep – 25 Okt" for a budget month when periods start after the 1st;
  * null for calendar months, where the month name already says it all.
  */
-export function periodRange(month: string, startDay = 1): string | null {
+export function periodRange(month: string, startDay = 1, locale: 'id' | 'en' = 'id'): string | null {
   if (startDay <= 1) return null;
   const { start, end } = budgetPeriod(month, startDay);
-  return `${shortDate(start)} – ${shortDate(end)}`;
+  return `${shortDate(start, locale)} – ${shortDate(end, locale)}`;
 }
 
 /**

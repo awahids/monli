@@ -20,7 +20,9 @@ export function spacePlan(
   return space && !space.isOwn ? 'PRO' : user?.plan ?? 'FREE';
 }
 
-export type PlanFeature = { label: string; free: string | boolean; pro: string | boolean };
+/** String values come as [Indonesian, English]. */
+type Value = [string, string] | boolean;
+export type PlanFeature = { label: string; labelEn: string; free: Value; pro: Value };
 
 /**
  * What each plan includes, matching the limits enforced in the API
@@ -28,15 +30,50 @@ export type PlanFeature = { label: string; free: string | boolean; pro: string |
  * reports, OCR and chat routes).
  */
 export const PLAN_FEATURES: PlanFeature[] = [
-  { label: 'Catat pemasukan, pengeluaran & transfer', free: true, pro: true },
-  { label: 'Akun (bank, e-wallet, tunai)', free: `${FREE_LIMITS.accounts} akun`, pro: 'Tanpa batas' },
-  { label: 'Budget bulanan', free: `${FREE_LIMITS.budgets} budget`, pro: 'Tanpa batas' },
-  { label: 'Transaksi rutin otomatis', free: `${FREE_LIMITS.recurring} aturan`, pro: 'Tanpa batas' },
-  { label: 'Target tabungan', free: `${FREE_LIMITS.goals} target`, pro: 'Tanpa batas' },
-  { label: 'Rincian budget per kategori', free: false, pro: true },
-  { label: 'Laporan & grafik lengkap', free: false, pro: true },
-  { label: 'Scan struk otomatis (OCR)', free: false, pro: `${AI_MONTHLY_LIMITS.ocr}x / bulan` },
-  { label: 'Asisten keuangan AI', free: false, pro: `${AI_MONTHLY_LIMITS.chat}x / bulan` },
-  { label: 'Kalkulator zakat dengan harga emas terkini', free: false, pro: true },
-  { label: 'Kelola bersama keluarga', free: false, pro: `Hingga ${SPACE_MEMBER_LIMIT} orang` },
+  { label: 'Catat pemasukan, pengeluaran & transfer', labelEn: 'Record income, expenses & transfers', free: true, pro: true },
+  {
+    label: 'Akun (bank, e-wallet, tunai)',
+    labelEn: 'Accounts (bank, e-wallet, cash)',
+    free: [`${FREE_LIMITS.accounts} akun`, `${FREE_LIMITS.accounts} account`],
+    pro: ['Tanpa batas', 'Unlimited'],
+  },
+  {
+    label: 'Budget bulanan',
+    labelEn: 'Monthly budgets',
+    free: [`${FREE_LIMITS.budgets} budget`, `${FREE_LIMITS.budgets} budgets`],
+    pro: ['Tanpa batas', 'Unlimited'],
+  },
+  {
+    label: 'Transaksi rutin otomatis',
+    labelEn: 'Automatic recurring transactions',
+    free: [`${FREE_LIMITS.recurring} aturan`, `${FREE_LIMITS.recurring} rules`],
+    pro: ['Tanpa batas', 'Unlimited'],
+  },
+  {
+    label: 'Target tabungan',
+    labelEn: 'Savings goals',
+    free: [`${FREE_LIMITS.goals} target`, `${FREE_LIMITS.goals} goal`],
+    pro: ['Tanpa batas', 'Unlimited'],
+  },
+  { label: 'Rincian budget per kategori', labelEn: 'Budget by category', free: false, pro: true },
+  { label: 'Laporan & grafik lengkap', labelEn: 'Full reports & charts', free: false, pro: true },
+  {
+    label: 'Scan struk otomatis (OCR)',
+    labelEn: 'Automatic receipt scan (OCR)',
+    free: false,
+    pro: [`${AI_MONTHLY_LIMITS.ocr}x / bulan`, `${AI_MONTHLY_LIMITS.ocr}x / month`],
+  },
+  {
+    label: 'Asisten keuangan AI',
+    labelEn: 'AI finance assistant',
+    free: false,
+    pro: [`${AI_MONTHLY_LIMITS.chat}x / bulan`, `${AI_MONTHLY_LIMITS.chat}x / month`],
+  },
+  { label: 'Kalkulator zakat dengan harga emas terkini', labelEn: 'Zakat calculator with the live gold price', free: false, pro: true },
+  {
+    label: 'Kelola bersama keluarga',
+    labelEn: 'Share with family',
+    free: false,
+    pro: [`Hingga ${SPACE_MEMBER_LIMIT} orang`, `Up to ${SPACE_MEMBER_LIMIT} people`],
+  },
 ];

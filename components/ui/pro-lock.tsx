@@ -1,7 +1,10 @@
+'use client';
+
 import Link from 'next/link';
 import { Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useT } from '@/lib/i18n';
 
 interface ProLockProps {
   locked: boolean;
@@ -16,6 +19,7 @@ interface ProLockProps {
  * what they would get instead of an empty "Pro feature" screen.
  */
 export function ProLock({ locked, title, description, children, className }: ProLockProps) {
+  const { t } = useT();
   if (!locked) return <>{children}</>;
   return (
     <div className={cn('relative', className)}>
@@ -30,7 +34,7 @@ export function ProLock({ locked, title, description, children, className }: Pro
           <p className="font-display text-lg font-semibold">{title}</p>
           <p className="text-sm text-muted-foreground">{description}</p>
           <Button asChild className="w-full">
-            <Link href="/upgrade">Lihat paket PRO</Link>
+            <Link href="/upgrade">{t('Lihat paket PRO', 'See PRO plans')}</Link>
           </Button>
         </div>
       </div>

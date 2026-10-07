@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { format } from 'date-fns';
-import { id as localeId } from 'date-fns/locale';
 import { ArrowRightLeft, MoreVertical, Pencil, Plus, Repeat, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -14,6 +13,7 @@ import { keysToCamel } from '@/lib/case';
 import { formatMoney } from '@/lib/currency';
 import { formatDate } from '@/lib/date';
 import { describeSchedule } from '@/lib/recurring';
+import type { Translate } from '@/lib/locale';
 import { resetDueRecurring, runDueRecurring } from '@/lib/recurring-client';
 import { FREE_LIMITS, spacePlan } from '@/lib/plans';
 import { cn } from '@/lib/utils';
@@ -31,16 +31,18 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { CategoryIcon } from '@/components/transactions/category-icon';
 import { RecurringFormDialog } from '@/components/recurring/recurring-form-dialog';
+import { useT } from '@/lib/i18n';
 
-function ruleTitle(r: RecurringTransaction) {
+function ruleTitle(r: RecurringTransaction, t: Translate) {
   if (r.note) return r.note;
   if (r.type === 'transfer') return `Transfer ${r.fromAccount?.name ?? ''} → ${r.toAccount?.name ?? ''}`;
-  return r.category?.name ?? (r.type === 'income' ? 'Pemasukan' : 'Pengeluaran');
+  return r.category?.name ?? (r.type === 'income' ? t('Pemasukan', 'Income') : t('Pengeluaran', 'Expense'));
 }
 
 export default function RecurringPage() {
   const { user, space, accounts, categories, setAccounts, setCategories } = useAppStore();
   const [rules, setRules] = useState<RecurringTransaction[]>([]);
+  const { t, dateLocale, locale } = useT();
   const [loading, setLoading] = useState(true);
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<RecurringTransaction | null>(null);
@@ -57,11 +59,11 @@ export default function RecurringPage() {
       if (!res.ok) throw new Error(data.error);
       setRules(keysToCamel<RecurringTransaction[]>(data.data ?? []));
     } catch {
-      toast.error('Gagal memuat transaksi rutin');
+      toast.error(t('Gagal memuat transaksi rutin', 'Could not load recurring transactions'));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     fetchRules();
@@ -102,7 +104,7 @@ export default function RecurringPage() {
       if (active) await afterSave();
     } catch {
       setRules((rs) => rs.map((r) => (r.id === rule.id ? { ...r, active: !active } : r)));
-      toast.error('Gagal mengubah status');
+      toast.error(t('Gagal mengubah status', 'Could not change the status'));
     }
   };
 
@@ -110,10 +112,10 @@ export default function RecurringPage() {
     if (!deleting) return;
     const res = await fetch(`/api/recurring/${deleting.id}`, { method: 'DELETE' });
     if (!res.ok) {
-      toast.error('Gagal menghapus');
+      toast.error(t('Gagal menghapus', 'Could not delete'));
       return;
     }
-    toast.success('Transaksi rutin dihapus');
+    toast.success(t('Transaksi rutin dihapus', 'Recurring transaction deleted'));
     setRules((rs) => rs.filter((r) => r.id !== deleting.id));
   };
 
@@ -133,30 +135,30 @@ export default function RecurringPage() {
     <div className="space-y-6">
       <div className="flex items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Transaksi rutin</h1>
+          <h1 className="text-2xl font-bold tracking-tight">{t('Transaksi rutin', 'Recurring')}</h1>
           <p className="text-sm text-muted-foreground">
-            Gaji, tagihan, dan langganan dicatat otomatis saat jatuh tempo.
+            {t('Gaji, tagihan, dan langganan dicatat otomatis saat jatuh tempo.', 'Salary, bills and subscriptions are recorded automatically when due.')}
           </p>
         </div>
         {!limitReached && (
           <Button onClick={openNew} disabled={!accounts.length}>
-            <Plus className="mr-1 h-4 w-4" /> Tambah
+            <Plus className="mr-1 h-4 w-4" /> {t('Tambah', 'Add')}
           </Button>
         )}
       </div>
 
       {limitReached && (
         <p className="rounded-lg border border-dashed p-3 text-sm text-muted-foreground">
-          Paket FREE dibatasi {FREE_LIMITS.recurring} transaksi rutin.{' '}
+          {t(`Paket FREE dibatasi ${FREE_LIMITS.recurring} transaksi rutin.`, `The FREE plan is limited to ${FREE_LIMITS.recurring} recurring transactions.`)}{' '}
           <Link href="/upgrade" className="font-medium text-primary underline-offset-4 hover:underline">
-            Upgrade ke PRO
+            {t('Upgrade ke PRO', 'Upgrade to PRO')}
           </Link>{' '}
-          untuk tanpa batas.
+          {t('untuk tanpa batas.', 'for unlimited.')}
         </p>
       )}
 
       {loading ? (
-        <div className="space-y-3" aria-busy="true" aria-label="Memuat transaksi rutin">
+        <div className="space-y-3" aria-busy="true" aria-label={t('Memuat transaksi rutin', 'Loading recurring transactions')}>
           {Array.from({ length: 3 }).map((_, i) => (
             <Skeleton key={i} className="h-20 rounded-xl" />
           ))}
@@ -164,20 +166,20 @@ export default function RecurringPage() {
       ) : rules.length === 0 ? (
         <EmptyState
           icon={Repeat}
-          title="Belum ada transaksi rutin"
+          title={t('Belum ada transaksi rutin', 'No recurring transactions yet')}
           description={
             accounts.length
-              ? 'Atur sekali untuk gaji, kos, listrik, atau langganan. Qala Saku mencatatnya tiap jatuh tempo.'
-              : 'Buat akun dulu, lalu atur transaksi yang berulang tiap bulan atau minggu.'
+              ? t('Atur sekali untuk gaji, kos, listrik, atau langganan. Qala Saku mencatatnya tiap jatuh tempo.', 'Set it once for salary, rent, utilities or subscriptions. Qala Saku records it every time it is due.')
+              : t('Buat akun dulu, lalu atur transaksi yang berulang tiap bulan atau minggu.', 'Create an account first, then set up transactions that repeat monthly or weekly.')
           }
           action={
             accounts.length ? (
               <Button onClick={openNew}>
-                <Plus className="mr-1 h-4 w-4" /> Tambah transaksi rutin
+                <Plus className="mr-1 h-4 w-4" /> {t('Tambah transaksi rutin', 'Add recurring transaction')}
               </Button>
             ) : (
               <Button asChild>
-                <Link href="/accounts">Buat akun</Link>
+                <Link href="/accounts">{t('Buat akun', 'Create account')}</Link>
               </Button>
             )
           }
@@ -187,13 +189,13 @@ export default function RecurringPage() {
           {(monthlyIn > 0 || monthlyOut > 0) && (
             <Card className="grid grid-cols-2 divide-x p-0">
               <div className="p-4">
-                <p className="text-xs text-muted-foreground">Pemasukan rutin / bulan</p>
+                <p className="text-xs text-muted-foreground">{t('Pemasukan rutin / bulan', 'Recurring income / month')}</p>
                 <p className="font-display text-lg font-semibold tabular-nums text-green-600 dark:text-green-400">
                   {formatMoney(monthlyIn)}
                 </p>
               </div>
               <div className="p-4">
-                <p className="text-xs text-muted-foreground">Pengeluaran rutin / bulan</p>
+                <p className="text-xs text-muted-foreground">{t('Pengeluaran rutin / bulan', 'Recurring expenses / month')}</p>
                 <p className="font-display text-lg font-semibold tabular-nums">{formatMoney(monthlyOut)}</p>
               </div>
             </Card>
@@ -220,15 +222,18 @@ export default function RecurringPage() {
                     )}
                   </span>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate font-medium">{ruleTitle(r)}</p>
+                    <p className="truncate font-medium">{ruleTitle(r, t)}</p>
                     <p className="truncate text-xs text-muted-foreground">
-                      {describeSchedule(r.frequency, r.dayOfMonth, r.startDate)}
+                      {describeSchedule(r.frequency, r.dayOfMonth, r.startDate, locale)}
                       {' · '}
                       {r.active
-                        ? `berikutnya ${format(new Date(`${r.nextDate}T00:00:00`), 'd MMM yyyy', { locale: localeId })}`
+                        ? t(
+                            `berikutnya ${format(new Date(`${r.nextDate}T00:00:00`), 'd MMM yyyy', { locale: dateLocale })}`,
+                            `next ${format(new Date(`${r.nextDate}T00:00:00`), 'd MMM yyyy', { locale: dateLocale })}`
+                          )
                         : r.endDate && r.endDate < today
-                        ? 'selesai'
-                        : 'dijeda'}
+                        ? t('selesai', 'ended')
+                        : t('dijeda', 'paused')}
                     </p>
                   </div>
                   <span
@@ -244,11 +249,11 @@ export default function RecurringPage() {
                   <Switch
                     checked={r.active}
                     onCheckedChange={(v) => toggleActive(r, v)}
-                    aria-label={r.active ? `Jeda ${ruleTitle(r)}` : `Lanjutkan ${ruleTitle(r)}`}
+                    aria-label={r.active ? `Jeda ${ruleTitle(r, t)}` : `Lanjutkan ${ruleTitle(r, t)}`}
                   />
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" aria-label="Opsi">
+                      <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" aria-label={t('Opsi', 'Options')}>
                         <MoreVertical className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
@@ -259,10 +264,10 @@ export default function RecurringPage() {
                           setFormOpen(true);
                         }}
                       >
-                        <Pencil className="mr-2 h-4 w-4" /> Ubah
+                        <Pencil className="mr-2 h-4 w-4" /> {t('Ubah', 'Edit')}
                       </DropdownMenuItem>
                       <DropdownMenuItem className="text-destructive" onClick={() => setDeleting(r)}>
-                        <Trash2 className="mr-2 h-4 w-4" /> Hapus
+                        <Trash2 className="mr-2 h-4 w-4" /> {t('Hapus', 'Delete')}
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -271,8 +276,10 @@ export default function RecurringPage() {
             ))}
           </ul>
           <p className="text-xs text-muted-foreground">
-            Transaksi dicatat saat kamu membuka Qala Saku pada atau setelah tanggal jatuh tempo, dengan tag
-            &quot;rutin&quot;.
+            {t(
+              'Transaksi dicatat saat kamu membuka Qala Saku pada atau setelah tanggal jatuh tempo, dengan tag "rutin".',
+              'Transactions are recorded when you open Qala Saku on or after the due date, tagged "rutin".'
+            )}
           </p>
         </>
       )}
@@ -288,10 +295,10 @@ export default function RecurringPage() {
       <ConfirmDialog
         open={deleting !== null}
         onOpenChange={(o) => !o && setDeleting(null)}
-        title="Hapus transaksi rutin?"
-        description="Transaksi yang sudah tercatat tetap ada. Hanya jadwalnya yang dihapus."
-        confirmLabel="Hapus"
-        cancelLabel="Batal"
+        title={t('Hapus transaksi rutin?', 'Delete recurring transaction?')}
+        description={t('Transaksi yang sudah tercatat tetap ada. Hanya jadwalnya yang dihapus.', 'Transactions already recorded stay. Only the schedule is deleted.')}
+        confirmLabel={t('Hapus', 'Delete')}
+        cancelLabel={t('Batal', 'Cancel')}
         onConfirm={handleDelete}
       />
     </div>

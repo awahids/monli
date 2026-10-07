@@ -17,6 +17,7 @@ import {
 import { Account, Category } from '@/types';
 import { defaultBudgetMonth } from '@/lib/budget-period';
 import type { OcrItem } from '@/lib/ocr';
+import { useT } from '@/lib/i18n';
 
 interface ItemFormProps {
   item: OcrItem;
@@ -102,9 +103,10 @@ export default function OcrReviewDialog({
   categories,
   date,
   onSave,
-  title = 'Periksa hasil scan struk',
+  title,
 }: Props) {
   const contentRef = useRef<HTMLDivElement | null>(null);
+  const { t } = useT();
   const itemRefs = useRef<ItemFormHandle[]>([]);
 
   useEffect(() => {
@@ -116,7 +118,7 @@ export default function OcrReviewDialog({
   const handleSave = async () => {
     const results = await Promise.all(itemRefs.current.map((ref) => ref.validate()));
     if (results.some((r) => r === null)) {
-      toast.error('Lengkapi dulu item yang ditandai merah');
+      toast.error(t('Lengkapi dulu item yang ditandai merah', 'Complete the items marked in red first'));
       return;
     }
     setSaving(true);
@@ -131,7 +133,9 @@ export default function OcrReviewDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent ref={contentRef}>
         <DialogHeader>
-          <DialogTitle>{title} ({items.length} item)</DialogTitle>
+          <DialogTitle>
+            {title ?? t('Periksa hasil scan struk', 'Review scanned receipt')} ({t(`${items.length} item`, `${items.length} items`)})
+          </DialogTitle>
         </DialogHeader>
         <div className="space-y-6 max-h-[60vh] overflow-y-auto">
           {items.map((item, idx) => (
@@ -151,7 +155,7 @@ export default function OcrReviewDialog({
         </div>
         <DialogFooter>
           <Button onClick={handleSave} disabled={saving}>
-            {saving ? 'Menyimpan...' : 'Simpan semua'}
+            {saving ? t('Menyimpan...', 'Saving...') : t('Simpan semua', 'Save all')}
           </Button>
         </DialogFooter>
       </DialogContent>

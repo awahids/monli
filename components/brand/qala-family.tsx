@@ -1,10 +1,14 @@
+'use client';
+
 import { ArrowUpRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { BRAND, QALA_FAMILY } from '@/lib/brand';
 import { QalaMark } from '@/components/brand/qala-mark';
+import { useT } from '@/lib/i18n';
 
 /** "Bagian dari keluarga Qala" link to qala.digital. */
 export function QalaFamilyLink({ className }: { className?: string }) {
+  const { t } = useT();
   return (
     <a
       href={BRAND.familyUrl}
@@ -15,7 +19,7 @@ export function QalaFamilyLink({ className }: { className?: string }) {
         className
       )}
     >
-      Bagian dari keluarga{' '}
+      {t('Bagian dari keluarga', 'Part of the')}{' '}
       <span className="font-semibold text-foreground">{BRAND.family}</span>
     </a>
   );
@@ -29,11 +33,12 @@ export function QalaFamilyProducts({
   className?: string;
   compact?: boolean;
 }) {
+  const { t } = useT();
   const others = QALA_FAMILY.filter((p) => p.name !== BRAND.name);
   return (
     <div className={cn('space-y-1', className)}>
       <p className="px-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-        Produk {BRAND.family} lainnya
+        {t(`Produk ${BRAND.family} lainnya`, `More from ${BRAND.family}`)}
       </p>
       {others.map((product) => (
         <a
@@ -51,11 +56,11 @@ export function QalaFamilyProducts({
               <span className="block truncate font-medium text-foreground">
                 {product.name}
               </span>
-              <span className="block truncate text-xs">{product.description}</span>
+              <span className="block truncate text-xs">{t(product.description, product.descriptionEn)}</span>
             </span>
           )}
           {!compact && <ArrowUpRight className="h-4 w-4 shrink-0" />}
-          <span className="sr-only">(membuka tab baru)</span>
+          <span className="sr-only">{t('(membuka tab baru)', '(opens in a new tab)')}</span>
         </a>
       ))}
     </div>

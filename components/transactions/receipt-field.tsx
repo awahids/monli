@@ -8,6 +8,7 @@ import { useAppStore } from '@/lib/store';
 import { shrinkImage } from '@/lib/ocr';
 import { receiptUrl, setReceipt, uploadReceipt } from '@/lib/receipts';
 import { Button } from '@/components/ui/button';
+import { useT } from '@/lib/i18n';
 
 /**
  * The receipt photo of a saved transaction: view it, attach one, or remove it.
@@ -19,6 +20,7 @@ export function ReceiptField({ transaction }: { transaction: Transaction }) {
   const [path, setPath] = useState(transaction.receiptPath ?? null);
   const [url, setUrl] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const { t } = useT();
   const input = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -36,7 +38,7 @@ export function ReceiptField({ transaction }: { transaction: Transaction }) {
     setBusy(true);
     try {
       await save(await uploadReceipt(space?.ownerId ?? user.id, await shrinkImage(file)));
-      toast.success('Foto struk tersimpan');
+      toast.success(t('Foto struk tersimpan', 'Receipt photo saved'));
     } catch (e) {
       toast.error((e as Error).message);
     } finally {
@@ -63,7 +65,7 @@ export function ReceiptField({ transaction }: { transaction: Transaction }) {
         type="file"
         accept="image/*"
         className="hidden"
-        aria-label="Pilih foto struk"
+        aria-label={t('Pilih foto struk', 'Choose a receipt photo')}
         onChange={(e) => attach(e.target.files?.[0])}
       />
       {path ? (
@@ -71,24 +73,24 @@ export function ReceiptField({ transaction }: { transaction: Transaction }) {
           <a href={url ?? undefined} target="_blank" rel="noreferrer" className="shrink-0">
             {url ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={url} alt="Foto struk" className="h-20 w-20 rounded-md border object-cover" />
+              <img src={url} alt={t('Foto struk', 'Receipt photo')} className="h-20 w-20 rounded-md border object-cover" />
             ) : (
               <span className="block h-20 w-20 animate-pulse rounded-md bg-muted" />
             )}
           </a>
           <div className="flex flex-col gap-1">
             <Button type="button" variant="outline" size="sm" disabled={busy} onClick={() => input.current?.click()}>
-              Ganti foto
+              {t('Ganti foto', 'Change photo')}
             </Button>
             <Button type="button" variant="ghost" size="sm" disabled={busy} onClick={remove}>
-              Hapus foto
+              {t('Hapus foto', 'Remove photo')}
             </Button>
           </div>
         </div>
       ) : (
         <Button type="button" variant="outline" size="sm" disabled={busy} onClick={() => input.current?.click()}>
           <Paperclip className="mr-2 h-4 w-4" />
-          {busy ? 'Mengunggah...' : 'Lampirkan foto struk'}
+          {busy ? t('Mengunggah...', 'Uploading...') : t('Lampirkan foto struk', 'Attach receipt photo')}
         </Button>
       )}
     </div>

@@ -20,6 +20,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { tr, useT } from '@/lib/i18n';
 
 /** "" = no account: the debt is only recorded, no balance moves. */
 function AccountSelect({
@@ -35,6 +36,7 @@ function AccountSelect({
   value: string;
   onChange: (v: string) => void;
 }) {
+  const { t } = useT();
   return (
     <div className="space-y-2">
       <Label htmlFor={id}>{label}</Label>
@@ -44,7 +46,7 @@ function AccountSelect({
         onChange={(e) => onChange(e.target.value)}
         className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
       >
-        <option value="">Tanpa akun (hanya dicatat)</option>
+        <option value="">{t('Tanpa akun (hanya dicatat)', 'No account (record only)')}</option>
         {accounts.map((a) => (
           <option key={a.id} value={a.id}>
             {a.name}
@@ -62,7 +64,7 @@ async function post(url: string, body: unknown) {
     body: JSON.stringify(body),
   });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.error || 'Gagal menyimpan');
+  if (!res.ok) throw new Error(data.error || tr('Gagal menyimpan', 'Could not save'));
 }
 
 interface DebtFormProps {
@@ -76,6 +78,7 @@ interface DebtFormProps {
 
 export function DebtFormDialog({ open, onOpenChange, kind: initialKind, accounts, onSaved }: DebtFormProps) {
   const [kind, setKind] = useState<DebtKind>(initialKind);
+  const { t } = useT();
   const [person, setPerson] = useState('');
   const [amount, setAmount] = useState(0);
   const [accountId, setAccountId] = useState('');
@@ -99,8 +102,8 @@ export function DebtFormDialog({ open, onOpenChange, kind: initialKind, accounts
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!person.trim()) return setError('Isi nama');
-    if (amount <= 0) return setError('Masukkan nominal');
+    if (!person.trim()) return setError(t('Isi nama', 'Enter a name'));
+    if (amount <= 0) return setError(t('Masukkan nominal', 'Enter an amount'));
     setSaving(true);
     try {
       await post('/api/debts', {
@@ -112,11 +115,11 @@ export function DebtFormDialog({ open, onOpenChange, kind: initialKind, accounts
         dueDate: dueDate || null,
         note: note || null,
       });
-      toast.success(kind === 'payable' ? 'Hutang dicatat' : 'Piutang dicatat');
+      toast.success(kind === 'payable' ? t('Hutang dicatat', 'Debt recorded') : t('Piutang dicatat', 'Receivable recorded'));
       onOpenChange(false);
       onSaved(!!accountId);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Gagal menyimpan');
+      setError(err instanceof Error ? err.message : t('Gagal menyimpan', 'Could not save'));
     } finally {
       setSaving(false);
     }
@@ -126,11 +129,11 @@ export function DebtFormDialog({ open, onOpenChange, kind: initialKind, accounts
     <Dialog open={open} onOpenChange={(o) => !saving && onOpenChange(o)}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{kind === 'payable' ? 'Hutang baru' : 'Piutang baru'}</DialogTitle>
-          <DialogDescription>Tidak dihitung sebagai pemasukan atau pengeluaran.</DialogDescription>
+          <DialogTitle>{kind === 'payable' ? t('Hutang baru', 'New debt') : t('Piutang baru', 'New receivable')}</DialogTitle>
+          <DialogDescription>{t('Tidak dihitung sebagai pemasukan atau pengeluaran.', 'Not counted as income or spending.')}</DialogDescription>
         </DialogHeader>
         <form onSubmit={submit} className="space-y-4" noValidate>
-          <div role="radiogroup" aria-label="Jenis" className="grid grid-cols-2 gap-1 rounded-lg bg-muted p-1">
+          <div role="radiogroup" aria-label={t('Jenis', 'Type')} className="grid grid-cols-2 gap-1 rounded-lg bg-muted p-1">
             {(['payable', 'receivable'] as const).map((k) => (
               <button
                 key={k}
@@ -143,44 +146,44 @@ export function DebtFormDialog({ open, onOpenChange, kind: initialKind, accounts
                   kind === k ? 'bg-background shadow-sm' : 'text-muted-foreground'
                 )}
               >
-                {k === 'payable' ? 'Saya meminjam' : 'Saya meminjamkan'}
+                {k === 'payable' ? t('Saya meminjam', 'I borrowed') : t('Saya meminjamkan', 'I lent')}
               </button>
             ))}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="debt-person">{kind === 'payable' ? 'Pinjam dari' : 'Dipinjam oleh'}</Label>
+            <Label htmlFor="debt-person">{kind === 'payable' ? t('Pinjam dari', 'Borrowed from') : t('Dipinjam oleh', 'Lent to')}</Label>
             <Input
               id="debt-person"
               value={person}
               onChange={(e) => setPerson(e.target.value)}
-              placeholder="Mis. Budi"
+              placeholder={t('Mis. Budi', 'e.g. Alex')}
               maxLength={80}
               autoFocus
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="debt-amount">Nominal</Label>
+            <Label htmlFor="debt-amount">{t('Nominal', 'Amount')}</Label>
             <MoneyInput id="debt-amount" value={amount} onValueChange={setAmount} />
           </div>
           <AccountSelect
             id="debt-account"
-            label={kind === 'payable' ? 'Uang masuk ke akun' : 'Uang keluar dari akun'}
+            label={kind === 'payable' ? t('Uang masuk ke akun', 'Money goes into') : t('Uang keluar dari akun', 'Money comes from')}
             accounts={accounts}
             value={accountId}
             onChange={setAccountId}
           />
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
-              <Label htmlFor="debt-date">Tanggal</Label>
+              <Label htmlFor="debt-date">{t('Tanggal', 'Date')}</Label>
               <Input id="debt-date" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="debt-due">Jatuh tempo (opsional)</Label>
+              <Label htmlFor="debt-due">{t('Jatuh tempo (opsional)', 'Due date (optional)')}</Label>
               <Input id="debt-due" type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="debt-note">Catatan (opsional)</Label>
+            <Label htmlFor="debt-note">{t('Catatan (opsional)', 'Note (optional)')}</Label>
             <Input id="debt-note" value={note} onChange={(e) => setNote(e.target.value)} maxLength={200} />
           </div>
           {error && (
@@ -190,10 +193,10 @@ export function DebtFormDialog({ open, onOpenChange, kind: initialKind, accounts
           )}
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>
-              Batal
+              {t('Batal', 'Cancel')}
             </Button>
             <Button type="submit" disabled={saving}>
-              {saving ? 'Menyimpan...' : 'Simpan'}
+              {saving ? t('Menyimpan...', 'Saving...') : t('Simpan', 'Save')}
             </Button>
           </DialogFooter>
         </form>
@@ -214,6 +217,7 @@ export function PaymentDialog({ debt, accounts, onOpenChange, onSaved }: Payment
   const [accountId, setAccountId] = useState('');
   const [date, setDate] = useState('');
   const [saving, setSaving] = useState(false);
+  const { t } = useT();
 
   useEffect(() => {
     if (!debt) return;
@@ -234,11 +238,11 @@ export function PaymentDialog({ debt, accounts, onOpenChange, onSaved }: Payment
     setSaving(true);
     try {
       await post(`/api/debts/${debt.id}/payments`, { amount, accountId: accountId || null, date });
-      toast.success(amount >= remaining ? 'Lunas!' : 'Pembayaran dicatat');
+      toast.success(amount >= remaining ? t('Lunas!', 'Paid off!') : t('Pembayaran dicatat', 'Payment recorded'));
       onOpenChange(false);
       onSaved(!!accountId);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Gagal menyimpan');
+      toast.error(err instanceof Error ? err.message : t('Gagal menyimpan', 'Could not save'));
     } finally {
       setSaving(false);
     }
@@ -248,30 +252,34 @@ export function PaymentDialog({ debt, accounts, onOpenChange, onSaved }: Payment
     <Dialog open onOpenChange={(o) => !saving && onOpenChange(o)}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{payable ? `Bayar ke ${debt.person}` : `Terima dari ${debt.person}`}</DialogTitle>
-          <DialogDescription>Sisa {formatMoney(remaining)} dari {formatMoney(debt.amount)}.</DialogDescription>
+          <DialogTitle>
+            {payable ? t(`Bayar ke ${debt.person}`, `Pay ${debt.person}`) : t(`Terima dari ${debt.person}`, `Receive from ${debt.person}`)}
+          </DialogTitle>
+          <DialogDescription>
+            {t(`Sisa ${formatMoney(remaining)} dari ${formatMoney(debt.amount)}.`, `${formatMoney(remaining)} left of ${formatMoney(debt.amount)}.`)}
+          </DialogDescription>
         </DialogHeader>
         <form onSubmit={submit} className="space-y-4">
-          <MoneyInput value={amount} onValueChange={setAmount} size="lg" aria-label="Nominal" autoFocus />
+          <MoneyInput value={amount} onValueChange={setAmount} size="lg" aria-label={t('Nominal', 'Amount')} autoFocus />
           <AccountSelect
             id="payment-account"
-            label={payable ? 'Dibayar dari akun' : 'Masuk ke akun'}
+            label={payable ? t('Dibayar dari akun', 'Paid from') : t('Masuk ke akun', 'Goes into')}
             accounts={accounts}
             value={accountId}
             onChange={setAccountId}
           />
           <div className="space-y-2">
-            <Label htmlFor="payment-date">Tanggal</Label>
+            <Label htmlFor="payment-date">{t('Tanggal', 'Date')}</Label>
             <Input id="payment-date" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
           </div>
           {amount > remaining && (
             <p role="alert" className="text-sm text-destructive">
-              Melebihi sisa {formatMoney(remaining)}
+              {t(`Melebihi sisa ${formatMoney(remaining)}`, `More than the ${formatMoney(remaining)} left`)}
             </p>
           )}
           <DialogFooter>
             <Button type="submit" className="w-full" disabled={saving || amount <= 0 || amount > remaining}>
-              {saving ? 'Menyimpan...' : 'Catat pembayaran'}
+              {saving ? t('Menyimpan...', 'Saving...') : t('Catat pembayaran', 'Record payment')}
             </Button>
           </DialogFooter>
         </form>

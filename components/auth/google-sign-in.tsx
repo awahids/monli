@@ -5,11 +5,15 @@ import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { nextFromLocation, signInWithGoogle } from '@/lib/auth';
+import { useT } from '@/lib/i18n';
 
-const CALLBACK_ERRORS: Record<string, string> = {
-  oauth: 'Masuk dengan Google gagal. Coba lagi.',
-  profile: 'Akun Google berhasil masuk, tapi profil Qala Saku gagal dibuat. Coba lagi.',
-  missing_code: 'Masuk dengan Google dibatalkan.',
+const CALLBACK_ERRORS: Record<string, [string, string]> = {
+  oauth: ['Masuk dengan Google gagal. Coba lagi.', 'Google sign-in failed. Try again.'],
+  profile: [
+    'Akun Google berhasil masuk, tapi profil Qala Saku gagal dibuat. Coba lagi.',
+    'Signed in with Google, but the Qala Saku profile could not be created. Try again.',
+  ],
+  missing_code: ['Masuk dengan Google dibatalkan.', 'Google sign-in was cancelled.'],
 };
 
 function GoogleLogo() {
@@ -24,14 +28,15 @@ function GoogleLogo() {
 }
 
 /** "Continue with Google" plus the "atau" divider above the email form. */
-export function GoogleSignIn({ label = 'Lanjutkan dengan Google' }: { label?: string }) {
+export function GoogleSignIn({ label }: { label?: string }) {
   const [loading, setLoading] = useState(false);
+  const { t } = useT();
 
   // Errors from /auth/callback come back as ?error=…
   useEffect(() => {
     const error = new URLSearchParams(window.location.search).get('error');
-    if (error) toast.error(CALLBACK_ERRORS[error] ?? `Masuk dengan Google gagal: ${error}`);
-  }, []);
+    if (error) toast.error(CALLBACK_ERRORS[error] ? t(...CALLBACK_ERRORS[error]) : t(`Masuk dengan Google gagal: ${error}`, `Google sign-in failed: ${error}`));
+  }, [t]);
 
   const start = async () => {
     setLoading(true);
@@ -40,7 +45,7 @@ export function GoogleSignIn({ label = 'Lanjutkan dengan Google' }: { label?: st
       // The browser is now navigating to Google; keep the spinner.
     } catch (e) {
       setLoading(false);
-      toast.error(e instanceof Error ? e.message : 'Gagal membuka Google');
+      toast.error(e instanceof Error ? e.message : t('Gagal membuka Google', 'Could not open Google'));
     }
   };
 
@@ -48,11 +53,11 @@ export function GoogleSignIn({ label = 'Lanjutkan dengan Google' }: { label?: st
     <div className="mb-6 space-y-6">
       <Button type="button" variant="outline" className="h-11 w-full gap-2" onClick={start} disabled={loading}>
         {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <GoogleLogo />}
-        {label}
+        {label ?? t('Lanjutkan dengan Google', 'Continue with Google')}
       </Button>
       <div className="flex items-center gap-3 text-xs text-muted-foreground">
         <span className="h-px flex-1 bg-border" />
-        atau dengan email
+        {t('atau dengan email', 'or with email')}
         <span className="h-px flex-1 bg-border" />
       </div>
     </div>

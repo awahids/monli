@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { createClient } from '../supabase/server';
 import { READ_ONLY_MESSAGE, SPACE_COOKIE, isUuid, type SpaceRole } from '../space';
+import { serverT } from '../locale-server';
 
 export async function getUser(): Promise<User> {
   const supabase = createClient();
@@ -52,5 +53,5 @@ export async function getSpace(): Promise<Space> {
 }
 
 export function readOnlyResponse() {
-  return NextResponse.json({ error: READ_ONLY_MESSAGE }, { status: 403 });
+  return NextResponse.json({ error: serverT()(...READ_ONLY_MESSAGE) }, { status: 403 });
 }

@@ -4,7 +4,6 @@ import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { PiggyBank, Plus } from 'lucide-react';
 import { format } from 'date-fns';
-import { id as localeId } from 'date-fns/locale';
 import { toast } from 'sonner';
 
 import { useAppStore } from '@/lib/store';
@@ -26,6 +25,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
 import { BudgetDetailDialog, budgetStatus } from '@/components/budgets/budget-detail-dialog';
 import { BudgetFormDialog } from '@/components/budgets/budget-form-dialog';
+import { useT } from '@/lib/i18n';
 
 type BudgetSummary = {
   id: string;
@@ -38,6 +38,7 @@ export default function BudgetsPage() {
   const { user, dataVersion } = useAppStore();
 
   const [budgets, setBudgets] = useState<BudgetSummary[]>([]);
+  const { t, dateLocale, locale } = useT();
   const [loading, setLoading] = useState(true);
   const [year, setYear] = useState('all');
   const [selectedBudgetId, setSelectedBudgetId] = useState<string | null>(null);
@@ -56,11 +57,11 @@ export default function BudgetsPage() {
       setBudgets(data.data ?? []);
     } catch (error) {
       console.error('Failed to fetch budgets:', error);
-      toast.error('Gagal memuat budget');
+      toast.error(t('Gagal memuat budget', 'Could not load budgets'));
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, t]);
 
   // dataVersion: reload after a transaction is added elsewhere (e.g. the + button).
   useEffect(() => {
@@ -76,16 +77,18 @@ export default function BudgetsPage() {
       <div className="flex flex-col gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Budget</h1>
-          <p className="text-sm text-muted-foreground">Batas belanja bulanan dan seberapa banyak yang sudah terpakai.</p>
+          <p className="text-sm text-muted-foreground">
+            {t('Batas belanja bulanan dan seberapa banyak yang sudah terpakai.', 'Monthly spending limits and how much is used.')}
+          </p>
         </div>
         <div className="flex gap-2">
           {years.length > 1 && (
             <Select value={year} onValueChange={setYear}>
               <SelectTrigger className="w-32">
-                <SelectValue placeholder="Tahun" />
+                <SelectValue placeholder={t('Tahun', 'Year')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Semua tahun</SelectItem>
+                <SelectItem value="all">{t('Semua tahun', 'All years')}</SelectItem>
                 {years.map((y) => (
                   <SelectItem key={y} value={y}>
                     {y}
@@ -96,7 +99,7 @@ export default function BudgetsPage() {
           )}
           {!disableAdd && (
             <Button onClick={() => setIsAdding(true)}>
-              <Plus className="mr-1 h-4 w-4" /> Buat budget
+              <Plus className="mr-1 h-4 w-4" /> {t('Buat budget', 'Create budget')}
             </Button>
           )}
         </div>
@@ -104,16 +107,16 @@ export default function BudgetsPage() {
 
       {disableAdd && (
         <p className="rounded-lg border border-dashed p-3 text-sm text-muted-foreground">
-          Paket FREE dibatasi 2 budget.{' '}
+          {t('Paket FREE dibatasi 2 budget.', 'The FREE plan is limited to 2 budgets.')}{' '}
           <Link href="/upgrade" className="font-medium text-primary underline-offset-4 hover:underline">
-            Upgrade ke PRO
+            {t('Upgrade ke PRO', 'Upgrade to PRO')}
           </Link>{' '}
-          untuk budget tanpa batas.
+          {t('untuk budget tanpa batas.', 'for unlimited budgets.')}
         </p>
       )}
 
       {loading ? (
-        <div className="grid gap-4" aria-busy="true" aria-label="Memuat budget">
+        <div className="grid gap-4" aria-busy="true" aria-label={t('Memuat budget', 'Loading budgets')}>
           {Array.from({ length: 3 }).map((_, i) => (
             <Skeleton key={i} className="h-36 rounded-xl" />
           ))}
@@ -121,12 +124,12 @@ export default function BudgetsPage() {
       ) : budgets.length === 0 ? (
         <EmptyState
           icon={PiggyBank}
-          title="Belum ada budget"
-          description="Buat budget bulanan, atau isi otomatis dari pengeluaran bulan lalu."
+          title={t('Belum ada budget', 'No budgets yet')}
+          description={t('Buat budget bulanan, atau isi otomatis dari pengeluaran bulan lalu.', "Create a monthly budget, or fill it from last month's spending.")}
           action={
             !disableAdd && (
               <Button onClick={() => setIsAdding(true)}>
-                <Plus className="mr-1 h-4 w-4" /> Buat budget pertama
+                <Plus className="mr-1 h-4 w-4" /> {t('Buat budget pertama', 'Create your first budget')}
               </Button>
             )
           }
@@ -136,20 +139,20 @@ export default function BudgetsPage() {
           {!hasThisMonth && !disableAdd && (
             <Card className="flex flex-col gap-3 border-dashed p-4">
               <p className="text-sm">
-                Belum ada budget untuk{' '}
+                {t('Belum ada budget untuk', 'No budget yet for')}{' '}
                 <span className="font-medium capitalize">
-                  {format(new Date(`${thisMonth}-01T00:00:00`), 'MMMM yyyy', { locale: localeId })}
+                  {format(new Date(`${thisMonth}-01T00:00:00`), 'MMMM yyyy', { locale: dateLocale })}
                 </span>
                 .
               </p>
               <Button size="sm" variant="outline" onClick={() => setIsAdding(true)}>
-                Buat budget bulan ini
+                {t('Buat budget bulan ini', "Create this month's budget")}
               </Button>
             </Card>
           )}
           <div className="grid gap-4">
             {filteredBudgets.map((b) => {
-              const status = budgetStatus(b.actual, b.planned);
+              const status = budgetStatus(b.actual, b.planned, t);
               const pct = b.planned ? Math.min((b.actual / b.planned) * 100, 100) : 0;
               const remaining = b.planned - b.actual;
               return (
@@ -158,17 +161,17 @@ export default function BudgetsPage() {
                     type="button"
                     onClick={() => setSelectedBudgetId(b.id)}
                     className="w-full space-y-3 p-4 text-left"
-                    aria-label={`Lihat detail budget ${b.month}`}
+                    aria-label={t(`Lihat detail budget ${b.month}`, `View budget details ${b.month}`)}
                   >
                     <div className="flex items-center justify-between gap-2">
                       <span className="font-display font-semibold capitalize">
-                        {format(new Date(`${b.month}-01T00:00:00`), 'MMMM yyyy', { locale: localeId })}
+                        {format(new Date(`${b.month}-01T00:00:00`), 'MMMM yyyy', { locale: dateLocale })}
                         {b.month === thisMonth && (
-                          <span className="ml-2 align-middle text-xs font-normal text-muted-foreground">sekarang</span>
+                          <span className="ml-2 align-middle text-xs font-normal text-muted-foreground">{t('sekarang', 'now')}</span>
                         )}
-                        {periodRange(b.month, getBudgetStartDay()) && (
+                        {periodRange(b.month, getBudgetStartDay(), locale) && (
                           <span className="block text-xs font-normal normal-case text-muted-foreground">
-                            {periodRange(b.month, getBudgetStartDay())}
+                            {periodRange(b.month, getBudgetStartDay(), locale)}
                           </span>
                         )}
                       </span>
@@ -187,7 +190,9 @@ export default function BudgetsPage() {
                           remaining < 0 && 'text-red-600 dark:text-red-400'
                         )}
                       >
-                        {remaining >= 0 ? `Sisa ${formatMoney(remaining)}` : `Lewat ${formatMoney(-remaining)}`}
+                        {remaining >= 0
+                          ? t(`Sisa ${formatMoney(remaining)}`, `${formatMoney(remaining)} left`)
+                          : t(`Lewat ${formatMoney(-remaining)}`, `${formatMoney(-remaining)} over`)}
                       </span>
                     </div>
                   </button>

@@ -26,6 +26,7 @@ import {
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { MoneyInput } from '@/components/ui/money-input';
+import { useT } from '@/lib/i18n';
 
 const accountSchema = z.object({
   name: z.string().trim().min(1, 'Nama akun wajib diisi'),
@@ -45,6 +46,7 @@ interface AccountFormProps {
 // Goes through /api/accounts so the server sets current_balance and enforces
 // the FREE plan's account limit (writing to Supabase directly skipped both).
 export function AccountForm({ account, onSuccess }: AccountFormProps) {
+  const { t } = useT();
   const form = useForm<AccountFormValues>({
     resolver: zodResolver(accountSchema),
     defaultValues: {
@@ -75,12 +77,12 @@ export function AccountForm({ account, onSuccess }: AccountFormProps) {
     if (!res.ok) {
       toast.error(
         res.status === 403
-          ? 'Paket FREE hanya bisa punya 1 akun. Upgrade ke PRO untuk menambah akun.'
-          : data.error || 'Gagal menyimpan akun'
+          ? t('Paket FREE hanya bisa punya 1 akun. Upgrade ke PRO untuk menambah akun.', 'The FREE plan can have only 1 account. Upgrade to PRO to add more.')
+          : data.error || t('Gagal menyimpan akun', 'Could not save the account')
       );
       return;
     }
-    toast.success(account ? 'Akun diperbarui' : 'Akun dibuat');
+    toast.success(account ? t('Akun diperbarui', 'Account updated') : t('Akun dibuat', 'Account created'));
     onSuccess?.();
   };
 
@@ -92,9 +94,9 @@ export function AccountForm({ account, onSuccess }: AccountFormProps) {
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Nama akun</FormLabel>
+              <FormLabel>{t('Nama akun', 'Account name')}</FormLabel>
               <FormControl>
-                <Input placeholder="mis. BCA, GoPay, Dompet" {...field} />
+                <Input placeholder={t('mis. BCA, GoPay, Dompet', 'e.g. Chase, PayPal, Wallet')} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -106,7 +108,7 @@ export function AccountForm({ account, onSuccess }: AccountFormProps) {
             name="type"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Jenis</FormLabel>
+                <FormLabel>{t('Jenis', 'Type')}</FormLabel>
                 <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
@@ -116,7 +118,7 @@ export function AccountForm({ account, onSuccess }: AccountFormProps) {
                   <SelectContent>
                     <SelectItem value="bank">Bank</SelectItem>
                     <SelectItem value="ewallet">E-wallet</SelectItem>
-                    <SelectItem value="cash">Tunai</SelectItem>
+                    <SelectItem value="cash">{t('Tunai', 'Cash')}</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -128,7 +130,7 @@ export function AccountForm({ account, onSuccess }: AccountFormProps) {
             name="currency"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Mata uang</FormLabel>
+                <FormLabel>{t('Mata uang', 'Currency')}</FormLabel>
                 <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
@@ -153,7 +155,7 @@ export function AccountForm({ account, onSuccess }: AccountFormProps) {
           name="openingBalance"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Saldo awal</FormLabel>
+              <FormLabel>{t('Saldo awal', 'Opening balance')}</FormLabel>
               <FormControl>
                 <MoneyInput
                   value={field.value}
@@ -165,8 +167,10 @@ export function AccountForm({ account, onSuccess }: AccountFormProps) {
                 />
               </FormControl>
               <FormDescription>
-                Saldo saat akun ini mulai dicatat. Saldo sekarang dihitung dari
-                saldo awal ditambah semua transaksi.
+                {t(
+                  'Saldo saat akun ini mulai dicatat. Saldo sekarang dihitung dari saldo awal ditambah semua transaksi.',
+                  'The balance when you start tracking this account. The current balance is the opening balance plus all transactions.'
+                )}
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -178,7 +182,7 @@ export function AccountForm({ account, onSuccess }: AccountFormProps) {
             name="accountNumber"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Nomor rekening (opsional)</FormLabel>
+                <FormLabel>{t('Nomor rekening (opsional)', 'Account number (optional)')}</FormLabel>
                 <FormControl>
                   <Input inputMode="numeric" autoComplete="off" {...field} />
                 </FormControl>
@@ -192,7 +196,7 @@ export function AccountForm({ account, onSuccess }: AccountFormProps) {
           style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 1rem)' }}
         >
           <Button type="submit" className="w-full" disabled={isSubmitting}>
-            {isSubmitting ? 'Menyimpan...' : account ? 'Simpan perubahan' : 'Buat akun'}
+            {isSubmitting ? t('Menyimpan...', 'Saving...') : account ? t('Simpan perubahan', 'Save changes') : t('Buat akun', 'Create account')}
           </Button>
         </div>
       </form>

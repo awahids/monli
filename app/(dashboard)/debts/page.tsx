@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { format } from 'date-fns';
-import { id as localeId } from 'date-fns/locale';
 import { HandCoins, MoreVertical, Plus, Trash2, Undo2 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -26,11 +25,13 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { DebtFormDialog, PaymentDialog } from '@/components/debts/debt-dialogs';
+import { useT } from '@/lib/i18n';
 
-const day = (d: string) => format(new Date(`${d}T00:00:00`), 'd MMM yyyy', { locale: localeId });
 
 export default function DebtsPage() {
   const { user, space, accounts, bumpData } = useAppStore();
+  const { t, dateLocale } = useT();
+  const day = (d: string) => format(new Date(`${d}T00:00:00`), 'd MMM yyyy', { locale: dateLocale });
   const ownerId = space?.ownerId ?? user?.id;
   const [debts, setDebts] = useState<Debt[]>([]);
   const [loading, setLoading] = useState(true);
@@ -54,11 +55,11 @@ export default function DebtsPage() {
       if (!res.ok) throw new Error(data.error);
       setDebts(data.data ?? []);
     } catch {
-      toast.error('Gagal memuat hutang & piutang');
+      toast.error(t('Gagal memuat hutang & piutang', 'Could not load debts'));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     fetchDebts();
@@ -80,7 +81,7 @@ export default function DebtsPage() {
   const remove = async (url: string, done: string, moved: boolean) => {
     const res = await fetch(url, { method: 'DELETE' });
     if (!res.ok) {
-      toast.error('Gagal menghapus');
+      toast.error(t('Gagal menghapus', 'Could not delete'));
       return;
     }
     toast.success(done);
@@ -91,16 +92,18 @@ export default function DebtsPage() {
     <div className="space-y-6">
       <div className="flex items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Hutang & piutang</h1>
-          <p className="text-sm text-muted-foreground">Catat pinjaman dan cicilannya, tanpa mengganggu budget.</p>
+          <h1 className="text-2xl font-bold tracking-tight">{t('Hutang & piutang', 'Debts')}</h1>
+          <p className="text-sm text-muted-foreground">
+            {t('Catat pinjaman dan cicilannya, tanpa mengganggu budget.', 'Track loans and repayments without touching your budget.')}
+          </p>
         </div>
         <Button onClick={() => setFormOpen(true)}>
-          <Plus className="mr-1 h-4 w-4" /> Tambah
+          <Plus className="mr-1 h-4 w-4" /> {t('Tambah', 'Add')}
         </Button>
       </div>
 
       {loading ? (
-        <div className="grid gap-4" aria-busy="true" aria-label="Memuat hutang">
+        <div className="grid gap-4" aria-busy="true" aria-label={t('Memuat hutang', 'Loading debts')}>
           {Array.from({ length: 3 }).map((_, i) => (
             <Skeleton key={i} className="h-36 rounded-xl" />
           ))}
@@ -108,11 +111,14 @@ export default function DebtsPage() {
       ) : debts.length === 0 ? (
         <EmptyState
           icon={HandCoins}
-          title="Belum ada hutang atau piutang"
-          description="Catat uang yang kamu pinjam atau pinjamkan, lalu tandai cicilannya sampai lunas."
+          title={t('Belum ada hutang atau piutang', 'No debts yet')}
+          description={t(
+            'Catat uang yang kamu pinjam atau pinjamkan, lalu tandai cicilannya sampai lunas.',
+            'Record money you borrow or lend, then track repayments until it is paid off.'
+          )}
           action={
             <Button onClick={() => setFormOpen(true)}>
-              <Plus className="mr-1 h-4 w-4" /> Catat yang pertama
+              <Plus className="mr-1 h-4 w-4" /> {t('Catat yang pertama', 'Record the first one')}
             </Button>
           }
         />
@@ -120,13 +126,13 @@ export default function DebtsPage() {
         <>
           <div className="grid grid-cols-2 gap-3">
             <Card className="p-4">
-              <p className="text-sm text-muted-foreground">Hutang saya</p>
+              <p className="text-sm text-muted-foreground">{t('Hutang saya', 'I owe')}</p>
               <p className="font-display text-xl font-bold tabular-nums text-red-600 dark:text-red-400" data-testid="total-payable">
                 {formatMoney(totals.payable)}
               </p>
             </Card>
             <Card className="p-4">
-              <p className="text-sm text-muted-foreground">Piutang saya</p>
+              <p className="text-sm text-muted-foreground">{t('Piutang saya', 'Owed to me')}</p>
               <p className="font-display text-xl font-bold tabular-nums text-green-600 dark:text-green-400" data-testid="total-receivable">
                 {formatMoney(totals.receivable)}
               </p>
@@ -135,14 +141,16 @@ export default function DebtsPage() {
 
           <Tabs value={tab} onValueChange={(v) => setTab(v as DebtKind)}>
             <TabsList>
-              <TabsTrigger value="payable">Hutang ({debts.filter((d) => d.kind === 'payable').length})</TabsTrigger>
-              <TabsTrigger value="receivable">Piutang ({debts.filter((d) => d.kind === 'receivable').length})</TabsTrigger>
+              <TabsTrigger value="payable">{t('Hutang', 'I owe')} ({debts.filter((d) => d.kind === 'payable').length})</TabsTrigger>
+              <TabsTrigger value="receivable">{t('Piutang', 'Owed to me')} ({debts.filter((d) => d.kind === 'receivable').length})</TabsTrigger>
             </TabsList>
           </Tabs>
 
           {shown.length === 0 && (
             <p className="text-sm text-muted-foreground">
-              {tab === 'payable' ? 'Tidak ada hutang. Mantap!' : 'Tidak ada yang meminjam uangmu.'}
+              {tab === 'payable'
+                ? t('Tidak ada hutang. Mantap!', 'No debts. Nice!')
+                : t('Tidak ada yang meminjam uangmu.', 'Nobody owes you money.')}
             </p>
           )}
 
@@ -163,13 +171,13 @@ export default function DebtsPage() {
                     </div>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="-mr-2 -mt-1 h-8 w-8" aria-label={`Opsi ${d.person}`}>
+                        <Button variant="ghost" size="icon" className="-mr-2 -mt-1 h-8 w-8" aria-label={t(`Opsi ${d.person}`, `Options for ${d.person}`)}>
                           <MoreVertical className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem className="text-destructive" onClick={() => setDeleting(d)}>
-                          <Trash2 className="mr-2 h-4 w-4" /> Hapus
+                          <Trash2 className="mr-2 h-4 w-4" /> {t('Hapus', 'Delete')}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -180,7 +188,9 @@ export default function DebtsPage() {
                       <span className="font-display text-xl font-bold tabular-nums" data-testid="debt-remaining">
                         {formatMoney(s.remaining)}
                       </span>
-                      <span className="text-sm text-muted-foreground tabular-nums">dari {formatMoney(d.amount)}</span>
+                      <span className="text-sm text-muted-foreground tabular-nums">
+                        {t('dari', 'of')} {formatMoney(d.amount)}
+                      </span>
                     </div>
                     <Progress value={s.pct} className="h-2" />
                   </div>
@@ -196,14 +206,14 @@ export default function DebtsPage() {
                     )}
                   >
                     {s.settled
-                      ? 'Lunas'
+                      ? t('Lunas', 'Paid off')
                       : d.due_date
-                      ? `${s.overdue ? 'Lewat jatuh tempo' : 'Jatuh tempo'} ${day(d.due_date)}`
-                      : 'Tanpa jatuh tempo'}
+                      ? `${s.overdue ? t('Lewat jatuh tempo', 'Overdue since') : t('Jatuh tempo', 'Due')} ${day(d.due_date)}`
+                      : t('Tanpa jatuh tempo', 'No due date')}
                   </p>
 
                   {payments.length > 0 && (
-                    <ul className="space-y-1 text-sm" aria-label={`Pembayaran ${d.person}`}>
+                    <ul className="space-y-1 text-sm" aria-label={t(`Pembayaran ${d.person}`, `Payments from ${d.person}`)}>
                       {payments.map((p) => (
                         <li key={p.id} className="flex items-center gap-2">
                           <span className="flex-1 text-muted-foreground">
@@ -215,8 +225,8 @@ export default function DebtsPage() {
                             variant="ghost"
                             size="icon"
                             className="h-7 w-7"
-                            aria-label="Batalkan pembayaran"
-                            onClick={() => remove(`/api/debts/${d.id}/payments/${p.id}`, 'Pembayaran dibatalkan', !!p.account_id)}
+                            aria-label={t('Batalkan pembayaran', 'Undo payment')}
+                            onClick={() => remove(`/api/debts/${d.id}/payments/${p.id}`, t('Pembayaran dibatalkan', 'Payment undone'), !!p.account_id)}
                           >
                             <Undo2 className="h-3.5 w-3.5" />
                           </Button>
@@ -227,7 +237,7 @@ export default function DebtsPage() {
 
                   {!s.settled && (
                     <Button variant="outline" className="mt-auto" onClick={() => setPaying(d)}>
-                      {d.kind === 'payable' ? 'Bayar' : 'Terima pembayaran'}
+                      {d.kind === 'payable' ? t('Bayar', 'Pay') : t('Terima pembayaran', 'Receive payment')}
                     </Button>
                   )}
                 </Card>
@@ -242,13 +252,16 @@ export default function DebtsPage() {
       <ConfirmDialog
         open={deleting !== null}
         onOpenChange={(o) => !o && setDeleting(null)}
-        title={`Hapus catatan "${deleting?.person ?? ''}"?`}
-        description="Semua perubahan saldo akun dari catatan ini dan pembayarannya akan dibatalkan."
-        confirmLabel="Hapus"
-        cancelLabel="Batal"
+        title={t(`Hapus catatan "${deleting?.person ?? ''}"?`, `Delete "${deleting?.person ?? ''}"?`)}
+        description={t(
+          'Semua perubahan saldo akun dari catatan ini dan pembayarannya akan dibatalkan.',
+          'All account balance changes from this record and its payments will be reversed.'
+        )}
+        confirmLabel={t('Hapus', 'Delete')}
+        cancelLabel={t('Batal', 'Cancel')}
         onConfirm={() =>
           deleting
-            ? remove(`/api/debts/${deleting.id}`, 'Catatan dihapus', !!deleting.entries?.some((e) => e.account_id))
+            ? remove(`/api/debts/${deleting.id}`, t('Catatan dihapus', 'Record deleted'), !!deleting.entries?.some((e) => e.account_id))
             : undefined
         }
       />

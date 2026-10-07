@@ -50,12 +50,14 @@ import {
 import { Pencil, Trash2 } from 'lucide-react';
 import { CategoryIcon } from '@/components/transactions/category-icon';
 import { AppLockCard } from '@/components/security/app-lock';
+import { setLocale, useT } from '@/lib/i18n';
 
 const profileFormSchema = profileSchema;
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
 export default function SettingsPage() {
   const { toast } = useToast();
+  const { t, locale } = useT();
   const [email, setEmail] = useState('');
   const [categories, setCategories] = useState<Category[]>([]);
   const [typeFilter, setTypeFilter] = useState<'all' | 'expense' | 'income'>('all');
@@ -93,14 +95,14 @@ export default function SettingsPage() {
     });
     if (!res.ok) {
       const { error } = await res.json();
-      toast({ description: error || 'Gagal menyimpan profil', variant: 'destructive' });
+      toast({ description: error || t('Gagal menyimpan profil', 'Could not save profile'), variant: 'destructive' });
       return;
     }
     const { moved } = await res.json().catch(() => ({}));
     toast({
       description: moved
-        ? `Profil tersimpan. ${moved} transaksi dipindah ke periode yang sesuai.`
-        : 'Profil tersimpan',
+        ? t(`Profil tersimpan. ${moved} transaksi dipindah ke periode yang sesuai.`, `Profile saved. ${moved} transactions moved to the matching period.`)
+        : t('Profil tersimpan', 'Profile saved'),
     });
     profileForm.reset(values);
     // Keep the shared user in sync so amounts re-render in the new currency.
@@ -126,10 +128,10 @@ export default function SettingsPage() {
       if (res.ok) {
         const updated = await res.json();
         setCategories((prev) => prev.map((c) => (c.id === updated.id ? updated : c)));
-        toast({ description: 'Kategori tersimpan' });
+        toast({ description: t('Kategori tersimpan', 'Category saved') });
       } else {
         const { error } = await res.json();
-        toast({ description: error || 'Gagal menyimpan', variant: 'destructive' });
+        toast({ description: error || t('Gagal menyimpan', 'Could not save'), variant: 'destructive' });
       }
     } else {
       const res = await fetch('/api/settings/categories', {
@@ -140,10 +142,10 @@ export default function SettingsPage() {
       if (res.ok) {
         const created = await res.json();
         setCategories((prev) => [...prev, created]);
-        toast({ description: 'Kategori tersimpan' });
+        toast({ description: t('Kategori tersimpan', 'Category saved') });
       } else {
         const { error } = await res.json();
-        toast({ description: error || 'Gagal menyimpan', variant: 'destructive' });
+        toast({ description: error || t('Gagal menyimpan', 'Could not save'), variant: 'destructive' });
       }
     }
   }
@@ -152,10 +154,10 @@ export default function SettingsPage() {
     const res = await fetch(`/api/settings/categories/${id}`, { method: 'DELETE' });
     if (res.ok) {
       setCategories((prev) => prev.filter((c) => c.id !== id));
-      toast({ description: 'Kategori dihapus' });
+      toast({ description: t('Kategori dihapus', 'Category deleted') });
     } else {
       const { error } = await res.json();
-      toast({ description: error || 'Gagal menghapus kategori', variant: 'destructive' });
+      toast({ description: error || t('Gagal menghapus kategori', 'Could not delete category'), variant: 'destructive' });
     }
     setDeleteId(null);
   }
@@ -169,13 +171,15 @@ export default function SettingsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Pengaturan</h1>
-        <p className="text-muted-foreground">Atur profil, mata uang, kategori, dan kelola bersama.</p>
+        <h1 className="text-2xl font-bold tracking-tight">{t('Pengaturan', 'Settings')}</h1>
+        <p className="text-muted-foreground">
+          {t('Atur profil, mata uang, kategori, dan kelola bersama.', 'Profile, currency, categories and sharing.')}
+        </p>
       </div>
       <div className="grid gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Profil & preferensi</CardTitle>
+            <CardTitle>{t('Profil & preferensi', 'Profile & preferences')}</CardTitle>
           </CardHeader>
           <Form {...profileForm}>
             <form onSubmit={profileForm.handleSubmit(onProfileSubmit)}>
@@ -185,7 +189,7 @@ export default function SettingsPage() {
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Nama</FormLabel>
+                      <FormLabel>{t('Nama', 'Name')}</FormLabel>
                       <FormControl>
                         <Input {...field} />
                       </FormControl>
@@ -197,12 +201,24 @@ export default function SettingsPage() {
                   <FormLabel>Email</FormLabel>
                   <Input value={email} readOnly disabled />
                 </div>
+                <div className="space-y-2">
+                  <FormLabel htmlFor="language">{t('Bahasa', 'Language')}</FormLabel>
+                  <Select value={locale} onValueChange={(v) => setLocale(v as 'id' | 'en')}>
+                    <SelectTrigger id="language" aria-label={t('Bahasa', 'Language')}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="id">Bahasa Indonesia</SelectItem>
+                      <SelectItem value="en">English</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
                 <FormField
                   control={profileForm.control}
                   name="defaultCurrency"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Mata uang</FormLabel>
+                      <FormLabel>{t('Mata uang', 'Currency')}</FormLabel>
                       <FormControl>
                         <Select value={field.value} onValueChange={field.onChange}>
                           <SelectTrigger>
@@ -224,7 +240,7 @@ export default function SettingsPage() {
                   name="budgetStartDay"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Periode budget dimulai tanggal</FormLabel>
+                      <FormLabel>{t('Periode budget dimulai tanggal', 'Budget period starts on day')}</FormLabel>
                       <FormControl>
                         <Select value={String(field.value)} onValueChange={(v) => field.onChange(Number(v))}>
                           <SelectTrigger>
@@ -233,15 +249,17 @@ export default function SettingsPage() {
                           <SelectContent>
                             {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
                               <SelectItem key={d} value={String(d)}>
-                                {d === 1 ? '1 (bulan kalender)' : `Tanggal ${d}`}
+                                {d === 1 ? t('1 (bulan kalender)', '1 (calendar month)') : t(`Tanggal ${d}`, `Day ${d}`)}
                               </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
                       </FormControl>
                       <FormDescription>
-                        Pilih tanggal gajian kalau budget kamu mengikuti gaji. Misalnya 25: transaksi 25
-                        September sampai 24 Oktober masuk budget Oktober.
+                        {t(
+                          'Pilih tanggal gajian kalau budget kamu mengikuti gaji. Misalnya 25: transaksi 25 September sampai 24 Oktober masuk budget Oktober.',
+                          'Pick your payday if your budget follows your salary. For example 25: transactions from 25 September to 24 October count toward the October budget.'
+                        )}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -250,7 +268,7 @@ export default function SettingsPage() {
               </CardContent>
               <CardFooter>
                 <Button type="submit" disabled={!profileForm.formState.isDirty}>
-                  Simpan perubahan
+                  {t('Simpan perubahan', 'Save changes')}
                 </Button>
               </CardFooter>
             </form>
@@ -259,14 +277,14 @@ export default function SettingsPage() {
 
         <Card className="flex flex-col">
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Kategori</CardTitle>
+            <CardTitle>{t('Kategori', 'Categories')}</CardTitle>
             <Button
               onClick={() => {
                 setEditingCategory(undefined);
                 setCategoryDialogOpen(true);
               }}
             >
-              Tambah kategori
+              {t('Tambah kategori', 'Add category')}
             </Button>
           </CardHeader>
           <CardContent className="space-y-4 flex-1">
@@ -277,12 +295,12 @@ export default function SettingsPage() {
                 onValueChange={(v) => setTypeFilter((v as any) || 'all')}
                 className="w-full"
               >
-                <ToggleGroupItem value="all">Semua</ToggleGroupItem>
-                <ToggleGroupItem value="expense">Pengeluaran</ToggleGroupItem>
-                <ToggleGroupItem value="income">Pemasukan</ToggleGroupItem>
+                <ToggleGroupItem value="all">{t('Semua', 'All')}</ToggleGroupItem>
+                <ToggleGroupItem value="expense">{t('Pengeluaran', 'Expense')}</ToggleGroupItem>
+                <ToggleGroupItem value="income">{t('Pemasukan', 'Income')}</ToggleGroupItem>
               </ToggleGroup>
               <Input
-                placeholder="Cari kategori..."
+                placeholder={t('Cari kategori...', 'Search categories...')}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="w-full"
@@ -290,7 +308,7 @@ export default function SettingsPage() {
             </div>
           {filtered.length === 0 ? (
             <div className="text-center py-10 text-sm text-muted-foreground">
-              Tidak ada kategori yang cocok.
+              {t('Tidak ada kategori yang cocok.', 'No matching categories.')}
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -302,7 +320,7 @@ export default function SettingsPage() {
                           <CategoryIcon name={c.icon} className="h-5 w-5" />
                           <div>
                             <p className="font-medium leading-none">{c.name}</p>
-                            <p className="text-sm text-muted-foreground">{c.type === 'income' ? 'Pemasukan' : 'Pengeluaran'}</p>
+                            <p className="text-sm text-muted-foreground">{c.type === 'income' ? t('Pemasukan', 'Income') : t('Pengeluaran', 'Expense')}</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
@@ -346,15 +364,18 @@ export default function SettingsPage() {
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Hapus kategori?</AlertDialogTitle>
+            <AlertDialogTitle>{t('Hapus kategori?', 'Delete category?')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Kategori yang masih dipakai transaksi tidak bisa dihapus. Tindakan ini tidak bisa dibatalkan.
+              {t(
+                'Kategori yang masih dipakai transaksi tidak bisa dihapus. Tindakan ini tidak bisa dibatalkan.',
+                'Categories still used by transactions cannot be deleted. This cannot be undone.'
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Batal</AlertDialogCancel>
+            <AlertDialogCancel>{t('Batal', 'Cancel')}</AlertDialogCancel>
             <AlertDialogAction onClick={() => deleteId && handleDeleteCategory(deleteId)}>
-              Hapus
+              {t('Hapus', 'Delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

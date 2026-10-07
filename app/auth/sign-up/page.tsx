@@ -22,6 +22,8 @@ import { Loader2 } from 'lucide-react';
 import { QalaMark } from "@/components/brand/qala-mark";
 import { GoogleSignIn } from "@/components/auth/google-sign-in";
 import { QalaFamilyLink } from "@/components/brand/qala-family";
+import { LanguageLink } from '@/components/layout/language-link';
+import { useMessage, useT } from '@/lib/i18n';
 
 const signUpSchema = z.object({
   name: z.string().min(2, 'Nama minimal 2 karakter'),
@@ -39,6 +41,8 @@ export default function SignUpPage() {
   const { toast } = useToast();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const { t } = useT();
+  const message = useMessage();
 
   const {
     register,
@@ -63,12 +67,12 @@ export default function SignUpPage() {
       const result = await response.json();
       
       if (!result.ok) {
-        throw new Error(result.error || 'Pendaftaran gagal');
+        throw new Error(result.error || t('Pendaftaran gagal', 'Sign-up failed'));
       }
       
       toast({
-        title: 'Pendaftaran berhasil!',
-        description: "Cek email kamu untuk verifikasi akun, lalu masuk.",
+        title: t('Pendaftaran berhasil!', 'Signed up!'),
+        description: t('Cek email kamu untuk verifikasi akun, lalu masuk.', 'Check your email to verify your account, then sign in.'),
       });
 
       // Redirect to sign-in page after successful registration
@@ -76,8 +80,8 @@ export default function SignUpPage() {
     } catch (e) {
       console.error('Sign up error:', e);
       toast({
-        title: 'Pendaftaran gagal',
-        description: e instanceof Error ? e.message : 'Terjadi kesalahan',
+        title: t('Pendaftaran gagal', 'Sign-up failed'),
+        description: e instanceof Error ? e.message : t('Terjadi kesalahan', 'Something went wrong'),
         variant: 'destructive',
       });
     } finally {
@@ -96,28 +100,28 @@ export default function SignUpPage() {
       <Card className="w-full max-w-md relative shadow-xl border-0 bg-card/95 backdrop-blur-sm">
         <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-transparent to-primary/10 rounded-lg" />
         <CardHeader className="text-center relative z-10 pb-8">
-          <Link href="/" aria-label="Qala Saku, beranda" className="mx-auto mb-4 inline-flex rounded-md">
+          <Link href="/" aria-label={t('Qala Saku, beranda', 'Qala Saku, home')} className="mx-auto mb-4 inline-flex rounded-md">
             <QalaMark className="h-10" />
           </Link>
           <CardTitle className="text-2xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
-            Buat akun
+            {t('Buat akun', 'Create account')}
           </CardTitle>
           <CardDescription className="text-muted-foreground/80">
-            Mulai atur keuanganmu dengan Qala Saku
+            {t('Mulai atur keuanganmu dengan Qala Saku', 'Start managing your money with Qala Saku')}
           </CardDescription>
         </CardHeader>
         <CardContent className="relative z-10 pt-0">
-          <GoogleSignIn label="Daftar dengan Google" />
+          <GoogleSignIn label={t('Daftar dengan Google', 'Sign up with Google')} />
           <form
             onSubmit={handleSubmit(onSubmit, onError)}
             className="space-y-6"
           >
             <div className="space-y-2">
-              <Label htmlFor="name" className="text-sm font-medium text-foreground/90">Nama lengkap</Label>
+              <Label htmlFor="name" className="text-sm font-medium text-foreground/90">{t('Nama lengkap', 'Full name')}</Label>
               <Input
                 id="name"
                 {...register('name')}
-                placeholder="Nama lengkap"
+                placeholder={t('Nama lengkap', 'Full name')}
                 disabled={loading}
                 className="h-11 bg-background/50 border-border/50 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all duration-200"
                 aria-invalid={!!errors.name}
@@ -128,7 +132,7 @@ export default function SignUpPage() {
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  {errors.name.message}
+                  {message(errors.name.message ?? '')}
                 </p>
               )}
             </div>
@@ -139,7 +143,7 @@ export default function SignUpPage() {
                 id="email"
                 {...register('email')}
                 type="email"
-                placeholder="Masukkan email"
+                placeholder={t('Masukkan email', 'Enter your email')}
                 disabled={loading}
                 className="h-11 bg-background/50 border-border/50 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all duration-200"
                 aria-invalid={!!errors.email}
@@ -150,18 +154,18 @@ export default function SignUpPage() {
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  {errors.email.message}
+                  {message(errors.email.message ?? '')}
                 </p>
               )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-sm font-medium text-foreground/90">Kata sandi</Label>
+              <Label htmlFor="password" className="text-sm font-medium text-foreground/90">{t('Kata sandi', 'Password')}</Label>
               <Input
                 id="password"
                 {...register('password')}
                 type="password"
-                placeholder="Buat kata sandi"
+                placeholder={t('Buat kata sandi', 'Create a password')}
                 disabled={loading}
                 className="h-11 bg-background/50 border-border/50 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all duration-200"
                 aria-invalid={!!errors.password}
@@ -172,18 +176,18 @@ export default function SignUpPage() {
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  {errors.password.message}
+                  {message(errors.password.message ?? '')}
                 </p>
               )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword" className="text-sm font-medium text-foreground/90">Ulangi kata sandi</Label>
+              <Label htmlFor="confirmPassword" className="text-sm font-medium text-foreground/90">{t('Ulangi kata sandi', 'Repeat password')}</Label>
               <Input
                 id="confirmPassword"
                 {...register('confirmPassword')}
                 type="password"
-                placeholder="Ulangi kata sandi"
+                placeholder={t('Ulangi kata sandi', 'Repeat password')}
                 disabled={loading}
                 className="h-11 bg-background/50 border-border/50 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all duration-200"
                 aria-invalid={!!errors.confirmPassword}
@@ -199,7 +203,7 @@ export default function SignUpPage() {
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  {errors.confirmPassword.message}
+                  {message(errors.confirmPassword.message ?? '')}
                 </p>
               )}
             </div>
@@ -212,11 +216,11 @@ export default function SignUpPage() {
               {loading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Membuat akun...
+                  {t('Membuat akun...', 'Creating account...')}
                 </>
               ) : (
                 <>
-                  <span>Buat akun</span>
+                  <span>{t('Buat akun', 'Create account')}</span>
                   <svg className="ml-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                   </svg>
@@ -226,12 +230,12 @@ export default function SignUpPage() {
 
             <div className="text-center pt-4">
               <p className="text-sm text-muted-foreground">
-                Sudah punya akun?{' '}
+                {t('Sudah punya akun?', 'Already have an account?')}{' '}
                 <Link
                   href="/auth/sign-in"
                   className="text-primary hover:text-primary/80 font-medium hover:underline transition-colors"
                 >
-                  Masuk
+                  {t('Masuk', 'Sign in')}
                 </Link>
               </p>
             </div>
@@ -239,6 +243,7 @@ export default function SignUpPage() {
         </CardContent>
       </Card>
       <QalaFamilyLink className="relative text-xs text-muted-foreground" />
+      <LanguageLink className="relative" />
     </div>
   );
 }

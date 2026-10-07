@@ -14,6 +14,7 @@ import {
 
 import { cn } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
+import { useMessage } from '@/lib/i18n';
 
 const Form = FormProvider;
 
@@ -148,7 +149,8 @@ const FormMessage = React.forwardRef<
   React.HTMLAttributes<HTMLParagraphElement>
 >(({ className, children, ...props }, ref) => {
   const { error, formMessageId } = useFormField();
-  const body = error ? String(error?.message) : children;
+  const message = useMessage();
+  const body = error ? message(String(error?.message)) : children;
 
   if (!body) {
     return null;
