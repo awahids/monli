@@ -36,6 +36,7 @@ export const CHANGELOG: ChangelogEntry[] = [
       { type: 'peningkatan', text: 'Form terbuka dari bawah layar dan konfirmasi tampil sebagai kartu kecil.' },
       { type: 'peningkatan', text: 'Landing page baru dengan gaya editorial gelap.' },
       { type: 'peningkatan', text: 'Halaman aplikasi lebih ringan: JavaScript yang diunduh berkurang sekitar 25–40%, sehingga lebih cepat dibuka di HP.' },
+      { type: 'perbaikan', text: 'Halaman yang belum sempat dibuka, seperti Budget dan Akun, kini juga bisa dibuka saat offline.' },
       { type: 'perbaikan', text: 'Edit dan hapus transaksi kembali berfungsi.' },
       { type: 'perbaikan', text: 'Periode budget yang dimulai di tanggal gajian (mis. 26) kini dipakai di semua halaman: Beranda, Transaksi ("Periode ini"), Budget, dan Laporan, lengkap dengan rentang tanggalnya.' },
       { type: 'perbaikan', text: 'Saat tanggal mulai periode diganti, transaksi lama ikut pindah ke periode yang sesuai; yang bulan budget-nya diubah manual tidak disentuh.' },
