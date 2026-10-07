@@ -3,6 +3,7 @@ import { getUser } from '@/lib/auth/server';
 import { createSumopodClient, getSumopodModel } from '@/lib/sumopod';
 import { createClient } from '@/lib/supabase/server';
 import { AI_MONTHLY_LIMITS, getAiUsageCount, logAiUsage } from '@/lib/ai-usage';
+import { OCR_PROMPT, parseOcrReply } from '@/lib/ocr';
 
 export async function POST(req: Request) {
   try {
@@ -47,14 +48,14 @@ export async function POST(req: Request) {
         {
           role: 'system',
           content:
-            'You are an OCR assistant that extracts transaction details from shopping receipts. Respond in JSON.',
+            'You extract transactions from receipts and bank or e-wallet transaction history screenshots. Respond in JSON.',
         },
         {
           role: 'user',
           content: [
             {
               type: 'text',
-              text: 'Extract line items with description and amount, the total amount (in numbers) and purchase date (yyyy-mm-dd) from this receipt image. Reply with JSON {"items":[{"description":string,"amount":number}],"total":number,"date":string|null}.',
+              text: OCR_PROMPT,
             },
             {
               type: 'image_url',
@@ -66,31 +67,20 @@ export async function POST(req: Request) {
         },
       ],
       temperature: 0,
-      max_tokens: 500,
+      // A history screenshot can hold a dozen rows; 500 cut the JSON off.
+      max_tokens: 2000,
     });
 
-    const content = completion.choices[0]?.message?.content || '{}';
+    const result = parseOcrReply(completion.choices[0]?.message?.content ?? '');
+    if (!result.items.length && !result.total) {
+      return NextResponse.json(
+        { error: 'Tidak ada transaksi yang terbaca. Coba foto yang lebih jelas dan tegak.' },
+        { status: 422 }
+      );
+    }
     // Only successful scans count towards the quota.
     if (user.email) await logAiUsage(supabase, user.email, 'ocr');
-    let data: any = {};
-    try {
-      data = JSON.parse(content);
-    } catch {
-      data = {};
-    }
-
-    const items = Array.isArray(data.items)
-      ? data.items.map((it: any) => ({
-          description: it.description ?? '',
-          amount: it.amount ?? 0,
-        }))
-      : [];
-
-    return NextResponse.json({
-      items,
-      total: data.total ?? 0,
-      date: data.date ?? null,
-    });
+    return NextResponse.json(result);
   } catch (e) {
     console.error(e);
     const message = e instanceof Error ? e.message : 'Failed to parse receipt';

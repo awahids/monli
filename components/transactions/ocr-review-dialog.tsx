@@ -16,8 +16,7 @@ import {
 } from './transaction-form';
 import { Account, Category } from '@/types';
 import { defaultBudgetMonth } from '@/lib/budget-period';
-
-export type OcrItem = { description: string; amount: number };
+import type { OcrItem } from '@/lib/ocr';
 
 interface ItemFormProps {
   item: OcrItem;
@@ -33,7 +32,9 @@ export interface ItemFormHandle {
 }
 
 const OcrItemForm = forwardRef<ItemFormHandle, ItemFormProps>(
-  ({ item, accounts, categories, date, contentEl }, ref) => {
+  ({ item, accounts, categories, date: scanDate, contentEl }, ref) => {
+    // Rows of a bank history carry their own date; receipts use the scan date.
+    const date = item.date ? new Date(`${item.date}T00:00:00+07:00`) : scanDate;
     const form = useForm<
       z.input<typeof formSchema>,
       any,
@@ -43,7 +44,7 @@ const OcrItemForm = forwardRef<ItemFormHandle, ItemFormProps>(
       defaultValues: {
         budgetMonth: defaultBudgetMonth(date),
         actualDate: date,
-        type: 'expense',
+        type: item.type ?? 'expense',
         accountId: accounts[0]?.id,
         fromAccountId: undefined,
         toAccountId: undefined,
@@ -53,6 +54,11 @@ const OcrItemForm = forwardRef<ItemFormHandle, ItemFormProps>(
         tags: [],
       },
     });
+
+    // Accounts may arrive after the dialog opened (e.g. right after a reload).
+    useEffect(() => {
+      if (!form.getValues('accountId') && accounts[0]) form.setValue('accountId', accounts[0].id, { shouldValidate: true });
+    }, [accounts, form]);
 
     useImperativeHandle(ref, () => ({
       validate: async () =>
