@@ -61,8 +61,6 @@ export const getCurrentMonth = () =>
     .format(new Date())
     .slice(0, 7);
 
-/** "YYYY-MM-DD" stored dates are Jakarta calendar days. */
-const fromStoredDate = (value: string) => new Date(`${value}T00:00:00+07:00`);
 
 export const formSchema = z
   .object({
@@ -113,6 +111,27 @@ export const formSchema = z
 // Use the inferred output type for consumers of the form
 export type TransactionFormValues = z.infer<typeof formSchema>;
 type FormInput = z.input<typeof formSchema>;
+
+/** "YYYY-MM-DD" stored dates are Jakarta calendar days. */
+const fromStoredDate = (value: string) => new Date(`${value}T00:00:00+07:00`);
+
+/**
+ * Form values for editing a saved transaction. Rows store null for fields of
+ * other types; the schema wants undefined, otherwise validation fails on a
+ * hidden field and Save silently does nothing.
+ */
+export const toFormValues = (t: Transaction): FormInput => ({
+  budgetMonth: t.budgetMonth,
+  actualDate: fromStoredDate(t.actualDate),
+  type: t.type,
+  accountId: t.accountId ?? undefined,
+  fromAccountId: t.fromAccountId ?? undefined,
+  toAccountId: t.toAccountId ?? undefined,
+  categoryId: t.categoryId,
+  amount: t.amount,
+  note: t.note || '',
+  tags: t.tags || [],
+});
 
 const TYPE_OPTIONS = [
   { value: 'expense', label: 'Pengeluaran', active: 'bg-red-600 text-white' },
@@ -615,18 +634,7 @@ export function TransactionForm({
   useEffect(() => {
     if (!open) return;
     if (transaction) {
-      form.reset({
-        budgetMonth: transaction.budgetMonth,
-        actualDate: fromStoredDate(transaction.actualDate),
-        type: transaction.type,
-        accountId: transaction.accountId,
-        fromAccountId: transaction.fromAccountId,
-        toAccountId: transaction.toAccountId,
-        categoryId: transaction.categoryId,
-        amount: transaction.amount,
-        note: transaction.note || '',
-        tags: transaction.tags || [],
-      });
+      form.reset(toFormValues(transaction));
     } else {
       form.reset(newDefaults(accounts, categories, initialValues));
     }
