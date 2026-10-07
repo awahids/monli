@@ -95,6 +95,7 @@ export default function SignInPage() {
                 Email
               </Label>
               <Input
+                id="email"
                 {...register("email")}
                 type="email"
                 placeholder="Masukkan email"
@@ -130,6 +131,7 @@ export default function SignInPage() {
               </Label>
               <div className="relative">
                 <Input
+                  id="password"
                   {...register("password")}
                   type={showPassword ? "text" : "password"}
                   placeholder="Masukkan kata sandi"

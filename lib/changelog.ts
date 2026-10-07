@@ -26,6 +26,7 @@ export const CHANGELOG: ChangelogEntry[] = [
       { type: 'peningkatan', text: 'Form terbuka dari bawah layar dan konfirmasi tampil sebagai kartu kecil.' },
       { type: 'peningkatan', text: 'Landing page baru dengan gaya editorial gelap.' },
       { type: 'perbaikan', text: 'Edit dan hapus transaksi kembali berfungsi.' },
+      { type: 'perbaikan', text: 'Kolom email dan kata sandi di halaman Masuk terbaca oleh pembaca layar.' },
     ],
   },
   {
