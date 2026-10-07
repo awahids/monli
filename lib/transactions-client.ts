@@ -1,4 +1,4 @@
-import type { Account, Transaction } from '@/types';
+import type { Account, Category, Transaction } from '@/types';
 import type { TransactionFormValues } from '@/components/transactions/transaction-form';
 import { supabase } from '@/lib/supabase/client';
 import { useAppStore } from '@/lib/store';
@@ -30,7 +30,10 @@ export function toTransactionPayload(values: TransactionFormValues) {
 
 export type TransactionPayload = ReturnType<typeof toTransactionPayload>;
 
-/** Creates (no id) or updates a transaction. Throws with the API message on failure. */
+/**
+ * Creates (no id) or updates a transaction. Throws with the API message on
+ * failure. On success every page showing totals reloads (see `dataVersion`).
+ */
 export async function saveTransaction(
   payload: TransactionPayload,
   id?: string,
@@ -42,6 +45,7 @@ export async function saveTransaction(
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data.error || 'Failed to save transaction');
+  useAppStore.getState().bumpData();
   return keysToCamel<Transaction>(data);
 }
 
@@ -51,6 +55,7 @@ export async function deleteTransaction(id: string): Promise<void> {
     const data = await res.json().catch(() => ({}));
     throw new Error(data.error || 'Failed to delete transaction');
   }
+  useAppStore.getState().bumpData();
 }
 
 /** Optimistic local copy used while offline. */
@@ -87,4 +92,24 @@ export async function refreshActiveAccounts(userId: string): Promise<void> {
   if (!error && data) {
     useAppStore.getState().setAccounts(keysToCamel<Account[]>(data));
   }
+}
+
+/**
+ * Loads accounts and categories for the transaction form when the current
+ * page has not (e.g. the app was opened on Budget or Reports).
+ */
+export async function ensureFormOptions(ownerId: string): Promise<void> {
+  const { accounts, categories, setCategories } = useAppStore.getState();
+  await Promise.all([
+    accounts.length ? null : refreshActiveAccounts(ownerId),
+    categories.length
+      ? null
+      : supabase
+          .from('categories')
+          .select('*')
+          .eq('user_id', ownerId)
+          .then(({ data }) => {
+            if (data) setCategories(keysToCamel<Category[]>(data));
+          }),
+  ]);
 }

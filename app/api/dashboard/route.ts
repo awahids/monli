@@ -5,6 +5,7 @@ import { getSpace } from '@/lib/auth/server';
 import { budgetPeriod, daysBetweenInclusive, formatDate, nextMonthStart } from '@/lib/date';
 import type { Database } from '@/types/database';
 import { ensureDefaultCategories } from '@/lib/categories';
+import { selectAll } from '@/lib/select-all';
 
 export const dynamic = 'force-dynamic';
 
@@ -58,34 +59,43 @@ export async function GET(req: Request) {
           )
         : q;
 
-    const { data: monthTxs, error: monthErr } = await withAccount(
-      supabase
-        .from('transactions')
-        .select(
-          `*,
-          account:accounts!transactions_account_id_fkey(name, type),
-          from_account:accounts!transactions_from_account_id_fkey(name, type),
-          to_account:accounts!transactions_to_account_id_fkey(name, type),
-          category:categories(name, color, icon)`
-        )
-        .eq('user_id', space.ownerId)
-        .gte('actual_date', start)
-        .lt('actual_date', end)
+    const { data: monthTxs, error: monthErr } = await selectAll((from, to) =>
+      withAccount(
+        supabase
+          .from('transactions')
+          .select(
+            `*,
+            account:accounts!transactions_account_id_fkey(name, type),
+            from_account:accounts!transactions_from_account_id_fkey(name, type),
+            to_account:accounts!transactions_to_account_id_fkey(name, type),
+            category:categories(name, color, icon)`
+          )
+          .eq('user_id', space.ownerId)
+          .gte('actual_date', start)
+          .lt('actual_date', end)
+      )
         .order('actual_date', { ascending: false })
         .order('created_at', { ascending: false })
+        .order('id')
+        .range(from, to)
     );
     if (monthErr) {
       return NextResponse.json({ error: monthErr.message }, { status: 400 });
     }
 
-    const { data: budgetTxs, error: budgetTxErr } = await withAccount(
-      supabase
-        .from('transactions')
-        .select('amount, category_id, category:categories(name)')
-        .eq('user_id', space.ownerId)
-        .eq('type', 'expense')
-        .eq('budget_month', budgetMonth)
-    ).returns<{ amount: number; category_id: string | null; category: { name: string } | null }[]>();
+    const { data: budgetTxs, error: budgetTxErr } = await selectAll((from, to) =>
+      withAccount(
+        supabase
+          .from('transactions')
+          .select('amount, category_id, category:categories(name)')
+          .eq('user_id', space.ownerId)
+          .eq('type', 'expense')
+          .eq('budget_month', budgetMonth)
+      )
+        .order('id')
+        .range(from, to)
+        .returns<{ amount: number; category_id: string | null; category: { name: string } | null }[]>()
+    );
     if (budgetTxErr) {
       return NextResponse.json({ error: budgetTxErr.message }, { status: 400 });
     }

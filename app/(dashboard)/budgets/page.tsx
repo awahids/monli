@@ -34,7 +34,7 @@ type BudgetSummary = {
 };
 
 export default function BudgetsPage() {
-  const { user } = useAppStore();
+  const { user, dataVersion } = useAppStore();
 
   const [budgets, setBudgets] = useState<BudgetSummary[]>([]);
   const [loading, setLoading] = useState(true);
@@ -61,9 +61,10 @@ export default function BudgetsPage() {
     }
   }, [user]);
 
+  // dataVersion: reload after a transaction is added elsewhere (e.g. the + button).
   useEffect(() => {
     fetchBudgets();
-  }, [fetchBudgets]);
+  }, [fetchBudgets, dataVersion]);
 
   const years = Array.from(new Set(budgets.map((b) => b.month.slice(0, 4)))).sort().reverse();
   const filteredBudgets = budgets.filter((b) => year === 'all' || b.month.startsWith(year));

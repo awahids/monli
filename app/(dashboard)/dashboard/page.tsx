@@ -40,13 +40,13 @@ import {
 import { keysToCamel } from '@/lib/case';
 import { greeting, monthDelta, monthTotals, type Delta } from '@/lib/dashboard';
 import {
-  refreshActiveAccounts,
   saveTransaction,
   toOfflineTransaction,
   toTransactionPayload,
 } from '@/lib/transactions-client';
 import { useOffline } from '@/hooks/use-offline';
 import { cn } from '@/lib/utils';
+import { selectAll } from '@/lib/select-all';
 
 // The chart library is large; load it after the numbers are on screen.
 const DashboardCharts = dynamic(
@@ -131,6 +131,7 @@ export default function DashboardPage() {
     setTransactions,
     setBudgets,
     setCategories,
+    dataVersion,
   } = useAppStore();
   const [loading, setLoading] = useState(true);
   const [categorySpends, setCategorySpends] = useState<CategorySpend[]>([]);
@@ -157,9 +158,8 @@ export default function DashboardPage() {
       return;
     }
 
-    const tx = await saveTransaction(payload);
-    setTransactions([tx, ...transactions]);
-    if (user) await refreshActiveAccounts((space?.ownerId ?? user.id));
+    // Saving bumps dataVersion, which reloads balances and totals below.
+    await saveTransaction(payload);
     toast.success('Transaksi tersimpan');
     setFormOpen(false);
   };
@@ -180,19 +180,24 @@ export default function DashboardPage() {
         const [accountsRes, categoriesRes, transactionsRes, budgetsRes] = await Promise.all([
           supabase.from('accounts').select('*').eq('user_id', (space?.ownerId ?? user.id)).eq('archived', false),
           supabase.from('categories').select('*').eq('user_id', (space?.ownerId ?? user.id)),
-          supabase
-            .from('transactions')
-            .select(`
-              *,
-              account:accounts!transactions_account_id_fkey(name, type),
-              from_account:accounts!transactions_from_account_id_fkey(name, type),
-              to_account:accounts!transactions_to_account_id_fkey(name, type),
-              category:categories(name, color, icon)
-            `)
-            .eq('user_id', (space?.ownerId ?? user.id))
-            .gte('actual_date', since)
-            .order('actual_date', { ascending: false })
-            .order('created_at', { ascending: false }),
+          // All rows: the month totals above are summed from this list.
+          selectAll((from, to) =>
+            supabase
+              .from('transactions')
+              .select(`
+                *,
+                account:accounts!transactions_account_id_fkey(name, type),
+                from_account:accounts!transactions_from_account_id_fkey(name, type),
+                to_account:accounts!transactions_to_account_id_fkey(name, type),
+                category:categories(name, color, icon)
+              `)
+              .eq('user_id', (space?.ownerId ?? user.id))
+              .gte('actual_date', since)
+              .order('actual_date', { ascending: false })
+              .order('created_at', { ascending: false })
+              .order('id')
+              .range(from, to)
+          ),
           supabase
             .from('budgets')
             .select(`*, items:budget_items(*, category:categories(*))`)
@@ -213,7 +218,7 @@ export default function DashboardPage() {
     };
 
     fetchData();
-  }, [space?.ownerId, user, isOnline, thisMonth, budgetMonth, setAccounts, setTransactions, setBudgets, setCategories]);
+  }, [space?.ownerId, user, isOnline, thisMonth, budgetMonth, dataVersion, setAccounts, setTransactions, setBudgets, setCategories]);
 
   // Category breakdown and budget actuals come from the server so they match
   // Reports and Budgets exactly.

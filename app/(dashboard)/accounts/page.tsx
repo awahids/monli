@@ -50,7 +50,7 @@ const maskNumber = (num: string) => `•••• •••• ${num.slice(-4)}`
 const formatAccountNumber = (num: string) => num.replace(/\s+/g, '').replace(/(.{4})(?=.)/g, '$1 ');
 
 export default function AccountsPage() {
-  const { user, setAccounts } = useAppStore();
+  const { user, setAccounts, dataVersion } = useAppStore();
   const router = useRouter();
 
   const [rows, setRows] = useState<Account[]>([]);
@@ -108,9 +108,10 @@ export default function AccountsPage() {
     }
   }, [user, setAccounts]);
 
+  // dataVersion: balances change when a transaction is added (e.g. the + button).
   useEffect(() => {
     fetchAccounts();
-  }, [fetchAccounts]);
+  }, [fetchAccounts, dataVersion]);
 
   const handleDelete = async () => {
     if (!pendingDelete) return;

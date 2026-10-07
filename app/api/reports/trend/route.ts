@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { createServerClient } from '@/lib/supabase/server';
 import { getSpace } from '@/lib/auth/server';
 import { nextMonthStart } from '@/lib/date';
+import { selectAll } from '@/lib/select-all';
 
 export const revalidate = 60;
 
@@ -50,12 +51,16 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: 'range too large (max 12 months)' }, { status: 400 });
     }
 
-    const { data, error } = await supabase
-      .from('transactions')
-      .select('actual_date, type, amount')
-      .eq('user_id', space.ownerId)
-      .gte('actual_date', `${from}-01`)
-      .lt('actual_date', nextMonthStart(to));
+    const { data, error } = await selectAll((start, end) =>
+      supabase
+        .from('transactions')
+        .select('actual_date, type, amount')
+        .eq('user_id', space.ownerId)
+        .gte('actual_date', `${from}-01`)
+        .lt('actual_date', nextMonthStart(to))
+        .order('id')
+        .range(start, end)
+    );
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }

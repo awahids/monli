@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { createServerClient } from '@/lib/supabase/server';
 import { getSpace } from '@/lib/auth/server';
 import type { Database } from '@/types/database';
+import { selectAll } from '@/lib/select-all';
 
 const querySchema = z.object({
   from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
@@ -35,37 +36,39 @@ export async function GET(req: Request) {
       to_account: Pick<Database['saku']['Tables']['accounts']['Row'], 'name'> | null;
       category: Pick<Database['saku']['Tables']['categories']['Row'], 'name'> | null;
     };
-    let query = supabase
-      .from('transactions')
-      .select(
-        `actual_date, type, amount, note, tags,
-        account:accounts!transactions_account_id_fkey(name),
-        from_account:accounts!transactions_from_account_id_fkey(name),
-        to_account:accounts!transactions_to_account_id_fkey(name),
-        category:categories(name)`
-      )
-      .eq('user_id', space.ownerId)
-      .order('actual_date', { ascending: true });
+    // Every row: a single request stops at 1000.
+    const { data, error } = await selectAll((start, end) => {
+      let query = supabase
+        .from('transactions')
+        .select(
+          `actual_date, type, amount, note, tags,
+          account:accounts!transactions_account_id_fkey(name),
+          from_account:accounts!transactions_from_account_id_fkey(name),
+          to_account:accounts!transactions_to_account_id_fkey(name),
+          category:categories(name)`
+        )
+        .eq('user_id', space.ownerId)
+        .order('actual_date', { ascending: true });
 
-    if (from) {
-      query = query.gte('actual_date', from);
-    }
-    if (to) {
-      query = query.lte('actual_date', to);
-    }
-    if (type) {
-      query = query.eq('type', type);
-    }
-    if (accountId) {
-      query = query.or(
-        `account_id.eq.${accountId},from_account_id.eq.${accountId},to_account_id.eq.${accountId}`
-      );
-    }
-    if (categoryId) {
-      query = query.eq('category_id', categoryId);
-    }
-
-    const { data, error } = await query.returns<TxRow[]>();
+      if (from) {
+        query = query.gte('actual_date', from);
+      }
+      if (to) {
+        query = query.lte('actual_date', to);
+      }
+      if (type) {
+        query = query.eq('type', type);
+      }
+      if (accountId) {
+        query = query.or(
+          `account_id.eq.${accountId},from_account_id.eq.${accountId},to_account_id.eq.${accountId}`
+        );
+      }
+      if (categoryId) {
+        query = query.eq('category_id', categoryId);
+      }
+      return query.order('created_at').order('id').range(start, end).returns<TxRow[]>();
+    });
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }

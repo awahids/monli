@@ -32,6 +32,7 @@ import { openOnboarding } from "@/components/onboarding/onboarding";
 import { useChangelogUnseen } from "@/lib/pwa";
 import { useAppStore } from "@/lib/store";
 import {
+  ensureFormOptions,
   refreshActiveAccounts,
   saveTransaction,
   toOfflineTransaction,
@@ -91,6 +92,7 @@ export function MobileNav() {
       toast.info(READ_ONLY_MESSAGE);
       return;
     }
+    if (user && isOnline) ensureFormOptions(space?.ownerId ?? user.id).catch(console.error);
     setFormOpen(true);
   };
 
@@ -106,9 +108,8 @@ export function MobileNav() {
       return;
     }
 
-    const tx = await saveTransaction(payload);
-    setTransactions([tx, ...transactions]);
-    // Keep balances on Dashboard/Accounts in sync with the new transaction.
+    // Saving bumps dataVersion, so the page underneath reloads its totals.
+    await saveTransaction(payload);
     if (user) await refreshActiveAccounts(space?.ownerId ?? user.id);
     toast.success('Transaksi tersimpan');
     setFormOpen(false);
