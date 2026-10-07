@@ -10,6 +10,8 @@ import { getCurrentUser } from "@/lib/auth";
 import { OfflineBanner } from "@/components/ui/offline-banner";
 import { SpaceBanner } from "@/components/layout/space-switcher";
 import ChatWidget from "@/components/chat/chat-widget";
+import { UpdateBanner } from "@/components/pwa/update-banner";
+import { OnboardingGate } from "@/components/onboarding/onboarding";
 
 export default function DashboardLayout({
   children,
@@ -38,6 +40,7 @@ export default function DashboardLayout({
       <div className="relative mx-auto flex min-h-screen w-full max-w-md flex-col bg-background sm:border-x sm:shadow-xl">
         <Header />
         <main className="flex-1 space-y-4 px-4 pb-32 pt-2">
+          <UpdateBanner />
           <OfflineBanner />
           <SpaceBanner />
           {children}
@@ -46,6 +49,7 @@ export default function DashboardLayout({
       <MobileNav />
       <Toaster position="top-center" />
       {user?.plan === 'PRO' && <ChatWidget />}
+      <OnboardingGate />
     </div>
   );
 }

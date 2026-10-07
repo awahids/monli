@@ -6,9 +6,11 @@ import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   BarChart3,
+  BookOpen,
   CreditCard,
   Home,
   LayoutGrid,
+  Megaphone,
   Package2,
   PieChart,
   Plus,
@@ -26,6 +28,9 @@ import TransactionForm, {
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { QalaFamilyProducts } from "@/components/brand/qala-family";
+import { InstallCard } from "@/components/pwa/install-card";
+import { openOnboarding } from "@/components/onboarding/onboarding";
+import { useChangelogUnseen } from "@/lib/pwa";
 import { useAppStore } from "@/lib/store";
 import {
   refreshActiveAccounts,
@@ -50,6 +55,7 @@ const more = [
   { href: "/reports", icon: BarChart3, label: "Laporan" },
   { href: "/zakat", icon: Package2, label: "Zakat" },
   { href: "/settings", icon: Settings, label: "Pengaturan" },
+  { href: "/changelog", icon: Megaphone, label: "Yang baru" },
 ];
 
 const isAt = (pathname: string | null, href: string) =>
@@ -85,6 +91,7 @@ export function MobileNav() {
   const [moreOpen, setMoreOpen] = useState(false);
   const { user, space, accounts, categories, transactions, setTransactions } = useAppStore();
   const { isOnline, addOfflineChange } = useOffline();
+  const changelogUnseen = useChangelogUnseen();
   const moreActive = more.some((m) => isAt(pathname, m.href)) || isAt(pathname, "/upgrade");
 
   const handleAddTransaction = () => {
@@ -147,6 +154,9 @@ export function MobileNav() {
               <motion.span layoutId="nav-active" className="absolute inset-0 rounded-xl bg-primary/10" />
             )}
             <LayoutGrid className="relative h-5 w-5" />
+            {changelogUnseen && (
+              <span aria-label="Ada yang baru" className="absolute right-[calc(50%-14px)] top-1.5 h-2 w-2 rounded-full bg-brand-gold" />
+            )}
             <span className="relative">Lainnya</span>
           </button>
         </div>
@@ -157,7 +167,7 @@ export function MobileNav() {
           <SheetHeader>
             <SheetTitle>Menu</SheetTitle>
           </SheetHeader>
-          <ul className="mt-4 grid grid-cols-3 gap-2">
+          <ul className="mt-4 grid grid-cols-4 gap-2">
             {more.map(({ href, icon: Icon, label }) => (
               <li key={href}>
                 <Link
@@ -165,18 +175,39 @@ export function MobileNav() {
                   onClick={() => setMoreOpen(false)}
                   aria-current={isAt(pathname, href) ? "page" : undefined}
                   className={cn(
-                    "flex h-full flex-col items-center gap-2 rounded-xl border p-3 text-center text-xs font-medium transition-colors",
+                    "flex h-full flex-col items-center gap-2 rounded-xl border px-1 py-3 text-center text-[11px] font-medium leading-tight transition-colors",
                     isAt(pathname, href) ? "border-primary/40 bg-primary/10 text-primary" : "hover:bg-muted"
                   )}
                 >
-                  <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+                  <span className="relative flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
                     <Icon className="h-5 w-5" />
+                    {href === "/changelog" && changelogUnseen && (
+                      <span className="absolute right-0 top-0 h-2.5 w-2.5 rounded-full bg-brand-gold ring-2 ring-background">
+                        <span className="sr-only">Ada yang baru</span>
+                      </span>
+                    )}
                   </span>
                   {label}
                 </Link>
               </li>
             ))}
+            <li>
+              <button
+                type="button"
+                onClick={() => {
+                  setMoreOpen(false);
+                  openOnboarding();
+                }}
+                className="flex h-full w-full flex-col items-center gap-2 rounded-xl border px-1 py-3 text-center text-[11px] font-medium leading-tight transition-colors hover:bg-muted"
+              >
+                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+                  <BookOpen className="h-5 w-5" />
+                </span>
+                Panduan
+              </button>
+            </li>
           </ul>
+          <InstallCard className="mt-4" />
           {user?.plan !== 'PRO' && (
             <div className="mt-4 flex items-center gap-3 rounded-xl bg-muted/60 p-4">
               <Sparkles className="h-5 w-5 shrink-0 text-brand-gold" />
