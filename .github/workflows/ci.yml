@@ -37,7 +37,8 @@ jobs:
       - run: npm ci
       - uses: supabase/setup-cli@v1
         with:
-          version: latest
+          # Pinned: "latest" asks the GitHub API, which rate-limits shared runners.
+          version: 2.120.0
       # Starts Postgres, Auth and the REST API from supabase/config.toml and
       # applies supabase/migrations, so tests run against the real schema and RLS.
       - run: supabase start
