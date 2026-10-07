@@ -22,6 +22,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { useT } from '@/lib/i18n';
 
 /** A share of the bill: mine under a category, or a friend's (becomes piutang). */
 type Part = { key: number; friend: boolean; categoryId: string; person: string; amount: number };
@@ -44,6 +45,7 @@ interface Props {
  */
 export function SplitBillDialog({ open, onOpenChange }: Props) {
   const { user, space, accounts, categories } = useAppStore();
+  const { t } = useT();
   const expenseCategories = categories.filter((c) => c.type === 'expense');
   const [total, setTotal] = useState(0);
   const [accountId, setAccountId] = useState('');
@@ -85,7 +87,7 @@ export function SplitBillDialog({ open, onOpenChange }: Props) {
     if (!user || !canSave) return;
     setSaving(true);
     const ownerId = space?.ownerId ?? user.id;
-    const title = note.trim() || 'Split bill';
+    const title = note.trim() || t('Bagi tagihan', 'Split bill');
     let saved = 0;
     try {
       for (const p of parts) {
@@ -96,7 +98,7 @@ export function SplitBillDialog({ open, onOpenChange }: Props) {
             body: JSON.stringify({ kind: 'receivable', person: p.person, amount: p.amount, accountId, date, note: title }),
           });
           const data = await res.json().catch(() => ({}));
-          if (!res.ok) throw new Error(data.error || 'Gagal mencatat piutang');
+          if (!res.ok) throw new Error(data.error || t('Gagal mencatat piutang', 'Could not record the receivable'));
         } else {
           await saveTransaction({
             budgetMonth: defaultBudgetMonth(new Date(`${date}T00:00:00+07:00`)),
@@ -115,7 +117,11 @@ export function SplitBillDialog({ open, onOpenChange }: Props) {
         saved += 1;
       }
       const friends = parts.filter((p) => p.friend).length;
-      toast.success(friends ? `Tersimpan, ${friends} piutang dicatat` : 'Tersimpan');
+      toast.success(
+        friends
+          ? t(`Tersimpan, ${friends} piutang dicatat`, `Saved, ${friends} receivables recorded`)
+          : t('Tersimpan', 'Saved')
+      );
       onOpenChange(false);
     } catch (e) {
       // Drop the shares already saved so a retry does not duplicate them.
@@ -134,19 +140,22 @@ export function SplitBillDialog({ open, onOpenChange }: Props) {
     <Dialog open={open} onOpenChange={(o) => !saving && onOpenChange(o)}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Bagi tagihan</DialogTitle>
+          <DialogTitle>{t('Bagi tagihan', 'Split bill')}</DialogTitle>
           <DialogDescription>
-            Bagianmu dicatat sebagai pengeluaran per kategori; bagian teman jadi piutang.
+            {t(
+              'Bagianmu dicatat sebagai pengeluaran per kategori; bagian teman jadi piutang.',
+              "Your share is recorded as spending per category; friends' shares become receivables."
+            )}
           </DialogDescription>
         </DialogHeader>
         <div className="max-h-[60vh] space-y-4 overflow-y-auto">
           <div className="space-y-2">
-            <Label htmlFor="split-total">Total tagihan</Label>
+            <Label htmlFor="split-total">{t('Total tagihan', 'Bill total')}</Label>
             <MoneyInput id="split-total" value={total} onValueChange={setTotal} autoFocus />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
-              <Label htmlFor="split-account">Dibayar dari</Label>
+              <Label htmlFor="split-account">{t('Dibayar dari', 'Paid from')}</Label>
               <select id="split-account" className={selectClass} value={accountId} onChange={(e) => setAccountId(e.target.value)}>
                 {accounts.map((a) => (
                   <option key={a.id} value={a.id}>
@@ -156,26 +165,26 @@ export function SplitBillDialog({ open, onOpenChange }: Props) {
               </select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="split-date">Tanggal</Label>
+              <Label htmlFor="split-date">{t('Tanggal', 'Date')}</Label>
               <Input id="split-date" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="split-note">Catatan</Label>
+            <Label htmlFor="split-note">{t('Catatan', 'Note')}</Label>
             <Input
               id="split-note"
               value={note}
               onChange={(e) => setNote(e.target.value)}
-              placeholder="Mis. Makan bareng tim"
+              placeholder={t('Mis. Makan bareng tim', 'e.g. Team dinner')}
               maxLength={200}
             />
           </div>
 
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label>Pembagian</Label>
+              <Label>{t('Pembagian', 'Shares')}</Label>
               <Button type="button" variant="ghost" size="sm" onClick={evenly} disabled={total <= 0 || !parts.length}>
-                Bagi rata
+                {t('Bagi rata', 'Split evenly')}
               </Button>
             </div>
             {parts.map((p, i) => (
@@ -184,8 +193,8 @@ export function SplitBillDialog({ open, onOpenChange }: Props) {
                   <Input
                     value={p.person}
                     onChange={(e) => update(p.key, { person: e.target.value })}
-                    placeholder="Nama teman"
-                    aria-label={`Nama teman ${i + 1}`}
+                    placeholder={t('Nama teman', "Friend's name")}
+                    aria-label={t(`Nama teman ${i + 1}`, `Friend name ${i + 1}`)}
                     maxLength={80}
                   />
                 ) : (
@@ -193,9 +202,9 @@ export function SplitBillDialog({ open, onOpenChange }: Props) {
                     className={selectClass}
                     value={p.categoryId}
                     onChange={(e) => update(p.key, { categoryId: e.target.value })}
-                    aria-label={`Kategori bagian ${i + 1}`}
+                    aria-label={t(`Kategori bagian ${i + 1}`, `Share category ${i + 1}`)}
                   >
-                    <option value="">Bagianku: kategori…</option>
+                    <option value="">{t('Bagianku: kategori…', 'My share: category…')}</option>
                     {expenseCategories.map((c) => (
                       <option key={c.id} value={c.id}>
                         {c.name}
@@ -207,14 +216,14 @@ export function SplitBillDialog({ open, onOpenChange }: Props) {
                   className="w-36 shrink-0"
                   value={p.amount}
                   onValueChange={(amount) => update(p.key, { amount })}
-                  aria-label={`Nominal bagian ${i + 1}`}
+                  aria-label={t(`Nominal bagian ${i + 1}`, `Share amount ${i + 1}`)}
                 />
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon"
                   className="shrink-0"
-                  aria-label={`Hapus bagian ${i + 1}`}
+                  aria-label={t(`Hapus bagian ${i + 1}`, `Remove share ${i + 1}`)}
                   onClick={() => setParts((ps) => ps.filter((x) => x.key !== p.key))}
                 >
                   <Trash2 className="h-4 w-4" />
@@ -223,23 +232,27 @@ export function SplitBillDialog({ open, onOpenChange }: Props) {
             ))}
             <div className="flex gap-2">
               <Button type="button" variant="outline" size="sm" onClick={() => setParts((ps) => [...ps, part(false)])}>
-                <Plus className="mr-1 h-4 w-4" /> Kategori
+                <Plus className="mr-1 h-4 w-4" /> {t('Kategori', 'Category')}
               </Button>
               <Button type="button" variant="outline" size="sm" onClick={() => setParts((ps) => [...ps, part(true)])}>
-                <UserPlus className="mr-1 h-4 w-4" /> Teman
+                <UserPlus className="mr-1 h-4 w-4" /> {t('Teman', 'Friend')}
               </Button>
             </div>
             <p
               role="status"
               className={cn('text-sm', left === 0 ? 'text-muted-foreground' : 'text-amber-700 dark:text-amber-400')}
             >
-              {left === 0 ? 'Pas dengan total.' : left > 0 ? `Belum dibagi ${formatMoney(left)}` : `Kelebihan ${formatMoney(-left)}`}
+              {left === 0
+                ? t('Pas dengan total.', 'Matches the total.')
+                : left > 0
+                  ? t(`Belum dibagi ${formatMoney(left)}`, `${formatMoney(left)} not assigned`)
+                  : t(`Kelebihan ${formatMoney(-left)}`, `${formatMoney(-left)} too much`)}
             </p>
           </div>
         </div>
         <DialogFooter>
           <Button type="button" className="w-full" onClick={save} disabled={saving || !canSave}>
-            {saving ? 'Menyimpan...' : 'Simpan'}
+            {saving ? t('Menyimpan...', 'Saving...') : t('Simpan', 'Save')}
           </Button>
         </DialogFooter>
       </DialogContent>

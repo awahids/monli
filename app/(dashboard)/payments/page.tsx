@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { format } from 'date-fns';
-import { id as localeId } from 'date-fns/locale';
 import { CreditCard } from 'lucide-react';
 import { formatIDR } from '@/lib/currency';
 import { Payment } from '@/types';
@@ -12,9 +11,11 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PaymentStatusBadge } from '@/components/payments/payment-status-badge';
+import { useT } from '@/lib/i18n';
 
 export default function PaymentsPage() {
   const [payments, setPayments] = useState<Payment[] | null>(null);
+  const { t, dateLocale } = useT();
 
   useEffect(() => {
     (async () => {
@@ -27,8 +28,8 @@ export default function PaymentsPage() {
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Riwayat pembayaran</h1>
-        <p className="text-sm text-muted-foreground">Status diperbarui langsung dari Midtrans.</p>
+        <h1 className="text-2xl font-bold tracking-tight">{t('Riwayat pembayaran', 'Payment history')}</h1>
+        <p className="text-sm text-muted-foreground">{t('Status diperbarui langsung dari Midtrans.', 'Status comes straight from Midtrans.')}</p>
       </div>
 
       {payments === null ? (
@@ -40,11 +41,11 @@ export default function PaymentsPage() {
       ) : payments.length === 0 ? (
         <EmptyState
           icon={CreditCard}
-          title="Belum ada pembayaran"
-          description="Pembayaran upgrade ke PRO akan muncul di sini."
+          title={t('Belum ada pembayaran', 'No payments yet')}
+          description={t('Pembayaran upgrade ke PRO akan muncul di sini.', 'PRO upgrade payments will show up here.')}
           action={
             <Button asChild variant="outline">
-              <Link href="/upgrade">Lihat paket PRO</Link>
+              <Link href="/upgrade">{t('Lihat paket PRO', 'See the PRO plan')}</Link>
             </Button>
           }
         />
@@ -59,7 +60,7 @@ export default function PaymentsPage() {
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium">{p.productName}</p>
                 <p className="text-xs text-muted-foreground">
-                  {p.createdAt ? format(new Date(p.createdAt), 'd MMM yyyy, HH:mm', { locale: localeId }) : ''}
+                  {p.createdAt ? format(new Date(p.createdAt), 'd MMM yyyy, HH:mm', { locale: dateLocale }) : ''}
                 </p>
               </div>
               <span className="text-sm font-semibold tabular-nums">{formatIDR(p.amount)}</span>

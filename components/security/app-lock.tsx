@@ -31,6 +31,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { useT } from '@/lib/i18n';
 
 const MAX_ATTEMPTS = 5;
 
@@ -70,6 +71,7 @@ function PinInput({ id, value, onChange, label }: { id: string; value: string; o
 export function AppLockGate() {
   const lock = useLock();
   const router = useRouter();
+  const { t } = useT();
   const [locked, setLocked] = useState(false);
   const [pin, setPin] = useState('');
   const [attempts, setAttempts] = useState(0);
@@ -110,12 +112,12 @@ export function AppLockGate() {
     const next = attempts + 1;
     setPin('');
     if (next >= MAX_ATTEMPTS) {
-      toast.error('Terlalu banyak salah PIN. Silakan masuk lagi.');
+      toast.error(t('Terlalu banyak salah PIN. Silakan masuk lagi.', 'Too many wrong PINs. Please sign in again.'));
       await leave();
       return;
     }
     setAttempts(next);
-    setError(`PIN salah. Sisa ${MAX_ATTEMPTS - next} kali coba.`);
+    setError(t(`PIN salah. Sisa ${MAX_ATTEMPTS - next} kali coba.`, `Wrong PIN. ${MAX_ATTEMPTS - next} tries left.`));
   };
 
   if (!locked || !lock) return null;
@@ -123,15 +125,15 @@ export function AppLockGate() {
     <div
       role="dialog"
       aria-modal="true"
-      aria-label="Aplikasi terkunci"
+      aria-label={t('Aplikasi terkunci', 'App locked')}
       className="fixed inset-0 z-[100] flex flex-col items-center justify-center gap-6 bg-background px-8"
     >
       <span className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
         <Lock className="h-6 w-6" />
       </span>
       <div className="text-center">
-        <h2 className="text-xl font-bold">Masukkan PIN</h2>
-        <p className="text-sm text-muted-foreground">Qala Saku terkunci di perangkat ini.</p>
+        <h2 className="text-xl font-bold">{t('Masukkan PIN', 'Enter PIN')}</h2>
+        <p className="text-sm text-muted-foreground">{t('Qala Saku terkunci di perangkat ini.', 'Qala Saku is locked on this device.')}</p>
       </div>
       <div className="w-full max-w-xs space-y-2">
         <PinInput
@@ -155,11 +157,11 @@ export function AppLockGate() {
           variant="outline"
           onClick={async () => (await verifyBiometric(lock.credentialId!)) && unlock()}
         >
-          <Fingerprint className="mr-2 h-4 w-4" /> Pakai sidik jari / Face ID
+          <Fingerprint className="mr-2 h-4 w-4" /> {t('Pakai sidik jari / Face ID', 'Use fingerprint / Face ID')}
         </Button>
       )}
       <button type="button" className="text-sm text-muted-foreground underline-offset-4 hover:underline" onClick={leave}>
-        Lupa PIN? Keluar dan masuk lagi
+        {t('Lupa PIN? Keluar dan masuk lagi', 'Forgot PIN? Sign out and back in')}
       </button>
     </div>
   );
@@ -168,6 +170,7 @@ export function AppLockGate() {
 /** Settings: turn the PIN lock and biometric unlock on or off. */
 export function AppLockCard() {
   const { user } = useAppStore();
+  const { t } = useT();
   const lock = useLock();
   const [canBiometric, setCanBiometric] = useState(false);
   const [mode, setMode] = useState<'set' | 'remove' | null>(null);
@@ -188,15 +191,15 @@ export function AppLockCard() {
 
   const confirm = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (pin.length !== PIN_LENGTH) return setError(`PIN harus ${PIN_LENGTH} angka`);
+    if (pin.length !== PIN_LENGTH) return setError(t(`PIN harus ${PIN_LENGTH} angka`, `PIN must be ${PIN_LENGTH} digits`));
     if (mode === 'set') {
-      if (pin !== repeat) return setError('PIN tidak sama');
+      if (pin !== repeat) return setError(t('PIN tidak sama', "PINs don't match"));
       writeLock(await makeLock(pin));
-      toast.success('Kunci aplikasi aktif');
+      toast.success(t('Kunci aplikasi aktif', 'App lock is on'));
     } else if (lock) {
-      if (!(await checkPin(lock, pin))) return setError('PIN salah');
+      if (!(await checkPin(lock, pin))) return setError(t('PIN salah', 'Wrong PIN'));
       writeLock(null);
-      toast.success('Kunci aplikasi dimatikan');
+      toast.success(t('Kunci aplikasi dimatikan', 'App lock is off'));
     }
     setMode(null);
   };
@@ -206,24 +209,24 @@ export function AppLockCard() {
     try {
       writeLock({ ...lock, credentialId: on ? await registerBiometric(user.id, user.email ?? 'Qala Saku') : undefined });
     } catch {
-      toast.error('Sidik jari / Face ID tidak bisa diaktifkan');
+      toast.error(t('Sidik jari / Face ID tidak bisa diaktifkan', 'Could not turn on fingerprint / Face ID'));
     }
   };
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Keamanan</CardTitle>
-        <CardDescription>Minta PIN setiap kali aplikasi dibuka di perangkat ini.</CardDescription>
+        <CardTitle>{t('Keamanan', 'Security')}</CardTitle>
+        <CardDescription>{t('Minta PIN setiap kali aplikasi dibuka di perangkat ini.', 'Ask for a PIN every time the app opens on this device.')}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <label className="flex items-center justify-between gap-3 text-sm">
-          <span>Kunci dengan PIN</span>
+          <span>{t('Kunci dengan PIN', 'Lock with PIN')}</span>
           <Switch checked={!!lock} onCheckedChange={(on) => open(on ? 'set' : 'remove')} />
         </label>
         {lock && canBiometric && (
           <label className="flex items-center justify-between gap-3 text-sm">
-            <span>Buka dengan sidik jari / Face ID</span>
+            <span>{t('Buka dengan sidik jari / Face ID', 'Unlock with fingerprint / Face ID')}</span>
             <Switch checked={!!lock.credentialId} onCheckedChange={toggleBiometric} />
           </label>
         )}
@@ -232,9 +235,11 @@ export function AppLockCard() {
       <Dialog open={mode !== null} onOpenChange={(o) => !o && setMode(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{mode === 'set' ? 'Buat PIN' : 'Matikan kunci'}</DialogTitle>
+            <DialogTitle>{mode === 'set' ? t('Buat PIN', 'Create PIN') : t('Matikan kunci', 'Turn off lock')}</DialogTitle>
             <DialogDescription>
-              {mode === 'set' ? `${PIN_LENGTH} angka, hanya tersimpan di perangkat ini.` : 'Masukkan PIN saat ini.'}
+              {mode === 'set'
+                ? t(`${PIN_LENGTH} angka, hanya tersimpan di perangkat ini.`, `${PIN_LENGTH} digits, kept only on this device.`)
+                : t('Masukkan PIN saat ini.', 'Enter your current PIN.')}
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={confirm} className="space-y-4">
@@ -244,8 +249,8 @@ export function AppLockCard() {
             </div>
             {mode === 'set' && (
               <div className="space-y-2">
-                <Label htmlFor="lock-repeat">Ulangi PIN</Label>
-                <PinInput id="lock-repeat" label="Ulangi PIN" value={repeat} onChange={setRepeat} />
+                <Label htmlFor="lock-repeat">{t('Ulangi PIN', 'Repeat PIN')}</Label>
+                <PinInput id="lock-repeat" label={t('Ulangi PIN', 'Repeat PIN')} value={repeat} onChange={setRepeat} />
               </div>
             )}
             {error && (
@@ -255,7 +260,7 @@ export function AppLockCard() {
             )}
             <DialogFooter>
               <Button type="submit" className="w-full">
-                {mode === 'set' ? 'Aktifkan' : 'Matikan'}
+                {mode === 'set' ? t('Aktifkan', 'Turn on') : t('Matikan', 'Turn off')}
               </Button>
             </DialogFooter>
           </form>

@@ -12,6 +12,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { buttonVariants } from '@/components/ui/button';
+import { useT } from '@/lib/i18n';
 
 interface ConfirmDialogProps {
   open: boolean;
@@ -29,10 +30,11 @@ export function ConfirmDialog({
   onOpenChange,
   title,
   description,
-  confirmLabel = 'Delete',
-  cancelLabel = 'Cancel',
+  confirmLabel,
+  cancelLabel,
   onConfirm,
 }: ConfirmDialogProps) {
+  const { t } = useT();
   const [busy, setBusy] = useState(false);
 
   return (
@@ -45,7 +47,7 @@ export function ConfirmDialog({
           )}
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={busy}>{cancelLabel}</AlertDialogCancel>
+          <AlertDialogCancel disabled={busy}>{cancelLabel ?? t('Batal', 'Cancel')}</AlertDialogCancel>
           <AlertDialogAction
             disabled={busy}
             className={buttonVariants({ variant: 'destructive' })}
@@ -60,7 +62,7 @@ export function ConfirmDialog({
               }
             }}
           >
-            {confirmLabel}
+            {confirmLabel ?? t('Hapus', 'Delete')}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

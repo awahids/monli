@@ -35,12 +35,13 @@ import {
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AccountForm } from '@/components/accounts/account-form';
 import { cn } from '@/lib/utils';
+import { useT } from '@/lib/i18n';
 
 // Card face per account type, in the Qala palette (deep teal, navy, warm gold).
-const TYPE_META: Record<Account['type'], { label: string; icon: typeof Wallet; gradient: string }> = {
-  bank: { label: 'Bank', icon: Landmark, gradient: 'bg-gradient-to-br from-[#0B0F24] via-[#12304a] to-[#0E8079]' },
-  ewallet: { label: 'E-wallet', icon: Smartphone, gradient: 'bg-gradient-to-br from-[#0E8079] via-[#14A7A0] to-[#0b5d58]' },
-  cash: { label: 'Tunai', icon: Wallet, gradient: 'bg-gradient-to-br from-[#7a4a0b] via-[#b8730f] to-[#3d2a0b]' },
+const TYPE_META: Record<Account['type'], { label: string; en: string; icon: typeof Wallet; gradient: string }> = {
+  bank: { label: 'Bank', en: 'Bank', icon: Landmark, gradient: 'bg-gradient-to-br from-[#0B0F24] via-[#12304a] to-[#0E8079]' },
+  ewallet: { label: 'E-wallet', en: 'E-wallet', icon: Smartphone, gradient: 'bg-gradient-to-br from-[#0E8079] via-[#14A7A0] to-[#0b5d58]' },
+  cash: { label: 'Tunai', en: 'Cash', icon: Wallet, gradient: 'bg-gradient-to-br from-[#7a4a0b] via-[#b8730f] to-[#3d2a0b]' },
 };
 
 const HIDE_KEY = 'qala-saku:hide-balances';
@@ -80,6 +81,7 @@ export default function AccountsPage() {
     });
   };
 
+  const { t } = useT();
   // The server's FREE limit counts archived accounts too.
   const disableAdd = user?.plan === 'FREE' && rows.length >= 1;
   const activeAccounts = rows.filter((a) => !a.archived);
@@ -96,17 +98,17 @@ export default function AccountsPage() {
     try {
       const res = await fetch('/api/accounts?includeArchived=true&pageSize=100');
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Gagal memuat akun');
+      if (!res.ok) throw new Error(data.error || t('Gagal memuat akun', 'Could not load accounts'));
       const all: Account[] = data.rows;
       setRows(all);
       setAccounts(all.filter((a) => !a.archived));
     } catch (error) {
       console.error('Failed to fetch accounts:', error);
-      toast.error('Gagal memuat akun');
+      toast.error(t('Gagal memuat akun', 'Could not load accounts'));
     } finally {
       setLoading(false);
     }
-  }, [user, setAccounts]);
+  }, [user, setAccounts, t]);
 
   // dataVersion: balances change when a transaction is added (e.g. the + button).
   useEffect(() => {
@@ -120,12 +122,12 @@ export default function AccountsPage() {
     if (!res.ok) {
       toast.error(
         res.status === 409
-          ? 'Akun ini masih punya transaksi. Arsipkan saja, atau hapus transaksinya dulu.'
-          : data.error || 'Gagal menghapus akun'
+          ? t('Akun ini masih punya transaksi. Arsipkan saja, atau hapus transaksinya dulu.', 'This account still has transactions. Archive it, or delete its transactions first.')
+          : data.error || t('Gagal menghapus akun', 'Could not delete the account')
       );
       return;
     }
-    toast.success('Akun dihapus');
+    toast.success(t('Akun dihapus', 'Account deleted'));
     setPendingDelete(null);
     await fetchAccounts();
   };
@@ -138,7 +140,7 @@ export default function AccountsPage() {
     });
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
-      toast.error(data.error || 'Gagal memperbarui akun');
+      toast.error(data.error || t('Gagal memperbarui akun', 'Could not update the account'));
       return;
     }
     toast.success(archived ? `${account.name} diarsipkan` : `${account.name} dipulihkan`);
@@ -157,16 +159,16 @@ export default function AccountsPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Akun</h1>
-          <p className="text-sm text-muted-foreground">Rekening bank, e-wallet, dan uang tunai.</p>
+          <h1 className="text-2xl font-bold tracking-tight">{t('Akun', 'Accounts')}</h1>
+          <p className="text-sm text-muted-foreground">{t('Rekening bank, e-wallet, dan uang tunai.', 'Bank accounts, e-wallets and cash.')}</p>
         </div>
         <div className="flex gap-2">
           <Button
             variant="outline"
             size="icon"
             onClick={toggleHide}
-            aria-label={hideBalances ? 'Tampilkan saldo' : 'Sembunyikan saldo'}
-            title={hideBalances ? 'Tampilkan saldo' : 'Sembunyikan saldo'}
+            aria-label={hideBalances ? t('Tampilkan saldo', 'Show balances') : t('Sembunyikan saldo', 'Hide balances')}
+            title={hideBalances ? t('Tampilkan saldo', 'Show balances') : t('Sembunyikan saldo', 'Hide balances')}
           >
             {hideBalances ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
           </Button>
@@ -179,7 +181,7 @@ export default function AccountsPage() {
       </div>
 
       {loading ? (
-        <div className="space-y-3" aria-busy="true" aria-label="Memuat akun">
+        <div className="space-y-3" aria-busy="true" aria-label={t('Memuat akun', 'Loading accounts')}>
           <Skeleton className="h-24 rounded-xl" />
           <div className="grid gap-4">
             {Array.from({ length: 3 }).map((_, i) => (
@@ -190,44 +192,46 @@ export default function AccountsPage() {
       ) : rows.length === 0 ? (
         <EmptyState
           icon={Wallet}
-          title="Belum ada akun"
-          description="Tambahkan rekening, e-wallet, atau dompet tunai beserta saldonya saat ini."
-          action={<Button onClick={openNew}>Tambah akun pertama</Button>}
+          title={t('Belum ada akun', 'No accounts yet')}
+          description={t('Tambahkan rekening, e-wallet, atau dompet tunai beserta saldonya saat ini.', 'Add a bank account, e-wallet or cash wallet with its current balance.')}
+          action={<Button onClick={openNew}>{t('Tambah akun pertama', 'Add your first account')}</Button>}
         />
       ) : (
         <>
           <Card className="flex items-center justify-between gap-4 p-5">
             <div>
-              <p className="text-sm text-muted-foreground">Total saldo akun aktif</p>
+              <p className="text-sm text-muted-foreground">{t('Total saldo akun aktif', 'Total balance of active accounts')}</p>
               <p className="font-display text-2xl font-bold tabular-nums">
                 {money(totalBalance, user?.defaultCurrency || 'IDR')}
               </p>
             </div>
-            <p className="text-sm text-muted-foreground">{activeAccounts.length} akun</p>
+            <p className="text-sm text-muted-foreground">{t(`${activeAccounts.length} akun`, `${activeAccounts.length} accounts`)}</p>
           </Card>
 
           {disableAdd && (
             <p className="rounded-lg border border-dashed p-3 text-sm text-muted-foreground">
-              Paket FREE dibatasi 1 akun.{' '}
+              {t('Paket FREE dibatasi 1 akun.', 'The FREE plan is limited to 1 account.')}{' '}
               <Link href="/upgrade" className="font-medium text-primary underline-offset-4 hover:underline">
-                Upgrade ke PRO
+                {t('Upgrade ke PRO', 'Upgrade to PRO')}
               </Link>{' '}
-              untuk menambah akun tanpa batas.
+              {t('untuk menambah akun tanpa batas.', 'for unlimited accounts.')}
             </p>
           )}
 
           {archivedAccounts.length > 0 && (
             <Tabs value={currentTab} onValueChange={(v) => setTab(v as 'active' | 'archived')}>
               <TabsList>
-                <TabsTrigger value="active">Aktif ({activeAccounts.length})</TabsTrigger>
-                <TabsTrigger value="archived">Diarsipkan ({archivedAccounts.length})</TabsTrigger>
+                <TabsTrigger value="active">{t('Aktif', 'Active')} ({activeAccounts.length})</TabsTrigger>
+                <TabsTrigger value="archived">{t('Diarsipkan', 'Archived')} ({archivedAccounts.length})</TabsTrigger>
               </TabsList>
             </Tabs>
           )}
 
           {accounts.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              {currentTab === 'active' ? 'Semua akun sedang diarsipkan.' : 'Tidak ada akun yang diarsipkan.'}
+              {currentTab === 'active'
+                ? t('Semua akun sedang diarsipkan.', 'All accounts are archived.')
+                : t('Tidak ada akun yang diarsipkan.', 'No archived accounts.')}
             </p>
           ) : (
             <div className="grid gap-4">
@@ -254,20 +258,20 @@ export default function AccountsPage() {
                       type="button"
                       className="absolute inset-0 z-0 rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
                       onClick={() => router.push(`/transactions?accountId=${account.id}`)}
-                      aria-label={`Lihat transaksi ${account.name}`}
+                      aria-label={t(`Lihat transaksi ${account.name}`, `View transactions of ${account.name}`)}
                     />
 
                     <div className="pointer-events-none relative z-10 flex h-full flex-col justify-between p-5">
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0">
                           <p className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-widest text-white/70">
-                            <Icon className="h-3.5 w-3.5" /> {meta.label}
+                            <Icon className="h-3.5 w-3.5" /> {t(meta.label, meta.en)}
                           </p>
                           <p className="mt-1 truncate font-display text-lg font-semibold">{account.name}</p>
                         </div>
                         <div className="pointer-events-auto flex shrink-0 items-center gap-1">
                           {account.archived && (
-                            <Badge className="border-0 bg-white/20 text-white hover:bg-white/20">Diarsipkan</Badge>
+                            <Badge className="border-0 bg-white/20 text-white hover:bg-white/20">{t('Diarsipkan', 'Archived')}</Badge>
                           )}
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -275,7 +279,7 @@ export default function AccountsPage() {
                                 variant="ghost"
                                 size="icon"
                                 className="h-8 w-8 text-white hover:bg-white/20 hover:text-white"
-                                aria-label={`Aksi untuk ${account.name}`}
+                                aria-label={t(`Aksi untuk ${account.name}`, `Actions for ${account.name}`)}
                               >
                                 <MoreHorizontal className="h-4 w-4" />
                               </Button>
@@ -287,17 +291,17 @@ export default function AccountsPage() {
                                   setDialogOpen(true);
                                 }}
                               >
-                                Edit
+                                {t('Edit', 'Edit')}
                               </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => handleArchive(account, !account.archived)}>
-                                {account.archived ? 'Pulihkan' : 'Arsipkan'}
+                                {account.archived ? t('Pulihkan', 'Restore') : t('Arsipkan', 'Archive')}
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
                               <DropdownMenuItem
                                 className="text-destructive focus:text-destructive"
                                 onClick={() => setPendingDelete(account)}
                               >
-                                Hapus
+                                {t('Hapus', 'Delete')}
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
@@ -320,7 +324,7 @@ export default function AccountsPage() {
                                 size="icon"
                                 className="h-7 w-7 text-white/80 hover:bg-white/20 hover:text-white"
                                 onClick={() => setRevealed((r) => ({ ...r, [account.id]: !r[account.id] }))}
-                                aria-label={isRevealed ? 'Sembunyikan nomor' : 'Tampilkan nomor'}
+                                aria-label={isRevealed ? t('Sembunyikan nomor', 'Hide number') : t('Tampilkan nomor', 'Show number')}
                               >
                                 {isRevealed ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
                               </Button>
@@ -330,9 +334,9 @@ export default function AccountsPage() {
                                 className="h-7 w-7 text-white/80 hover:bg-white/20 hover:text-white"
                                 onClick={() => {
                                   navigator.clipboard.writeText(account.accountNumber!);
-                                  toast.success('Nomor rekening disalin');
+                                  toast.success(t('Nomor rekening disalin', 'Account number copied'));
                                 }}
-                                aria-label="Salin nomor rekening"
+                                aria-label={t('Salin nomor rekening', 'Copy account number')}
                               >
                                 <Copy className="h-3.5 w-3.5" />
                               </Button>
@@ -346,7 +350,7 @@ export default function AccountsPage() {
                           {user?.name || 'Qala Saku'}
                         </span>
                         <div className="text-right">
-                          <p className="text-[10px] uppercase tracking-widest text-white/60">Saldo</p>
+                          <p className="text-[10px] uppercase tracking-widest text-white/60">{t('Saldo', 'Balance')}</p>
                           <p
                             className={cn(
                               'font-display text-xl font-bold tabular-nums',
@@ -369,7 +373,7 @@ export default function AccountsPage() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="p-0">
           <DialogHeader className="px-4 pt-4">
-            <DialogTitle>{editingAccount ? 'Edit akun' : 'Tambah akun'}</DialogTitle>
+            <DialogTitle>{editingAccount ? t('Edit akun', 'Edit account') : t('Tambah akun', 'Add account')}</DialogTitle>
           </DialogHeader>
           <div className="px-4">
             <AccountForm
@@ -387,10 +391,13 @@ export default function AccountsPage() {
       <ConfirmDialog
         open={pendingDelete !== null}
         onOpenChange={(o) => !o && setPendingDelete(null)}
-        title={`Hapus ${pendingDelete?.name ?? 'akun'}?`}
-        description="Akun yang masih punya transaksi tidak bisa dihapus, hanya bisa diarsipkan. Tindakan ini tidak bisa dibatalkan."
-        confirmLabel="Hapus"
-        cancelLabel="Batal"
+        title={t(`Hapus ${pendingDelete?.name ?? 'akun'}?`, `Delete ${pendingDelete?.name ?? 'account'}?`)}
+        description={t(
+          'Akun yang masih punya transaksi tidak bisa dihapus, hanya bisa diarsipkan. Tindakan ini tidak bisa dibatalkan.',
+          'Accounts with transactions cannot be deleted, only archived. This cannot be undone.'
+        )}
+        confirmLabel={t('Hapus', 'Delete')}
+        cancelLabel={t('Batal', 'Cancel')}
         onConfirm={handleDelete}
       />
     </div>

@@ -19,6 +19,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { Transaction, CategorySpend } from "@/types";
 import { formatMoney, formatMoneyCompact } from "@/lib/currency";
 import { budgetPeriod, daysBetweenInclusive } from "@/lib/date";
+import { useT } from '@/lib/i18n';
 
 interface Props {
   transactions: Transaction[];
@@ -36,6 +37,7 @@ const tooltipStyle = {
 };
 
 export function DashboardCharts({ transactions, categorySpends, month, startDay }: Props) {
+  const { t } = useT();
   const dailyExpenses = useMemo(() => {
     const { start, end } = budgetPeriod(month, startDay);
     const totals = new Map<string, number>();
@@ -66,7 +68,7 @@ export function DashboardCharts({ transactions, categorySpends, month, startDay 
     <div className="grid gap-4">
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Pengeluaran harian periode ini</CardTitle>
+          <CardTitle className="text-base">{t('Pengeluaran harian periode ini', 'Daily spending this period')}</CardTitle>
         </CardHeader>
         <CardContent>
           {hasDaily ? (
@@ -96,8 +98,8 @@ export function DashboardCharts({ transactions, categorySpends, month, startDay 
                     tickLine={false}
                   />
                   <Tooltip
-                    formatter={(value: number) => [formatMoney(value), "Pengeluaran"]}
-                    labelFormatter={(day) => `Tanggal ${day}`}
+                    formatter={(value: number) => [formatMoney(value), t('Pengeluaran', 'Spending')]}
+                    labelFormatter={(day) => t(`Tanggal ${day}`, `Day ${day}`)}
                     contentStyle={tooltipStyle}
                   />
                   <Area
@@ -113,8 +115,8 @@ export function DashboardCharts({ transactions, categorySpends, month, startDay 
           ) : (
             <EmptyState
               icon={BarChart3}
-              title="Belum ada pengeluaran periode ini"
-              description="Grafik akan muncul setelah kamu mencatat pengeluaran."
+              title={t('Belum ada pengeluaran periode ini', 'No spending this period yet')}
+              description={t('Grafik akan muncul setelah kamu mencatat pengeluaran.', 'The chart appears once you record spending.')}
             />
           )}
         </CardContent>
@@ -122,7 +124,7 @@ export function DashboardCharts({ transactions, categorySpends, month, startDay 
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Pengeluaran per kategori</CardTitle>
+          <CardTitle className="text-base">{t('Pengeluaran per kategori', 'Spending by category')}</CardTitle>
         </CardHeader>
         <CardContent>
           {pieData.length ? (
@@ -150,7 +152,7 @@ export function DashboardCharts({ transactions, categorySpends, month, startDay 
                   </PieChart>
                 </ResponsiveContainer>
                 <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-                  <span className="text-xs text-muted-foreground">Total</span>
+                  <span className="text-xs text-muted-foreground">{t('Total', 'Total')}</span>
                   <span className="text-sm font-semibold">{formatMoneyCompact(pieTotal)}</span>
                 </div>
               </div>
@@ -170,8 +172,11 @@ export function DashboardCharts({ transactions, categorySpends, month, startDay 
           ) : (
             <EmptyState
               icon={PieIcon}
-              title="Belum ada data kategori"
-              description="Pilih kategori saat mencatat pengeluaran untuk melihat ke mana uangmu pergi."
+              title={t('Belum ada data kategori', 'No category data yet')}
+              description={t(
+                'Pilih kategori saat mencatat pengeluaran untuk melihat ke mana uangmu pergi.',
+                'Pick a category when recording spending to see where your money goes.'
+              )}
             />
           )}
         </CardContent>

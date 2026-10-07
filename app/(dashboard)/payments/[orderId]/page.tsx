@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { format } from 'date-fns';
-import { id as localeId } from 'date-fns/locale';
 import { formatIDR } from '@/lib/currency';
 import { Payment } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,6 +12,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { PaymentStatusBadge } from '@/components/payments/payment-status-badge';
 import { useAppStore } from '@/lib/store';
 import { getCurrentUser } from '@/lib/auth';
+import { useT } from '@/lib/i18n';
 
 export default function PaymentDetailPage() {
   const params = useParams();
@@ -20,6 +20,7 @@ export default function PaymentDetailPage() {
   const [payment, setPayment] = useState<Payment | null>(null);
   const [notFound, setNotFound] = useState(false);
   const { setUser } = useAppStore();
+  const { t, dateLocale } = useT();
 
   useEffect(() => {
     (async () => {
@@ -41,9 +42,9 @@ export default function PaymentDetailPage() {
   if (notFound) {
     return (
       <div className="mx-auto max-w-md space-y-4 text-center">
-        <p className="font-medium">Pembayaran tidak ditemukan.</p>
+        <p className="font-medium">{t('Pembayaran tidak ditemukan.', 'Payment not found.')}</p>
         <Button asChild variant="outline">
-          <Link href="/payments">Kembali ke riwayat</Link>
+          <Link href="/payments">{t('Kembali ke riwayat', 'Back to history')}</Link>
         </Button>
       </div>
     );
@@ -58,17 +59,17 @@ export default function PaymentDetailPage() {
   }
 
   const rows: [string, React.ReactNode][] = [
-    ['Produk', payment.productName],
-    ['Jumlah', formatIDR(payment.amount)],
-    ['Status', <PaymentStatusBadge key="s" status={payment.status} />],
-    ['Tanggal', payment.createdAt ? format(new Date(payment.createdAt), 'd MMMM yyyy, HH:mm', { locale: localeId }) : '-'],
-    ['No. pesanan', <span key="o" className="break-all font-mono text-xs">{payment.orderId}</span>],
+    [t('Produk', 'Product'), payment.productName],
+    [t('Jumlah', 'Amount'), formatIDR(payment.amount)],
+    [t('Status', 'Status'), <PaymentStatusBadge key="s" status={payment.status} />],
+    [t('Tanggal', 'Date'), payment.createdAt ? format(new Date(payment.createdAt), 'd MMMM yyyy, HH:mm', { locale: dateLocale }) : '-'],
+    [t('No. pesanan', 'Order no.'), <span key="o" className="break-all font-mono text-xs">{payment.orderId}</span>],
   ];
 
   return (
     <Card className="mx-auto max-w-md">
       <CardHeader>
-        <CardTitle>Detail pembayaran</CardTitle>
+        <CardTitle>{t('Detail pembayaran', 'Payment details')}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <dl className="divide-y text-sm">
@@ -86,7 +87,7 @@ export default function PaymentDetailPage() {
         )}
         <Button asChild variant="outline" className="w-full">
           <Link href={payment.status === 'success' ? '/dashboard' : '/payments'}>
-            {payment.status === 'success' ? 'Ke beranda' : 'Kembali ke riwayat'}
+            {payment.status === 'success' ? t('Ke beranda', 'Go home') : t('Kembali ke riwayat', 'Back to history')}
           </Link>
         </Button>
       </CardContent>

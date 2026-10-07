@@ -6,6 +6,7 @@ import { createSumopodClient, getSumopodModel } from '@/lib/sumopod';
 import { AI_MONTHLY_LIMITS, getAiUsageCount, logAiUsage } from '@/lib/ai-usage';
 import { currentMonth, formatDate, shiftMonth } from '@/lib/date';
 import { RECORD_INSTRUCTION, parseRecordReply } from '@/lib/ocr';
+import { serverT } from '@/lib/locale-server';
 
 export const maxDuration = 60;
 
@@ -30,10 +31,11 @@ const MAX_TRANSACTIONS = 500;
 const HISTORY_TURNS = 6;
 
 export async function POST(req: Request) {
+  const t = serverT();
   try {
     const parsed = bodySchema.safeParse(await req.json().catch(() => null));
     if (!parsed.success) {
-      return NextResponse.json({ error: 'Pesan wajib diisi' }, { status: 400 });
+      return NextResponse.json({ error: t('Pesan wajib diisi', 'A message is required') }, { status: 400 });
     }
     const { message, history = [] } = parsed.data;
 
@@ -53,7 +55,7 @@ export async function POST(req: Request) {
       .single();
     if (profile?.plan !== 'PRO') {
       return NextResponse.json(
-        { error: 'Asisten AI hanya tersedia untuk paket PRO' },
+        { error: t('Asisten AI hanya tersedia untuk paket PRO', 'The AI assistant is available on PRO only') },
         { status: 403 }
       );
     }
@@ -157,7 +159,7 @@ export async function POST(req: Request) {
           role: 'system',
           content:
             'Kamu adalah asisten keuangan di Qala Saku, aplikasi keuangan pribadi dari keluarga Qala. ' +
-            'Jawab dalam Bahasa Indonesia yang santai dan jelas, hanya berdasarkan data pengguna di bawah. ' +
+            `Jawab dalam ${t('Bahasa Indonesia', 'bahasa Inggris (English)')} yang santai dan jelas, hanya berdasarkan data pengguna di bawah. ` +
             'Kalau datanya tidak cukup, katakan terus terang. Gunakan Markdown singkat (poin-poin, tebalkan angka penting) ' +
             'dan format nominal dalam mata uang pengguna.\n\n' +
             `${RECORD_INSTRUCTION}\n\n` +
@@ -193,7 +195,7 @@ export async function POST(req: Request) {
     });
   } catch (e) {
     console.error(e);
-    const message = e instanceof Error ? e.message : 'Gagal memproses chat';
+    const message = e instanceof Error ? e.message : t('Gagal memproses chat', 'Could not process the chat');
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

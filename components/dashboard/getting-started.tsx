@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
+import { useT } from '@/lib/i18n';
 
 interface Step {
   done: boolean;
@@ -34,34 +35,35 @@ export function GettingStarted({
   onAddTransaction,
   onDismiss,
 }: GettingStartedProps) {
+  const { t } = useT();
   const steps: Step[] = [
     {
       done: hasAccount,
-      title: 'Tambahkan akun pertama',
-      description: 'Rekening bank, e-wallet, atau dompet tunai beserta saldonya saat ini.',
+      title: t('Tambahkan akun pertama', 'Add your first account'),
+      description: t('Rekening bank, e-wallet, atau dompet tunai beserta saldonya saat ini.', 'A bank account, e-wallet or cash wallet with its current balance.'),
       action: (
         <Button asChild size="sm">
-          <Link href="/accounts">Tambah akun</Link>
+          <Link href="/accounts">{t('Tambah akun', 'Add account')}</Link>
         </Button>
       ),
     },
     {
       done: hasTransaction,
-      title: 'Catat transaksi pertama',
-      description: 'Pengeluaran atau pemasukan hari ini, cukup beberapa detik.',
+      title: t('Catat transaksi pertama', 'Record your first transaction'),
+      description: t('Pengeluaran atau pemasukan hari ini, cukup beberapa detik.', "Today's expense or income, in a few seconds."),
       action: (
         <Button size="sm" onClick={onAddTransaction} disabled={!hasAccount}>
-          Catat transaksi
+          {t('Catat transaksi', 'Add transaction')}
         </Button>
       ),
     },
     {
       done: hasBudget,
-      title: 'Buat budget bulan ini',
-      description: 'Tentukan batas belanja per kategori supaya tidak kebablasan.',
+      title: t('Buat budget bulan ini', "Create this month's budget"),
+      description: t('Tentukan batas belanja per kategori supaya tidak kebablasan.', 'Set spending limits per category so you stay on track.'),
       action: (
         <Button asChild size="sm" variant={hasAccount ? 'default' : 'outline'}>
-          <Link href="/budgets">Buat budget</Link>
+          <Link href="/budgets">{t('Buat budget', 'Create budget')}</Link>
         </Button>
       ),
     },
@@ -74,12 +76,12 @@ export function GettingStarted({
       <CardContent className="space-y-4 pt-6">
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-1">
-            <p className="font-display text-lg font-semibold">Mulai di sini</p>
+            <p className="font-display text-lg font-semibold">{t('Mulai di sini', 'Start here')}</p>
             <p className="text-sm text-muted-foreground">
-              {doneCount} dari {steps.length} langkah selesai
+              {t(`${doneCount} dari ${steps.length} langkah selesai`, `${doneCount} of ${steps.length} steps done`)}
             </p>
           </div>
-          <Button variant="ghost" size="icon" onClick={onDismiss} aria-label="Sembunyikan panduan">
+          <Button variant="ghost" size="icon" onClick={onDismiss} aria-label={t('Sembunyikan panduan', 'Hide guide')}>
             <X className="h-4 w-4" />
           </Button>
         </div>

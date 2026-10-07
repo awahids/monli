@@ -2,25 +2,28 @@
 
 import { useEffect } from 'react';
 import { format } from 'date-fns';
-import { id as localeId } from 'date-fns/locale';
 import { CHANGELOG, type ChangelogEntry } from '@/lib/changelog';
 import { markChangelogSeen } from '@/lib/pwa';
 import { cn } from '@/lib/utils';
+import { useT } from '@/lib/i18n';
 
-const TYPE_LABEL: Record<ChangelogEntry['items'][number]['type'], { label: string; className: string }> = {
-  baru: { label: 'Baru', className: 'bg-primary/10 text-primary' },
-  peningkatan: { label: 'Lebih baik', className: 'bg-blue-500/10 text-blue-600 dark:text-blue-400' },
-  perbaikan: { label: 'Perbaikan', className: 'bg-amber-500/10 text-amber-700 dark:text-amber-400' },
+const TYPE_LABEL: Record<ChangelogEntry['items'][number]['type'], { label: string; en: string; className: string }> = {
+  baru: { label: 'Baru', en: 'New', className: 'bg-primary/10 text-primary' },
+  peningkatan: { label: 'Lebih baik', en: 'Improved', className: 'bg-blue-500/10 text-blue-600 dark:text-blue-400' },
+  perbaikan: { label: 'Perbaikan', en: 'Fixed', className: 'bg-amber-500/10 text-amber-700 dark:text-amber-400' },
 };
 
 export default function ChangelogPage() {
   useEffect(markChangelogSeen, []);
+  const { t, dateLocale } = useT();
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Yang baru</h1>
-        <p className="text-sm text-muted-foreground">Catatan perubahan Qala Saku, satu versi per hari.</p>
+        <h1 className="text-2xl font-bold tracking-tight">{t('Yang baru', "What's new")}</h1>
+        <p className="text-sm text-muted-foreground">
+          {t('Catatan perubahan Qala Saku, satu versi per hari.', 'Qala Saku release notes, one version per day (written in Indonesian).')}
+        </p>
       </div>
 
       <ol className="relative space-y-8 border-l pl-5">
@@ -34,7 +37,7 @@ export default function ChangelogPage() {
               )}
             />
             <p className="text-xs text-muted-foreground">
-              Versi {entry.version} · {format(new Date(`${entry.date}T00:00:00`), 'd MMMM yyyy', { locale: localeId })}
+              {t('Versi', 'Version')} {entry.version} · {format(new Date(`${entry.date}T00:00:00`), 'd MMMM yyyy', { locale: dateLocale })}
             </p>
             <h2 className="mt-1 text-lg font-semibold">{entry.title}</h2>
             <ul className="mt-3 space-y-2">
@@ -46,7 +49,7 @@ export default function ChangelogPage() {
                       TYPE_LABEL[item.type].className
                     )}
                   >
-                    {TYPE_LABEL[item.type].label}
+                    {t(TYPE_LABEL[item.type].label, TYPE_LABEL[item.type].en)}
                   </span>
                   <span className="text-foreground/90">{item.text}</span>
                 </li>

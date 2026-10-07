@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
 import { getUser } from '@/lib/auth/server';
 import { SPACE_MEMBER_LIMIT, inviteErrorMessage } from '@/lib/space';
+import { serverT } from '@/lib/locale-server';
 
 const inviteSchema = z.object({
   email: z.string().trim().toLowerCase().email('Email tidak valid'),
@@ -49,7 +50,7 @@ export async function POST(req: Request) {
       .single();
     if (error) {
       const message =
-        error.code === '23505' ? 'Email ini sudah diundang.' : error.message.includes('member_limit') ? inviteErrorMessage(error.message) : error.message;
+        error.code === '23505' ? serverT()('Email ini sudah diundang.', 'This email has already been invited.') : error.message.includes('member_limit') ? inviteErrorMessage(error.message, serverT()) : error.message;
       return NextResponse.json({ error: message }, { status: 400 });
     }
     return NextResponse.json(data, { status: 201 });

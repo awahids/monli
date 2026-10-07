@@ -14,13 +14,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useT } from '@/lib/i18n';
 
 /** Switch between the personal space and shared spaces the user joined. Hidden when there are none. */
 export function SpaceSwitcher() {
   const { user, space } = useAppStore();
+  const { t } = useT();
   if (!user || !space || space.joined.length === 0) return null;
 
-  const current = space.isOwn ? 'Pribadi' : space.ownerName;
+  const current = space.isOwn ? t('Pribadi', 'Personal') : space.ownerName;
 
   return (
     <DropdownMenu>
@@ -29,17 +31,17 @@ export function SpaceSwitcher() {
           variant="outline"
           size="sm"
           className="gap-1.5 px-2"
-          aria-label={`Ruang: ${current}. Ganti ruang`}
+          aria-label={t(`Ruang: ${current}. Ganti ruang`, `Space: ${current}. Switch space`)}
         >
           {space.isOwn ? <User className="h-4 w-4 shrink-0" /> : <Users className="h-4 w-4 shrink-0 text-primary" />}
           <ChevronsUpDown className="h-3.5 w-3.5 shrink-0 opacity-60" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-64">
-        <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">Pindah ruang</DropdownMenuLabel>
+        <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">{t('Pindah ruang', 'Switch space')}</DropdownMenuLabel>
         <DropdownMenuItem onClick={() => !space.isOwn && switchSpace(null)}>
           <User className="mr-2 h-4 w-4" />
-          <span className="flex-1">Pribadi</span>
+          <span className="flex-1">{t('Pribadi', 'Personal')}</span>
           {space.isOwn && <Check className="h-4 w-4" />}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
@@ -48,7 +50,7 @@ export function SpaceSwitcher() {
             <Users className="mr-2 h-4 w-4" />
             <span className="flex-1 truncate">
               {j.ownerName}
-              <span className="block text-xs text-muted-foreground">{SPACE_ROLE_LABEL[j.role]}</span>
+              <span className="block text-xs text-muted-foreground">{t(...SPACE_ROLE_LABEL[j.role])}</span>
             </span>
             {j.ownerId === space.ownerId && <Check className="h-4 w-4" />}
           </DropdownMenuItem>
@@ -61,6 +63,7 @@ export function SpaceSwitcher() {
 /** Reminds members whose data they are looking at, and whether they can change it. */
 export function SpaceBanner() {
   const { space } = useAppStore();
+  const { t } = useT();
   if (!space || space.isOwn) return null;
 
   return (
@@ -70,11 +73,13 @@ export function SpaceBanner() {
     >
       {space.canWrite ? <Users className="h-4 w-4 text-primary" /> : <Eye className="h-4 w-4 text-primary" />}
       <p className="flex-1">
-        Ruang bersama <span className="font-semibold">{space.ownerName}</span> ·{' '}
-        {space.canWrite ? 'kamu bisa mencatat dan mengubah data' : 'kamu hanya bisa melihat'}
+        {t('Ruang bersama', 'Shared space')} <span className="font-semibold">{space.ownerName}</span> ·{' '}
+        {space.canWrite
+          ? t('kamu bisa mencatat dan mengubah data', 'you can record and change data')
+          : t('kamu hanya bisa melihat', 'you can only view')}
       </p>
       <Button variant="ghost" size="sm" className="h-8" onClick={() => switchSpace(null)}>
-        Kembali ke pribadi
+        {t('Kembali ke pribadi', 'Back to personal')}
       </Button>
     </div>
   );

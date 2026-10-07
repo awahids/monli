@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { format } from 'date-fns';
-import { id as localeId } from 'date-fns/locale';
 import { Archive, ArchiveRestore, MoreVertical, Pencil, Plus, Target, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -30,9 +29,11 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { CategoryIcon } from '@/components/transactions/category-icon';
 import { ContributeDialog, GoalFormDialog } from '@/components/goals/goal-dialogs';
+import { useT } from '@/lib/i18n';
 
 export default function GoalsPage() {
   const { user, space } = useAppStore();
+  const { t, dateLocale } = useT();
   const [goals, setGoals] = useState<SavingsGoal[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<'active' | 'archived'>('active');
@@ -56,11 +57,11 @@ export default function GoalsPage() {
       if (!res.ok) throw new Error(data.error);
       setGoals(keysToCamel<SavingsGoal[]>(data.data ?? []));
     } catch {
-      toast.error('Gagal memuat target tabungan');
+      toast.error(t('Gagal memuat target tabungan', 'Could not load savings goals'));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     fetchGoals();
@@ -78,22 +79,22 @@ export default function GoalsPage() {
       body: JSON.stringify({ archived: value }),
     });
     if (!res.ok) {
-      toast.error('Gagal menyimpan');
+      toast.error(t('Gagal menyimpan', 'Could not save'));
       return;
     }
     replaceGoal(await res.json());
-    toast.success(value ? 'Target diarsipkan' : 'Target dipulihkan');
+    toast.success(value ? t('Target diarsipkan', 'Goal archived') : t('Target dipulihkan', 'Goal restored'));
   };
 
   const handleDelete = async () => {
     if (!deleting) return;
     const res = await fetch(`/api/goals/${deleting.id}`, { method: 'DELETE' });
     if (!res.ok) {
-      toast.error('Gagal menghapus');
+      toast.error(t('Gagal menghapus', 'Could not delete'));
       return;
     }
     setGoals((gs) => gs.filter((g) => g.id !== deleting.id));
-    toast.success('Target dihapus');
+    toast.success(t('Target dihapus', 'Goal deleted'));
   };
 
   const openNew = () => {
@@ -105,28 +106,30 @@ export default function GoalsPage() {
     <div className="space-y-6">
       <div className="flex items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Target tabungan</h1>
-          <p className="text-sm text-muted-foreground">Sisihkan sedikit demi sedikit untuk tujuan yang jelas.</p>
+          <h1 className="text-2xl font-bold tracking-tight">{t('Target tabungan', 'Savings goals')}</h1>
+          <p className="text-sm text-muted-foreground">
+            {t('Sisihkan sedikit demi sedikit untuk tujuan yang jelas.', 'Put money aside, bit by bit, for a clear goal.')}
+          </p>
         </div>
         {!limitReached && (
           <Button onClick={openNew}>
-            <Plus className="mr-1 h-4 w-4" /> Tambah
+            <Plus className="mr-1 h-4 w-4" /> {t('Tambah', 'Add')}
           </Button>
         )}
       </div>
 
       {limitReached && (
         <p className="rounded-lg border border-dashed p-3 text-sm text-muted-foreground">
-          Paket FREE dibatasi {FREE_LIMITS.goals} target aktif.{' '}
+          {t(`Paket FREE dibatasi ${FREE_LIMITS.goals} target aktif.`, `The FREE plan is limited to ${FREE_LIMITS.goals} active goal.`)}{' '}
           <Link href="/upgrade" className="font-medium text-primary underline-offset-4 hover:underline">
-            Upgrade ke PRO
+            {t('Upgrade ke PRO', 'Upgrade to PRO')}
           </Link>{' '}
-          untuk target tanpa batas, atau arsipkan target yang sudah selesai.
+          {t('untuk target tanpa batas, atau arsipkan target yang sudah selesai.', 'for unlimited goals, or archive finished ones.')}
         </p>
       )}
 
       {loading ? (
-        <div className="grid gap-4" aria-busy="true" aria-label="Memuat target">
+        <div className="grid gap-4" aria-busy="true" aria-label={t('Memuat target', 'Loading goals')}>
           {Array.from({ length: 3 }).map((_, i) => (
             <Skeleton key={i} className="h-44 rounded-xl" />
           ))}
@@ -134,11 +137,14 @@ export default function GoalsPage() {
       ) : goals.length === 0 ? (
         <EmptyState
           icon={Target}
-          title="Belum ada target tabungan"
-          description="Mulai dari dana darurat 3× pengeluaran bulanan, atau tabungan liburan berikutnya."
+          title={t('Belum ada target tabungan', 'No savings goals yet')}
+          description={t(
+            'Mulai dari dana darurat 3× pengeluaran bulanan, atau tabungan liburan berikutnya.',
+            'Start with an emergency fund of 3× monthly spending, or savings for your next trip.'
+          )}
           action={
             <Button onClick={openNew}>
-              <Plus className="mr-1 h-4 w-4" /> Buat target pertama
+              <Plus className="mr-1 h-4 w-4" /> {t('Buat target pertama', 'Create your first goal')}
             </Button>
           }
         />
@@ -147,7 +153,7 @@ export default function GoalsPage() {
           {active.length > 1 && (
             <Card className="space-y-2 p-4">
               <div className="flex items-baseline justify-between gap-2">
-                <p className="text-sm text-muted-foreground">Total terkumpul</p>
+                <p className="text-sm text-muted-foreground">{t('Total terkumpul', 'Total saved')}</p>
                 <p className="text-sm text-muted-foreground">{Math.round((totalSaved / totalTarget) * 100)}%</p>
               </div>
               <p className="font-display text-2xl font-bold tabular-nums">
@@ -161,8 +167,8 @@ export default function GoalsPage() {
           {archived.length > 0 && (
             <Tabs value={tab} onValueChange={(v) => setTab(v as 'active' | 'archived')}>
               <TabsList>
-                <TabsTrigger value="active">Aktif ({active.length})</TabsTrigger>
-                <TabsTrigger value="archived">Diarsipkan ({archived.length})</TabsTrigger>
+                <TabsTrigger value="active">{t('Aktif', 'Active')} ({active.length})</TabsTrigger>
+                <TabsTrigger value="archived">{t('Diarsipkan', 'Archived')} ({archived.length})</TabsTrigger>
               </TabsList>
             </Tabs>
           )}
@@ -184,13 +190,16 @@ export default function GoalsPage() {
                       <p className="truncate font-display font-semibold">{g.name}</p>
                       <p className="text-xs text-muted-foreground">
                         {g.targetDate
-                          ? `Target ${format(new Date(`${g.targetDate}T00:00:00`), 'd MMM yyyy', { locale: localeId })}`
-                          : 'Tanpa tenggat'}
+                          ? t(
+                              `Target ${format(new Date(`${g.targetDate}T00:00:00`), 'd MMM yyyy', { locale: dateLocale })}`,
+                              `By ${format(new Date(`${g.targetDate}T00:00:00`), 'd MMM yyyy', { locale: dateLocale })}`
+                            )
+                          : t('Tanpa tenggat', 'No deadline')}
                       </p>
                     </div>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="-mr-2 -mt-1 h-8 w-8" aria-label={`Opsi ${g.name}`}>
+                        <Button variant="ghost" size="icon" className="-mr-2 -mt-1 h-8 w-8" aria-label={t(`Opsi ${g.name}`, `Options for ${g.name}`)}>
                           <MoreVertical className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
@@ -201,21 +210,21 @@ export default function GoalsPage() {
                             setFormOpen(true);
                           }}
                         >
-                          <Pencil className="mr-2 h-4 w-4" /> Ubah
+                          <Pencil className="mr-2 h-4 w-4" /> {t('Ubah', 'Edit')}
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => setArchived(g, !g.archived)}>
                           {g.archived ? (
                             <>
-                              <ArchiveRestore className="mr-2 h-4 w-4" /> Pulihkan
+                              <ArchiveRestore className="mr-2 h-4 w-4" /> {t('Pulihkan', 'Restore')}
                             </>
                           ) : (
                             <>
-                              <Archive className="mr-2 h-4 w-4" /> Arsipkan
+                              <Archive className="mr-2 h-4 w-4" /> {t('Arsipkan', 'Archive')}
                             </>
                           )}
                         </DropdownMenuItem>
                         <DropdownMenuItem className="text-destructive" onClick={() => setDeleting(g)}>
-                          <Trash2 className="mr-2 h-4 w-4" /> Hapus
+                          <Trash2 className="mr-2 h-4 w-4" /> {t('Hapus', 'Delete')}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -229,7 +238,7 @@ export default function GoalsPage() {
                       </span>
                     </div>
                     <Progress value={p.pct} className="h-2" indicatorStyle={{ backgroundColor: color }} />
-                    <p className="text-xs text-muted-foreground">dari {formatMoney(g.targetAmount)}</p>
+                    <p className="text-xs text-muted-foreground">{t('dari', 'of')} {formatMoney(g.targetAmount)}</p>
                   </div>
 
                   <p
@@ -243,17 +252,17 @@ export default function GoalsPage() {
                     )}
                   >
                     {p.done
-                      ? 'Target tercapai. Selamat!'
+                      ? t('Target tercapai. Selamat!', 'Goal reached. Congratulations!')
                       : p.overdue
-                      ? `Tenggat sudah lewat, kurang ${formatMoney(p.remaining)}`
+                      ? t(`Tenggat sudah lewat, kurang ${formatMoney(p.remaining)}`, `Past the deadline, ${formatMoney(p.remaining)} to go`)
                       : p.perMonth !== null
-                      ? `Sisihkan ${formatMoney(p.perMonth)}/bulan agar tercapai tepat waktu`
-                      : `Kurang ${formatMoney(p.remaining)} lagi`}
+                      ? t(`Sisihkan ${formatMoney(p.perMonth)}/bulan agar tercapai tepat waktu`, `Save ${formatMoney(p.perMonth)}/month to make it on time`)
+                      : t(`Kurang ${formatMoney(p.remaining)} lagi`, `${formatMoney(p.remaining)} to go`)}
                   </p>
 
                   {!g.archived && (
                     <Button variant="outline" className="mt-auto" onClick={() => setContributing(g)}>
-                      Setor / tarik
+                      {t('Setor / tarik', 'Deposit / withdraw')}
                     </Button>
                   )}
                 </Card>
@@ -272,10 +281,13 @@ export default function GoalsPage() {
       <ConfirmDialog
         open={deleting !== null}
         onOpenChange={(o) => !o && setDeleting(null)}
-        title={`Hapus "${deleting?.name ?? ''}"?`}
-        description="Progres target ini akan hilang. Transaksi dan saldo akun tidak berubah."
-        confirmLabel="Hapus"
-        cancelLabel="Batal"
+        title={t(`Hapus "${deleting?.name ?? ''}"?`, `Delete "${deleting?.name ?? ''}"?`)}
+        description={t(
+          'Progres target ini akan hilang. Transaksi dan saldo akun tidak berubah.',
+          "This goal's progress will be lost. Transactions and account balances stay the same."
+        )}
+        confirmLabel={t('Hapus', 'Delete')}
+        cancelLabel={t('Batal', 'Cancel')}
         onConfirm={handleDelete}
       />
     </div>

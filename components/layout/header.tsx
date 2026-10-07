@@ -16,27 +16,29 @@ import {
   DropdownMenuSubContent,
 } from '@/components/ui/dropdown-menu';
 import { OfflineIndicator } from '@/components/ui/offline-indicator';
-import { Moon, Sun, Laptop, User, LogOut, Search } from 'lucide-react';
+import { Moon, Sun, Laptop, User, LogOut, Search, Languages, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTheme } from 'next-themes';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { SpaceSwitcher } from './space-switcher';
 import { QalaLogo } from '@/components/brand/qala-mark';
+import { setLocale, useT } from '@/lib/i18n';
 
 function UserNav() {
   const { user } = useAppStore();
   const { setTheme } = useTheme();
   const router = useRouter();
+  const { t, locale } = useT();
 
   const handleSignOut = async () => {
     try {
       await signOut();
-      toast.success('Berhasil keluar');
+      toast.success(t('Berhasil keluar', 'Signed out'));
       router.replace('/auth/sign-in');
       router.refresh();
     } catch (error) {
-      toast.error('Gagal keluar, coba lagi');
+      toast.error(t('Gagal keluar, coba lagi', 'Could not sign out, try again'));
     }
   };
 
@@ -72,33 +74,47 @@ function UserNav() {
         <DropdownMenuSub>
           <DropdownMenuSubTrigger>
             <Sun className="mr-2 h-4 w-4" />
-            <span>Tema</span>
+            <span>{t('Tema', 'Theme')}</span>
           </DropdownMenuSubTrigger>
           <DropdownMenuSubContent>
             <DropdownMenuItem onClick={() => setTheme('light')}>
               <Sun className="mr-2 h-4 w-4" />
-              <span>Terang</span>
+              <span>{t('Terang', 'Light')}</span>
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => setTheme('dark')}>
               <Moon className="mr-2 h-4 w-4" />
-              <span>Gelap</span>
+              <span>{t('Gelap', 'Dark')}</span>
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => setTheme('system')}>
               <Laptop className="mr-2 h-4 w-4" />
-              <span>Ikuti sistem</span>
+              <span>{t('Ikuti sistem', 'System')}</span>
             </DropdownMenuItem>
+          </DropdownMenuSubContent>
+        </DropdownMenuSub>
+        <DropdownMenuSub>
+          <DropdownMenuSubTrigger>
+            <Languages className="mr-2 h-4 w-4" />
+            <span>{t('Bahasa', 'Language')}</span>
+          </DropdownMenuSubTrigger>
+          <DropdownMenuSubContent>
+            {(['id', 'en'] as const).map((l) => (
+              <DropdownMenuItem key={l} onClick={() => l !== locale && setLocale(l)}>
+                <span className="flex-1">{l === 'id' ? 'Bahasa Indonesia' : 'English'}</span>
+                {l === locale && <Check className="ml-2 h-4 w-4" />}
+              </DropdownMenuItem>
+            ))}
           </DropdownMenuSubContent>
         </DropdownMenuSub>
         <DropdownMenuItem asChild>
           <Link href="/settings" className="flex items-center">
             <User className="mr-2 h-4 w-4" />
-            <span>Pengaturan</span>
+            <span>{t('Pengaturan', 'Settings')}</span>
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleSignOut}>
           <LogOut className="mr-2 h-4 w-4" />
-          <span>Keluar</span>
+          <span>{t('Keluar', 'Sign out')}</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -106,6 +122,7 @@ function UserNav() {
 }
 
 export function Header() {
+  const { t } = useT();
   return (
     <header className="sticky top-0 z-40 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/70">
       <div className="flex h-[calc(3.5rem+env(safe-area-inset-top))] items-center justify-between gap-2 px-4 pt-[env(safe-area-inset-top)]">
@@ -113,7 +130,7 @@ export function Header() {
         <div className="flex items-center gap-2">
           <OfflineIndicator />
           <Button variant="ghost" size="icon" asChild>
-            <Link href="/transactions?search=" aria-label="Cari transaksi">
+            <Link href="/transactions?search=" aria-label={t('Cari transaksi', 'Search transactions')}>
               <Search className="h-5 w-5" />
             </Link>
           </Button>

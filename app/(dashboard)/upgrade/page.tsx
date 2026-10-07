@@ -12,11 +12,13 @@ import { formatIDR } from '@/lib/currency';
 import { useAppStore } from '@/lib/store';
 import { getCurrentUser } from '@/lib/auth';
 import type { SnapResult } from '@/types/snap';
+import { useT } from '@/lib/i18n';
 
 export default function UpgradePage() {
   const { toast } = useToast();
   const router = useRouter();
   const { user, setUser } = useAppStore();
+  const { t } = useT();
   const clientKey = process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY || '';
   const [checkingOut, setCheckingOut] = useState(false);
 
@@ -62,31 +64,31 @@ export default function UpgradePage() {
             toast({
               description:
                 status === 'success'
-                  ? 'Pembayaran berhasil, PRO sudah aktif'
-                  : 'Pembayaran diterima, menunggu konfirmasi',
+                  ? t('Pembayaran berhasil, PRO sudah aktif', 'Payment successful, PRO is active')
+                  : t('Pembayaran diterima, menunggu konfirmasi', 'Payment received, waiting for confirmation'),
             });
             router.push(`/payments/${result.order_id}`);
           },
           onPending: async (result: SnapResult) => {
             await refresh(result.order_id);
-            toast({ description: 'Menunggu pembayaran diselesaikan' });
+            toast({ description: t('Menunggu pembayaran diselesaikan', 'Waiting for the payment to complete') });
             router.push(`/payments/${result.order_id}`);
           },
           onError: async (result: SnapResult) => {
             await refresh(result.order_id);
-            toast({ description: 'Pembayaran gagal', variant: 'destructive' });
+            toast({ description: t('Pembayaran gagal', 'Payment failed'), variant: 'destructive' });
           },
           onClose: async () => {
             await refresh(orderId);
-            toast({ description: 'Jendela pembayaran ditutup' });
+            toast({ description: t('Jendela pembayaran ditutup', 'Payment window closed') });
           },
         });
       } else {
-        toast({ description: 'Modul pembayaran belum termuat, coba lagi sebentar', variant: 'destructive' });
+        toast({ description: t('Modul pembayaran belum termuat, coba lagi sebentar', 'The payment module has not loaded yet, try again shortly'), variant: 'destructive' });
       }
     } catch (e) {
       toast({
-        description: (e as Error).message || 'Gagal memulai pembayaran',
+        description: (e as Error).message || t('Gagal memulai pembayaran', 'Could not start the payment'),
         variant: 'destructive',
       });
     } finally {
@@ -97,13 +99,13 @@ export default function UpgradePage() {
   if (!user) return null;
 
   const discount = Math.round(((PRO_ORIGINAL_PRICE - PRO_PRICE) / PRO_ORIGINAL_PRICE) * 100);
-  const renderValue = (value: string | boolean) =>
+  const renderValue = (value: [string, string] | boolean) =>
     value === true ? (
-      <Check className="mx-auto h-4 w-4 text-primary" aria-label="Termasuk" />
+      <Check className="mx-auto h-4 w-4 text-primary" aria-label={t('Termasuk', 'Included')} />
     ) : value === false ? (
-      <Minus className="mx-auto h-4 w-4 text-muted-foreground/60" aria-label="Tidak termasuk" />
+      <Minus className="mx-auto h-4 w-4 text-muted-foreground/60" aria-label={t('Tidak termasuk', 'Not included')} />
     ) : (
-      <span className="text-xs">{value}</span>
+      <span className="text-xs">{t(...value)}</span>
     );
 
   if (user.plan === 'PRO') {
@@ -112,26 +114,26 @@ export default function UpgradePage() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-brand-gold" /> Kamu sudah PRO
+              <Sparkles className="h-5 w-5 text-brand-gold" /> {t('Kamu sudah PRO', "You're on PRO")}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
-            <p className="text-muted-foreground">Semua fitur ini sudah aktif di akunmu:</p>
+            <p className="text-muted-foreground">{t('Semua fitur ini sudah aktif di akunmu:', 'All these features are active on your account:')}</p>
             <ul className="space-y-2">
               {PLAN_FEATURES.filter((f) => f.free !== true).map((f) => (
                 <li key={f.label} className="flex items-center gap-2">
                   <Check className="h-4 w-4 shrink-0 text-primary" />
                   <span>
-                    {f.label}
-                    {typeof f.pro === 'string' && (
-                      <span className="text-muted-foreground"> · {f.pro}</span>
+                    {t(f.label, f.labelEn)}
+                    {Array.isArray(f.pro) && (
+                      <span className="text-muted-foreground"> · {t(...f.pro)}</span>
                     )}
                   </span>
                 </li>
               ))}
             </ul>
             <Button asChild variant="outline" className="w-full">
-              <Link href="/payments">Riwayat pembayaran</Link>
+              <Link href="/payments">{t('Riwayat pembayaran', 'Payment history')}</Link>
             </Button>
           </CardContent>
         </Card>
@@ -142,9 +144,12 @@ export default function UpgradePage() {
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <div className="text-center">
-        <h1 className="text-2xl font-bold tracking-tight">Upgrade ke Qala Saku PRO</h1>
+        <h1 className="text-2xl font-bold tracking-tight">{t('Upgrade ke Qala Saku PRO', 'Upgrade to Qala Saku PRO')}</h1>
         <p className="mt-2 text-muted-foreground">
-          Scan struk, asisten AI, laporan lengkap, dan akun maupun budget tanpa batas.
+          {t(
+            'Scan struk, asisten AI, laporan lengkap, dan akun maupun budget tanpa batas.',
+            'Receipt scan, AI assistant, full reports, and unlimited accounts and budgets.'
+          )}
         </p>
       </div>
 
@@ -152,7 +157,7 @@ export default function UpgradePage() {
         <table className="w-full text-sm">
           <thead className="bg-muted/60">
             <tr>
-              <th className="px-4 py-3 text-left font-medium">Fitur</th>
+              <th className="px-4 py-3 text-left font-medium">{t('Fitur', 'Feature')}</th>
               <th className="w-24 px-2 py-3 text-center font-medium">FREE</th>
               <th className="w-28 px-2 py-3 text-center font-semibold text-primary">PRO</th>
             </tr>
@@ -160,7 +165,7 @@ export default function UpgradePage() {
           <tbody className="divide-y">
             {PLAN_FEATURES.map((f) => (
               <tr key={f.label}>
-                <td className="px-4 py-3">{f.label}</td>
+                <td className="px-4 py-3">{t(f.label, f.labelEn)}</td>
                 <td className="px-2 py-3 text-center text-muted-foreground">{renderValue(f.free)}</td>
                 <td className="bg-accent/40 px-2 py-3 text-center font-medium">{renderValue(f.pro)}</td>
               </tr>
@@ -172,7 +177,7 @@ export default function UpgradePage() {
       <Card>
         <CardContent className="flex flex-col gap-4 pt-6">
           <div>
-            <p className="text-sm text-muted-foreground">Harga promo · sekali bayar</p>
+            <p className="text-sm text-muted-foreground">{t('Harga promo · sekali bayar', 'Promo price · one-time payment')}</p>
             <div className="flex items-baseline gap-2">
               <span className="font-display text-3xl font-bold">{formatIDR(PRO_PRICE)}</span>
               <span className="text-sm text-muted-foreground line-through">{formatIDR(PRO_ORIGINAL_PRICE)}</span>
@@ -182,13 +187,15 @@ export default function UpgradePage() {
             </div>
           </div>
           <Button size="lg" onClick={handleUpgrade} disabled={checkingOut}>
-            {checkingOut ? 'Memproses...' : 'Upgrade sekarang'}
+            {checkingOut ? t('Memproses...', 'Processing...') : t('Upgrade sekarang', 'Upgrade now')}
           </Button>
         </CardContent>
       </Card>
       <p className="text-center text-xs text-muted-foreground">
-        Pembayaran aman lewat Midtrans (transfer bank, e-wallet, QRIS, kartu). Paket aktif otomatis
-        setelah pembayaran terkonfirmasi.
+        {t(
+          'Pembayaran aman lewat Midtrans (transfer bank, e-wallet, QRIS, kartu). Paket aktif otomatis setelah pembayaran terkonfirmasi.',
+          'Secure payment through Midtrans (bank transfer, e-wallet, QRIS, card). The plan activates once payment is confirmed.'
+        )}
       </p>
     </div>
   );

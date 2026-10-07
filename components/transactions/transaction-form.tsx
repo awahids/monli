@@ -6,7 +6,6 @@ import { useForm, UseFormReturn } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { format } from 'date-fns';
-import { id as localeId } from 'date-fns/locale';
 import { CalendarIcon, ChevronDown, X } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -45,6 +44,7 @@ import { defaultBudgetMonth } from '@/lib/budget-period';
 import { formatDate } from '@/lib/date';
 import { formatMoneyCompact, getDisplayCurrency } from '@/lib/currency';
 import { ReceiptField } from './receipt-field';
+import { useT } from '@/lib/i18n';
 
 export const getJakartaDate = () => {
   const dateStr = new Intl.DateTimeFormat('en-CA', {
@@ -135,9 +135,9 @@ export const toFormValues = (t: Transaction): FormInput => ({
 });
 
 const TYPE_OPTIONS = [
-  { value: 'expense', label: 'Pengeluaran', active: 'bg-red-600 text-white' },
-  { value: 'income', label: 'Pemasukan', active: 'bg-green-600 text-white' },
-  { value: 'transfer', label: 'Transfer', active: 'bg-blue-600 text-white' },
+  { value: 'expense', label: 'Pengeluaran', en: 'Expense', active: 'bg-red-600 text-white' },
+  { value: 'income', label: 'Pemasukan', en: 'Income', active: 'bg-green-600 text-white' },
+  { value: 'transfer', label: 'Transfer', en: 'Transfer', active: 'bg-blue-600 text-white' },
 ] as const;
 
 const LAST_ACCOUNT_KEY = 'qala-saku:last-account';
@@ -175,12 +175,13 @@ function AccountChips({
   onChange: (id: string) => void;
   exclude?: string;
 }) {
+  const { t } = useT();
   if (accounts.length === 0) {
     return (
       <p className="text-sm text-muted-foreground">
-        Belum ada akun.{' '}
+        {t('Belum ada akun.', 'No accounts yet.')}{' '}
         <Link href="/accounts" className="font-medium text-primary underline-offset-4 hover:underline">
-          Buat akun dulu
+          {t('Buat akun dulu', 'Create one first')}
         </Link>
       </p>
     );
@@ -229,6 +230,7 @@ export function TransactionFields({
   const [tagInput, setTagInput] = useState('');
   const [moreOpen, setMoreOpen] = useState(false);
   const currency = getDisplayCurrency();
+  const { t, dateLocale } = useT();
 
   const today = getJakartaDate();
   const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000);
@@ -249,7 +251,7 @@ export function TransactionFields({
         name="type"
         render={({ field }) => (
           <FormItem>
-            <div role="radiogroup" aria-label="Jenis transaksi" className="grid grid-cols-3 gap-1 rounded-lg bg-muted p-1">
+            <div role="radiogroup" aria-label={t('Jenis transaksi', 'Transaction type')} className="grid grid-cols-3 gap-1 rounded-lg bg-muted p-1">
               {TYPE_OPTIONS.map((opt) => (
                 <button
                   key={opt.value}
@@ -273,7 +275,7 @@ export function TransactionFields({
                     field.value === opt.value ? opt.active : 'text-muted-foreground hover:text-foreground'
                   )}
                 >
-                  {opt.label}
+                  {t(opt.label, opt.en)}
                 </button>
               ))}
             </div>
@@ -286,11 +288,11 @@ export function TransactionFields({
         name="amount"
         render={({ field }) => (
           <FormItem>
-            <FormLabel className="sr-only">Nominal</FormLabel>
+            <FormLabel className="sr-only">{t('Nominal', 'Amount')}</FormLabel>
             <FormControl>
               <MoneyInput
                 size="lg"
-                aria-label="Nominal"
+                aria-label={t('Nominal', 'Amount')}
                 autoFocus={autoFocusAmount}
                 value={typeof field.value === 'number' ? field.value : Number(field.value) || 0}
                 onValueChange={field.onChange}
@@ -325,12 +327,14 @@ export function TransactionFields({
           name="categoryId"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Kategori</FormLabel>
+              <FormLabel>{t('Kategori', 'Category')}</FormLabel>
               {typeCategories.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
-                  Belum ada kategori {currentType === 'income' ? 'pemasukan' : 'pengeluaran'}.{' '}
+                  {currentType === 'income'
+                    ? t('Belum ada kategori pemasukan.', 'No income categories yet.')
+                    : t('Belum ada kategori pengeluaran.', 'No expense categories yet.')}{' '}
                   <Link href="/settings" className="font-medium text-primary underline-offset-4 hover:underline">
-                    Tambah di Pengaturan
+                    {t('Tambah di Pengaturan', 'Add one in Settings')}
                   </Link>
                 </p>
               ) : (
@@ -372,7 +376,7 @@ export function TransactionFields({
           name="accountId"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Akun</FormLabel>
+              <FormLabel>{t('Akun', 'Account')}</FormLabel>
               <AccountChips accounts={accounts} value={field.value} onChange={field.onChange} />
               <FormMessage />
             </FormItem>
@@ -385,7 +389,7 @@ export function TransactionFields({
             name="fromAccountId"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Dari akun</FormLabel>
+                <FormLabel>{t('Dari akun', 'From account')}</FormLabel>
                 <AccountChips accounts={accounts} value={field.value} onChange={field.onChange} />
                 <FormMessage />
               </FormItem>
@@ -396,7 +400,7 @@ export function TransactionFields({
             name="toAccountId"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Ke akun</FormLabel>
+                <FormLabel>{t('Ke akun', 'To account')}</FormLabel>
                 <AccountChips
                   accounts={accounts}
                   value={field.value}
@@ -415,11 +419,11 @@ export function TransactionFields({
         name="actualDate"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Tanggal</FormLabel>
+            <FormLabel>{t('Tanggal', 'Date')}</FormLabel>
             <div className="flex flex-wrap gap-2">
               {[
-                { label: 'Hari ini', date: today },
-                { label: 'Kemarin', date: yesterday },
+                { label: t('Hari ini', 'Today'), date: today },
+                { label: t('Kemarin', 'Yesterday'), date: yesterday },
               ].map((opt) => (
                 <button
                   key={opt.label}
@@ -447,8 +451,8 @@ export function TransactionFields({
                   >
                     <CalendarIcon className="h-3.5 w-3.5" />
                     {isCustomDate && field.value
-                      ? format(field.value, 'd MMM yyyy', { locale: localeId })
-                      : 'Pilih tanggal'}
+                      ? format(field.value, 'd MMM yyyy', { locale: dateLocale })
+                      : t('Pilih tanggal', 'Pick a date')}
                   </button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start" container={contentEl ?? undefined}>
@@ -472,9 +476,9 @@ export function TransactionFields({
         name="note"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Catatan</FormLabel>
+            <FormLabel>{t('Catatan', 'Note')}</FormLabel>
             <FormControl>
-              <Input placeholder="mis. Makan siang bareng tim" {...field} />
+              <Input placeholder={t('mis. Makan siang bareng tim', 'e.g. Team lunch')} {...field} />
             </FormControl>
             <TagSuggestions
               note={field.value}
@@ -500,7 +504,7 @@ export function TransactionFields({
             type="button"
             className="flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground"
           >
-            Lainnya: bulan budget & tag
+            {t('Lainnya: bulan budget & tag', 'More: budget month & tags')}
             <ChevronDown className={cn('h-4 w-4 transition-transform', moreOpen && 'rotate-180')} />
           </button>
         </CollapsibleTrigger>
@@ -510,13 +514,15 @@ export function TransactionFields({
             name="budgetMonth"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Masuk budget bulan</FormLabel>
+                <FormLabel>{t('Masuk budget bulan', 'Budget month')}</FormLabel>
                 <FormControl>
                   <Input type="month" {...field} />
                 </FormControl>
                 <FormDescription>
-                  Otomatis mengikuti tanggal dan periode budget di Pengaturan. Ubah kalau
-                  transaksi ini milik budget bulan lain.
+                  {t(
+                    'Otomatis mengikuti tanggal dan periode budget di Pengaturan. Ubah kalau transaksi ini milik budget bulan lain.',
+                    'Follows the date and your budget period in Settings. Change it if this belongs to another month.'
+                  )}
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -527,7 +533,7 @@ export function TransactionFields({
             name="tags"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Tag</FormLabel>
+                <FormLabel>{t('Tag', 'Tags')}</FormLabel>
                 <FormControl>
                   <div className="flex flex-wrap gap-2">
                     {field.value?.map((tag, idx) => (
@@ -535,7 +541,7 @@ export function TransactionFields({
                         {tag}
                         <button
                           type="button"
-                          aria-label={`Hapus tag ${tag}`}
+                          aria-label={t(`Hapus tag ${tag}`, `Remove tag ${tag}`)}
                           onClick={() =>
                             field.onChange((field.value ?? []).filter((_, i) => i !== idx))
                           }
@@ -546,7 +552,7 @@ export function TransactionFields({
                     ))}
                     <Input
                       value={tagInput}
-                      placeholder="Ketik lalu Enter"
+                      placeholder={t('Ketik lalu Enter', 'Type and press Enter')}
                       onChange={(e) => setTagInput(e.target.value)}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' && tagInput.trim()) {
@@ -627,6 +633,7 @@ export function TransactionForm({
 }: Props) {
   // react-hook-form's resolver expects the schema's input type, while the
   // submit handler uses the parsed output type.
+  const { t } = useT();
   const form = useForm<FormInput, any, TransactionFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: newDefaults([], []),
@@ -649,7 +656,7 @@ export function TransactionForm({
     try {
       await onSubmit(values);
     } catch (e) {
-      toast.error((e as Error).message || 'Gagal menyimpan transaksi');
+      toast.error((e as Error).message || t('Gagal menyimpan transaksi', 'Could not save the transaction'));
       return;
     }
     if (values.type === 'transfer') {
@@ -671,7 +678,7 @@ export function TransactionForm({
         className="p-0"
       >
         <DialogHeader className="px-4 pt-4">
-          <DialogTitle>{transaction ? 'Edit transaksi' : 'Tambah transaksi'}</DialogTitle>
+          <DialogTitle>{transaction ? t('Edit transaksi', 'Edit transaction') : t('Tambah transaksi', 'Add transaction')}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form
@@ -699,13 +706,13 @@ export function TransactionForm({
                   onClick={() => onDelete()}
                   disabled={isSubmitting}
                 >
-                  Hapus
+                  {t('Hapus', 'Delete')}
                 </Button>
               ) : (
                 <span />
               )}
               <Button type="submit" disabled={isSubmitting} className="min-w-28">
-                {isSubmitting ? 'Menyimpan...' : 'Simpan'}
+                {isSubmitting ? t('Menyimpan...', 'Saving...') : t('Simpan', 'Save')}
               </Button>
             </DialogFooter>
           </form>

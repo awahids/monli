@@ -11,9 +11,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { CategoryIcon } from '@/components/transactions/category-icon';
+import { useT } from '@/lib/i18n';
 
 /** Up to three active savings goals; renders nothing until the user has one. */
 export function GoalsSummary() {
+  const { t } = useT();
   const [goals, setGoals] = useState<SavingsGoal[]>([]);
 
   useEffect(() => {
@@ -37,9 +39,9 @@ export function GoalsSummary() {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-        <CardTitle className="text-base">Target tabungan</CardTitle>
+        <CardTitle className="text-base">{t('Target tabungan', 'Savings goals')}</CardTitle>
         <Button asChild variant="ghost" size="sm" className="-mr-2">
-          <Link href="/goals">Lihat semua</Link>
+          <Link href="/goals">{t('Lihat semua', 'See all')}</Link>
         </Button>
       </CardHeader>
       <CardContent className="grid gap-4">
