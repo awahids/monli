@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { motion } from "framer-motion";
 import {
   BarChart3,
   BookOpen,
@@ -67,17 +66,10 @@ function TabLink({ href, icon: Icon, label, active }: (typeof tabs)[number] & { 
       href={href}
       aria-current={active ? "page" : undefined}
       className={cn(
-        "relative flex flex-1 flex-col items-center gap-1 rounded-xl py-2 text-[11px] leading-none transition-colors touch-manipulation",
-        active ? "font-semibold text-primary" : "text-muted-foreground hover:text-foreground"
+        "relative flex flex-1 flex-col items-center gap-1 rounded-xl py-2 text-[11px] leading-none transition-colors duration-200 touch-manipulation",
+        active ? "bg-primary/10 font-semibold text-primary" : "text-muted-foreground hover:text-foreground"
       )}
     >
-      {active && (
-        <motion.span
-          layoutId="nav-active"
-          className="absolute inset-0 rounded-xl bg-primary/10"
-          transition={{ type: "spring", stiffness: 500, damping: 40 }}
-        />
-      )}
       <Icon className="relative h-5 w-5" />
       <span className="relative">{label}</span>
     </Link>
@@ -131,28 +123,24 @@ export function MobileNav() {
         <div className="flex items-center gap-1 rounded-2xl border bg-card/95 p-1.5 shadow-lg shadow-black/5 backdrop-blur-md dark:shadow-black/40">
           <TabLink {...tabs[0]} active={isAt(pathname, tabs[0].href)} />
           <TabLink {...tabs[1]} active={isAt(pathname, tabs[1].href)} />
-          <motion.button
+          <button
             type="button"
             onClick={handleAddTransaction}
-            whileTap={{ scale: 0.92 }}
             aria-label="Catat transaksi"
-            className="mx-1 -mt-7 flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 ring-4 ring-background focus:outline-none focus-visible:ring-primary/40"
+            className="mx-1 -mt-7 flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 ring-4 ring-background transition-transform active:scale-90 focus:outline-none focus-visible:ring-primary/40"
           >
             <Plus className="h-7 w-7" />
-          </motion.button>
+          </button>
           <TabLink {...tabs[2]} active={isAt(pathname, tabs[2].href)} />
           <button
             type="button"
             onClick={() => setMoreOpen(true)}
             aria-haspopup="dialog"
             className={cn(
-              "relative flex flex-1 flex-col items-center gap-1 rounded-xl py-2 text-[11px] leading-none transition-colors touch-manipulation",
-              moreActive ? "font-semibold text-primary" : "text-muted-foreground hover:text-foreground"
+              "relative flex flex-1 flex-col items-center gap-1 rounded-xl py-2 text-[11px] leading-none transition-colors duration-200 touch-manipulation",
+              moreActive ? "bg-primary/10 font-semibold text-primary" : "text-muted-foreground hover:text-foreground"
             )}
           >
-            {moreActive && (
-              <motion.span layoutId="nav-active" className="absolute inset-0 rounded-xl bg-primary/10" />
-            )}
             <LayoutGrid className="relative h-5 w-5" />
             {changelogUnseen && (
               <span aria-label="Ada yang baru" className="absolute right-[calc(50%-14px)] top-1.5 h-2 w-2 rounded-full bg-brand-gold" />

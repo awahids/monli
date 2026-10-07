@@ -47,7 +47,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import * as Icons from 'lucide-react';
+import { Pencil, Trash2 } from 'lucide-react';
+import { CategoryIcon } from '@/components/transactions/category-icon';
 
 const profileFormSchema = profileSchema;
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
@@ -288,11 +289,10 @@ export default function SettingsPage() {
             <div className="overflow-x-auto">
                 <div className="space-y-2">
                   {filtered.map((c) => {
-                    const Icon = (Icons as any)[c.icon as keyof typeof Icons];
                     return (
                       <div key={c.id} className="flex items-center justify-between rounded-md border p-3">
                         <div className="flex items-center gap-3">
-                          <span>{Icon ? <Icon className="h-5 w-5" /> : null}</span>
+                          <CategoryIcon name={c.icon} className="h-5 w-5" />
                           <div>
                             <p className="font-medium leading-none">{c.name}</p>
                             <p className="text-sm text-muted-foreground">{c.type === 'income' ? 'Pemasukan' : 'Pengeluaran'}</p>
@@ -307,10 +307,10 @@ export default function SettingsPage() {
                               setCategoryDialogOpen(true);
                             }}
                           >
-                            <Icons.Edit className="h-4 w-4" />
+                            <Pencil className="h-4 w-4" />
                           </Button>
                           <Button size="icon" variant="ghost" onClick={() => setDeleteId(c.id)}>
-                            <Icons.Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
                       </div>
