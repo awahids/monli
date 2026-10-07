@@ -8,11 +8,12 @@ import { TrustSignals } from "@/components/marketing/trust-signals";
 import { Features } from "@/components/marketing/features";
 import { HowItWorks } from "@/components/marketing/how-it-works";
 import { Pricing } from "@/components/marketing/pricing";
-import { Testimonials } from "@/components/marketing/testimonials";
 import { FAQ } from "@/components/marketing/faq";
 import { CTABand } from "@/components/marketing/cta-band";
 import { Footer } from "@/components/marketing/footer";
 import { BRAND } from "@/lib/brand";
+import { cn } from "@/lib/utils";
+import { onest } from "./fonts";
 
 export const metadata: Metadata = {
   title: `${BRAND.name} — Atur bulanan, catat harian`,
@@ -59,19 +60,21 @@ export default function LandingPage() {
       >
         {JSON.stringify(jsonLd)}
       </Script>
-      <Header />
-      <main className="pb-24">
-        <Hero />
-        <ScrollVideo />
-        <TrustSignals />
-        <Features />
-        <HowItWorks />
-        <Pricing />
-        <Testimonials />
-        <FAQ />
-        <CTABand />
-      </main>
-      <Footer />
+      {/* Always-dark editorial scope: .dark switches component tokens, .landing deepens them to ink. */}
+      <div className={cn(onest.variable, "dark landing min-h-screen bg-background text-foreground")}>
+        <Header />
+        <main>
+          <Hero />
+          <ScrollVideo />
+          <Features />
+          <TrustSignals />
+          <HowItWorks />
+          <Pricing />
+          <FAQ />
+          <CTABand />
+        </main>
+        <Footer />
+      </div>
     </>
   );
 }

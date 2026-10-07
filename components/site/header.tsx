@@ -1,182 +1,122 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useTheme } from "next-themes";
-import { Sun, Moon } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { QalaLogo } from "@/components/brand/qala-mark";
 import { BRAND } from "@/lib/brand";
+import { cn } from "@/lib/utils";
 
+const NAV = [
+  { href: "#features", label: "Fitur" },
+  { href: "#how-it-works", label: "Cara kerja" },
+  { href: "#pricing", label: "Harga" },
+  { href: "#faq", label: "Tanya jawab" },
+];
+
+/** Landing header: transparent over the hero, solid once the page scrolls. */
 export function Header() {
-  const { theme, setTheme } = useTheme();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
-  const toggleTheme = () => {
-    setTheme(theme === "dark" ? "light" : "dark");
-  };
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 24);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/80">
-      <div className="container flex h-16 items-center justify-between px-4 max-w-7xl mx-auto">
+    <header
+      className={cn(
+        "sticky top-0 z-50 w-full transition-colors duration-300",
+        scrolled || open
+          ? "border-b border-white/10 bg-background/80 backdrop-blur-md"
+          : "border-b border-transparent bg-transparent"
+      )}
+    >
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
         <Link href="/" className="flex items-center rounded-md" aria-label={`${BRAND.name}, beranda`}>
           <QalaLogo markClassName="h-7" textClassName="text-xl" />
         </Link>
 
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center space-x-2 lg:space-x-4">
-          <Link
-            href="#features"
-            className="text-sm font-medium text-muted-foreground hover:text-primary transition-all duration-200 relative group py-2.5 px-4 rounded-lg hover:bg-primary/5"
-          >
-            Fitur
-            <span className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-0 h-0.5 bg-gradient-primary transition-all duration-200 group-hover:w-8 rounded-full"></span>
-          </Link>
-          <Link
-            href="#how-it-works"
-            className="text-sm font-medium text-muted-foreground hover:text-primary transition-all duration-200 relative group py-2.5 px-4 rounded-lg hover:bg-primary/5"
-          >
-            Cara kerja
-            <span className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-0 h-0.5 bg-gradient-primary transition-all duration-200 group-hover:w-8 rounded-full"></span>
-          </Link>
-          <Link
-            href="#pricing"
-            className="text-sm font-medium text-muted-foreground hover:text-primary transition-all duration-200 relative group py-2.5 px-4 rounded-lg hover:bg-primary/5"
-          >
-            Harga
-            <span className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-0 h-0.5 bg-gradient-primary transition-all duration-200 group-hover:w-8 rounded-full"></span>
-          </Link>
+        <nav aria-label="Navigasi utama" className="hidden items-center gap-8 md:flex">
+          {NAV.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="font-editorial text-[11px] font-medium uppercase tracking-[0.22em] text-foreground/70 transition-colors hover:text-foreground"
+            >
+              {item.label}
+            </Link>
+          ))}
         </nav>
 
-        {/* Mobile Menu Button */}
-        {/* <div className="md:hidden">
-          <button
-            type="button"
-            className="mobile-touch-target flex items-center justify-center p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
-            aria-label="Open menu"
-          >
-            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-            </svg>
-          </button>
-        </div> */}
-
-        {/* Desktop Actions */}
-        <div className="hidden md:flex items-center space-x-3">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={toggleTheme}
-            className="h-9 w-9 rounded-full hover:bg-primary/10 transition-all duration-200"
-          >
-            <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-            <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-            <span className="sr-only">Ganti tema</span>
-          </Button>
-
-          <Button
-            variant="ghost"
-            asChild
-            className="rounded-2xl hover:bg-primary/10 transition-all duration-300 hover:scale-105"
-          >
+        <div className="hidden items-center gap-2 md:flex">
+          <Button variant="ghost" asChild className="font-editorial text-sm">
             <Link href="/auth/sign-in">Masuk</Link>
           </Button>
-          <Button asChild className="button-modern relative z-10">
+          <Button asChild className="rounded-full font-editorial text-sm">
             <Link href="/auth/sign-up">
-              <span className="relative z-10">Mulai gratis</span>
+              Mulai gratis <ArrowUpRight className="ml-1 h-4 w-4" />
             </Link>
           </Button>
         </div>
 
-        {/* Mobile Menu Button */}
-        <div className="flex md:hidden items-center space-x-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={toggleTheme}
-            className="h-9 w-9 rounded-full hover:bg-primary/10 transition-all duration-200"
-          >
-            <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-            <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-            <span className="sr-only">Ganti tema</span>
-          </Button>
-
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="h-9 w-9 rounded-full hover:bg-primary/10 transition-all duration-200"
-          >
-            <div className="relative w-4 h-4">
-              <span
-                className={`absolute block h-0.5 w-4 bg-current transform transition duration-300 ease-in-out ${isMobileMenuOpen ? "rotate-45 translate-y-1.5" : ""}`}
-              />
-              <span
-                className={`absolute block h-0.5 w-4 bg-current transform transition duration-300 ease-in-out mt-1.5 ${isMobileMenuOpen ? "opacity-0" : ""}`}
-              />
-              <span
-                className={`absolute block h-0.5 w-4 bg-current transform transition duration-300 ease-in-out mt-3 ${isMobileMenuOpen ? "-rotate-45 -translate-y-1.5" : ""}`}
-              />
-            </div>
-            <span className="sr-only">Menu</span>
-          </Button>
-        </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setOpen((o) => !o)}
+          className="h-10 w-10 md:hidden"
+          aria-expanded={open}
+          aria-controls="landing-menu"
+        >
+          <span className="relative block h-3 w-5">
+            <span
+              className={cn(
+                "absolute left-0 top-0 block h-px w-5 bg-current transition-transform duration-300",
+                open && "translate-y-1.5 rotate-45"
+              )}
+            />
+            <span
+              className={cn(
+                "absolute bottom-0 left-0 block h-px w-5 bg-current transition-transform duration-300",
+                open && "-translate-y-1.5 -rotate-45"
+              )}
+            />
+          </span>
+          <span className="sr-only">{open ? "Tutup menu" : "Buka menu"}</span>
+        </Button>
       </div>
 
-      {/* Mobile Menu */}
-      {isMobileMenuOpen && (
-        <div className="md:hidden border-t border-border/40 bg-background/95 backdrop-blur-md">
-          <div className="container px-4 py-4 space-y-4">
-            <nav className="flex flex-col space-y-3">
+      {open && (
+        <div id="landing-menu" className="border-t border-white/10 md:hidden">
+          <nav aria-label="Navigasi utama" className="mx-auto flex max-w-7xl flex-col px-4 py-4">
+            {NAV.map((item, i) => (
               <Link
-                href="#features"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors duration-200 py-2"
+                key={item.href}
+                href={item.href}
+                onClick={() => setOpen(false)}
+                className="flex items-baseline gap-4 border-b border-white/5 py-3 font-editorial text-lg"
               >
-                Fitur
+                <span className="text-xs tabular-nums text-muted-foreground">{String(i + 1).padStart(2, "0")}</span>
+                {item.label}
               </Link>
-              <Link
-                href="#how-it-works"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors duration-200 py-2"
-              >
-                Cara kerja
-              </Link>
-              <Link
-                href="#pricing"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors duration-200 py-2"
-              >
-                Harga
-              </Link>
-            </nav>
-
-            <div className="flex flex-col space-y-3 pt-4 border-t border-border/40">
-              <Button
-                variant="ghost"
-                asChild
-                className="justify-start h-auto p-2 hover:bg-primary/10 transition-all duration-200"
-              >
-                <Link
-                  href="/auth/sign-in"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
+            ))}
+            <div className="mt-4 grid grid-cols-2 gap-2">
+              <Button variant="outline" asChild>
+                <Link href="/auth/sign-in" onClick={() => setOpen(false)}>
                   Masuk
                 </Link>
               </Button>
-              <Button
-                asChild
-                className="justify-start h-auto p-2"
-              >
-                <Link
-                  href="/auth/sign-up"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
+              <Button asChild>
+                <Link href="/auth/sign-up" onClick={() => setOpen(false)}>
                   Mulai gratis
                 </Link>
               </Button>
             </div>
-          </div>
+          </nav>
         </div>
       )}
     </header>

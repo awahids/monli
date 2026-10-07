@@ -3,21 +3,65 @@ import { BRAND, QALA_FAMILY } from '@/lib/brand';
 import { QalaLogo } from '@/components/brand/qala-mark';
 import { QalaFamilyLink } from '@/components/brand/qala-family';
 
+const PRODUCT_LINKS = [
+  { href: '#features', label: 'Fitur' },
+  { href: '#how-it-works', label: 'Cara kerja' },
+  { href: '#pricing', label: 'Harga' },
+  { href: '#faq', label: 'Tanya jawab' },
+];
+
+const ACCOUNT_LINKS = [
+  { href: '/auth/sign-up', label: 'Daftar gratis' },
+  { href: '/auth/sign-in', label: 'Masuk' },
+];
+
+function Heading({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="font-editorial text-[10px] font-medium uppercase tracking-[0.25em] text-muted-foreground">
+      {children}
+    </p>
+  );
+}
+
 export function Footer() {
   return (
-    <footer className="border-t py-10 text-sm">
-      <div className="mx-auto grid max-w-7xl gap-8 px-4 md:grid-cols-[1.5fr_1fr_1fr]">
-        <div className="space-y-3">
+    <footer className="border-t border-white/10 font-editorial text-sm">
+      <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-[1.6fr_1fr_1fr_1fr]">
+        <div className="space-y-4">
           <QalaLogo />
-          <p className="max-w-sm text-muted-foreground">{BRAND.tagline}.</p>
-          <p className="text-xs text-muted-foreground">
-            Sebelumnya bernama {BRAND.formerName}.
-          </p>
+          <p className="max-w-xs font-light leading-relaxed text-foreground/60">{BRAND.tagline}.</p>
+          <p className="text-xs text-muted-foreground">Sebelumnya bernama {BRAND.formerName}.</p>
         </div>
 
-        <nav aria-label="Keluarga Qala" className="space-y-2">
-          <p className="font-semibold">Keluarga {BRAND.family}</p>
-          <ul className="space-y-1.5 text-muted-foreground">
+        <nav aria-label="Produk" className="space-y-4">
+          <Heading>Produk</Heading>
+          <ul className="space-y-2.5 text-foreground/70">
+            {PRODUCT_LINKS.map((l) => (
+              <li key={l.href}>
+                <Link href={l.href} className="hover:text-foreground">
+                  {l.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+
+        <nav aria-label="Akun" className="space-y-4">
+          <Heading>Akun</Heading>
+          <ul className="space-y-2.5 text-foreground/70">
+            {ACCOUNT_LINKS.map((l) => (
+              <li key={l.href}>
+                <Link href={l.href} className="hover:text-foreground">
+                  {l.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+
+        <nav aria-label={`Keluarga ${BRAND.family}`} className="space-y-4">
+          <Heading>Keluarga {BRAND.family}</Heading>
+          <ul className="space-y-2.5 text-foreground/70">
             {QALA_FAMILY.map((product) => (
               <li key={product.url}>
                 <a
@@ -28,39 +72,27 @@ export function Footer() {
                     : { target: '_blank', rel: 'noreferrer' })}
                 >
                   {product.name}
-                  <span className="text-xs"> · {product.description}</span>
+                  <span className="block text-xs text-muted-foreground">{product.description}</span>
                 </a>
               </li>
             ))}
             <li>
-              <a
-                href={BRAND.familyUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="hover:text-foreground"
-              >
+              <a href={BRAND.familyUrl} target="_blank" rel="noreferrer" className="hover:text-foreground">
                 qala.digital
               </a>
             </li>
           </ul>
         </nav>
-
-        <nav aria-label="Informasi" className="space-y-2">
-          <p className="font-semibold">Informasi</p>
-          <ul className="space-y-1.5 text-muted-foreground">
-            <li><Link href="#" className="hover:text-foreground">Privasi</Link></li>
-            <li><Link href="#" className="hover:text-foreground">Ketentuan</Link></li>
-            <li><Link href="#" className="hover:text-foreground">Kontak</Link></li>
-            <li><Link href="#" className="hover:text-foreground">Status</Link></li>
-          </ul>
-        </nav>
       </div>
 
-      <div className="mx-auto mt-8 flex max-w-7xl flex-col gap-2 border-t px-4 pt-6 text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-        <p>
-          © {new Date().getFullYear()} {BRAND.name}
-        </p>
-        <QalaFamilyLink />
+      <div className="border-t border-white/10">
+        <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-6 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-6">
+          <p>
+            © {new Date().getFullYear()} {BRAND.name}
+          </p>
+          <p className="uppercase tracking-[0.25em]">Atur · Catat · Pahami</p>
+          <QalaFamilyLink />
+        </div>
       </div>
     </footer>
   );

@@ -1,16 +1,11 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import {
   Accordion,
   AccordionItem,
   AccordionTrigger,
   AccordionContent,
 } from "@/components/ui/accordion";
-
-gsap.registerPlugin(ScrollTrigger);
 
 const faqs = [
   {
@@ -23,60 +18,71 @@ const faqs = [
   },
   {
     q: "Bagaimana cara kerja budget?",
-    a: "Tentukan batas belanja bulanan per kategori. Qala Saku menghitung sisa budget dan jatah harianmu dari transaksi yang kamu catat, dan bisa mengisi budget baru dari pengeluaran bulan lalu.",
+    a: "Tentukan batas belanja bulanan per kategori. Qala Saku menghitung sisa budget dan jatah harianmu dari transaksi yang kamu catat. Periode budget bisa dimulai di tanggal gajian, misalnya tanggal 25.",
+  },
+  {
+    q: "Bisa dipakai bersama pasangan atau keluarga?",
+    a: "Bisa, dengan paket PRO. Undang hingga 4 orang sebagai Editor (bisa mencatat) atau Pemantau (hanya melihat). Data pribadi mereka tetap terpisah.",
   },
   {
     q: "Apakah dataku aman?",
-    a: "Setiap data hanya bisa diakses oleh pemilik akunnya (row level security di database) dan tidak dibagikan ke pihak lain.",
+    a: "Setiap data hanya bisa diakses oleh pemilik akunnya dan orang yang ia undang (row level security di database), dan tidak dibagikan ke pihak lain.",
   },
   {
-    q: "Ada mode gelap?",
-    a: "Ada. Tampilan terang dan gelap tersedia, atau ikuti pengaturan perangkatmu.",
+    q: "Bisa dipakai di HP?",
+    a: "Bisa. Qala Saku dirancang untuk layar HP dengan navigasi di bawah, dan bisa dipasang seperti aplikasi (PWA). Tersedia tampilan terang dan gelap.",
   },
-  { q: "Bisa dipakai di HP?", a: "Bisa. Qala Saku dirancang untuk layar HP dengan navigasi di bawah, dan bisa dipasang seperti aplikasi (PWA)." },
   {
     q: "Berapa harga paket PRO?",
-    a: "Paket FREE gratis selamanya. PRO saat ini harga promo Rp 9.000 sekali bayar, untuk akun & budget tanpa batas, laporan lengkap, scan struk, dan asisten AI.",
+    a: "Paket FREE gratis selamanya. PRO saat ini harga promo Rp 9.000 sekali bayar: akun & budget tanpa batas, laporan lengkap, scan struk, asisten AI, dan kelola bersama keluarga.",
   },
 ];
 
 export function FAQ() {
-  const sectionRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const ctx = gsap.context(() => {
-      gsap.from(".faq-item", {
-        opacity: 0,
-        y: 30,
-        duration: 0.6,
-        stagger: 0.15,
-        ease: "power2.out",
-        scrollTrigger: {
-          trigger: sectionRef.current,
-          start: "top 80%",
-        },
-      });
-    }, sectionRef);
-
-    return () => ctx.revert();
-  }, []);
-
   return (
-    <section id="faq" ref={sectionRef} className="py-24">
-      <div className="mx-auto max-w-3xl px-4">
-        <h2 className="mb-8 text-center text-3xl font-bold">Pertanyaan umum</h2>
-        <Accordion
-          type="single"
-          collapsible
-          onValueChange={() => window.umami?.track("faq_toggle")}
-        >
-          {faqs.map((f) => (
-            <AccordionItem key={f.q} value={f.q} className="faq-item">
-              <AccordionTrigger>{f.q}</AccordionTrigger>
-              <AccordionContent>{f.a}</AccordionContent>
-            </AccordionItem>
-          ))}
-        </Accordion>
+    <section
+      id="faq"
+      aria-labelledby="faq-title"
+      className="scroll-mt-16 py-24 sm:py-32"
+    >
+      <div className="mx-auto max-w-7xl px-4 sm:px-6">
+        <div className="grid gap-10 border-t border-white/10 pt-6 md:grid-cols-[1fr_1.6fr] md:gap-16">
+          <div>
+            <p className="font-editorial text-[11px] font-medium uppercase tracking-[0.25em] text-muted-foreground">
+              <span className="text-primary">05</span> — Tanya jawab
+            </p>
+            <h2
+              id="faq-title"
+              className="mt-4 font-editorial text-3xl font-normal tracking-[-0.015em] sm:text-5xl"
+            >
+              Pertanyaan umum
+            </h2>
+            <p className="mt-4 max-w-xs font-editorial text-sm font-light leading-relaxed text-foreground/65">
+              Hal yang paling sering ditanyakan sebelum mulai mencatat.
+            </p>
+          </div>
+          <Accordion
+            type="single"
+            collapsible
+            onValueChange={() => window.umami?.track("faq_toggle")}
+          >
+            {faqs.map((f, i) => (
+              <AccordionItem key={f.q} value={f.q} className="border-white/10">
+                <AccordionTrigger className="gap-4 py-5 text-left font-editorial text-base font-normal hover:no-underline sm:text-lg">
+                  <span className="flex items-baseline gap-4">
+                    <span className="font-editorial text-xs tabular-nums text-muted-foreground">
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                    {f.q}
+                  </span>
+                </AccordionTrigger>
+                <AccordionContent className="pl-8 font-editorial text-sm font-light leading-relaxed text-foreground/70">
+                  {f.a}
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        </div>
       </div>
     </section>
   );
