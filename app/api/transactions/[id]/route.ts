@@ -20,6 +20,9 @@ export async function PATCH(
   try {
     const space = await getSpace();
     if (!space.canWrite) return readOnlyResponse();
+    if (body.receiptPath && !body.receiptPath.startsWith(`${space.ownerId}/`)) {
+      return NextResponse.json({ error: 'Foto struk tidak valid' }, { status: 400 });
+    }
     const { data: existing, error: exErr } = await supabase
       .from('transactions')
       .select(
@@ -111,6 +114,7 @@ export async function PATCH(
         category_id: newType === 'transfer' ? null : newCategoryId,
         note: body.note,
         tags: body.tags,
+        receipt_path: body.receiptPath,
       })
       .eq('id', params.id)
       .eq('user_id', space.ownerId)

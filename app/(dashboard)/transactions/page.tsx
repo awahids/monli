@@ -45,6 +45,7 @@ import TransactionForm, {
 import { TransactionRow } from '@/components/transactions/transaction-row';
 import OcrReviewDialog from '@/components/transactions/ocr-review-dialog';
 import { shrinkImage, type OcrItem } from '@/lib/ocr';
+import { uploadReceipt } from '@/lib/receipts';
 import { currentBudgetMonth, formatDate, periodRange, shiftMonth } from '@/lib/date';
 import { keysToCamel } from '@/lib/case';
 import {
@@ -165,6 +166,9 @@ export default function TransactionsPage() {
   const [ocrItems, setOcrItems] = useState<OcrItem[]>([]);
   const [ocrDate, setOcrDate] = useState<Date>(new Date());
   const [scanning, setScanning] = useState(false);
+  // The scanned photo, stored with the transactions saved from it (path set
+  // once uploaded, so a retry after a partial save reuses it).
+  const receiptRef = useRef<{ image: Blob; path?: string } | null>(null);
 
   // Follow ?accountId= when navigating here from an account card.
   useEffect(() => {
@@ -273,6 +277,7 @@ export default function TransactionsPage() {
   }, [transactions, dateField]);
 
   const closeForm = () => {
+    receiptRef.current = null;
     setFormOpen(false);
     setEditing(undefined);
     setInitialValues(undefined);
@@ -302,7 +307,8 @@ export default function TransactionsPage() {
     }
 
     // Saving bumps dataVersion, which reloads the list and totals.
-    await saveTransaction(payload, editing?.id);
+    const receiptPath = isEditing ? undefined : await storeReceipt();
+    await saveTransaction({ ...payload, ...(receiptPath && { receiptPath }) }, editing?.id);
     toast.success(isEditing ? 'Transaksi diperbarui' : 'Transaksi tersimpan');
     closeForm();
     await refreshAccounts();
@@ -329,16 +335,32 @@ export default function TransactionsPage() {
     }
   };
 
+  /** Uploads the scanned photo once; a failed upload never blocks saving. */
+  const storeReceipt = async (): Promise<string | undefined> => {
+    const receipt = receiptRef.current;
+    if (!receipt || !user) return undefined;
+    try {
+      receipt.path ??= await uploadReceipt(space?.ownerId ?? user.id, receipt.image);
+      return receipt.path;
+    } catch (e) {
+      toast.warning(`${(e as Error).message}; transaksi tetap disimpan`);
+      return undefined;
+    }
+  };
+
   const handleOcrFile = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     setScanning(true);
     try {
+      const image = await shrinkImage(file);
+      receiptRef.current = { image };
       const formData = new FormData();
-      formData.append('file', await shrinkImage(file), 'scan.jpg');
+      formData.append('file', image, 'scan.jpg');
       const res = await fetch('/api/transactions/ocr', { method: 'POST', body: formData });
       const data = await res.json();
       if (!res.ok) {
+        receiptRef.current = null;
         toast.error(data.error || 'Gagal membaca struk');
         return;
       }
@@ -359,6 +381,7 @@ export default function TransactionsPage() {
         setFormOpen(true);
       }
     } catch {
+      receiptRef.current = null;
       toast.error('Gagal membaca struk');
     } finally {
       setScanning(false);
@@ -369,11 +392,14 @@ export default function TransactionsPage() {
   const handleOcrSave = async (items: TransactionFormValues[]) => {
     let saved = 0;
     try {
+      // One photo for every row of the receipt.
+      const receiptPath = await storeReceipt();
       for (const values of items) {
-        await saveTransaction(toTransactionPayload(values));
+        await saveTransaction({ ...toTransactionPayload(values), ...(receiptPath && { receiptPath }) });
         saved += 1;
       }
       toast.success(`${saved} transaksi tersimpan`);
+      receiptRef.current = null;
       setOcrOpen(false);
     } catch (e) {
       // Drop the rows that were already saved so a retry does not duplicate them.
@@ -387,6 +413,7 @@ export default function TransactionsPage() {
   };
 
   const openNew = () => {
+    receiptRef.current = null;
     setEditing(undefined);
     setInitialValues(undefined);
     setFormOpen(true);
@@ -435,7 +462,10 @@ export default function TransactionsPage() {
     <div className="space-y-4">
       <OcrReviewDialog
         open={ocrOpen}
-        onOpenChange={setOcrOpen}
+        onOpenChange={(o) => {
+          if (!o) receiptRef.current = null;
+          setOcrOpen(o);
+        }}
         items={ocrItems}
         accounts={accounts}
         categories={categories}

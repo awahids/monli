@@ -28,7 +28,7 @@ export function toTransactionPayload(values: TransactionFormValues) {
   };
 }
 
-export type TransactionPayload = ReturnType<typeof toTransactionPayload>;
+export type TransactionPayload = ReturnType<typeof toTransactionPayload> & { receiptPath?: string | null };
 
 /**
  * Creates (no id) or updates a transaction. Throws with the API message on
