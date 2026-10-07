@@ -44,6 +44,7 @@ import { TagSuggestions } from '@/components/transactions/tag-suggestions';
 import { defaultBudgetMonth } from '@/lib/budget-period';
 import { formatDate } from '@/lib/date';
 import { formatMoneyCompact, getDisplayCurrency } from '@/lib/currency';
+import { ReceiptField } from './receipt-field';
 
 export const getJakartaDate = () => {
   const dateStr = new Intl.DateTimeFormat('en-CA', {
@@ -684,6 +685,7 @@ export function TransactionForm({
               contentEl={contentEl}
               autoFocusAmount={!transaction}
             />
+            {transaction && <ReceiptField key={transaction.id} transaction={transaction} />}
 
             <DialogFooter
               className="sticky bottom-0 z-10 -mx-4 flex-row justify-between gap-2 border-t bg-background px-4 py-4"

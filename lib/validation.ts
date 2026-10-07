@@ -70,6 +70,12 @@ const transactionBaseSchema = z.object({
   categoryId: z.string().uuid().nullable().optional(),
   note: z.string().optional(),
   tags: z.array(z.string()).optional(),
+  /** Photo in the receipts bucket: <owner id>/<uuid>.<ext> (see lib/receipts). */
+  receiptPath: z
+    .string()
+    .regex(/^[0-9a-f-]{36}\/[0-9a-f-]{36}\.(jpg|png|webp)$/)
+    .nullable()
+    .optional(),
 });
 
 export const transactionCreateSchema = transactionBaseSchema.superRefine(

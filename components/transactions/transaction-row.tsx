@@ -2,7 +2,7 @@
 
 import { format } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
-import { ArrowRightLeft } from 'lucide-react';
+import { ArrowRightLeft, Paperclip } from 'lucide-react';
 import type { Transaction } from '@/types';
 import { CategoryIcon } from '@/components/transactions/category-icon';
 import { formatMoney } from '@/lib/currency';
@@ -75,7 +75,10 @@ export function TransactionRow({ transaction: t, showDate = false, onClick }: Pr
         )}
       </span>
       <span className="min-w-0 flex-1 text-left">
-        <span className="block truncate text-sm font-medium">{transactionTitle(t)}</span>
+        <span className="flex items-center gap-1 text-sm font-medium">
+          <span className="truncate">{transactionTitle(t)}</span>
+          {t.receiptPath && <Paperclip className="h-3 w-3 shrink-0 text-muted-foreground" aria-label="Ada foto struk" />}
+        </span>
         {(meta.length > 0 || recorder) && (
           <span className="flex min-w-0 text-xs text-muted-foreground">
             <span className="truncate">{meta.join(' · ')}</span>

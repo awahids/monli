@@ -149,6 +149,9 @@ export async function POST(req: Request) {
   try {
     const space = await getSpace();
     if (!space.canWrite) return readOnlyResponse();
+    if (body.receiptPath && !body.receiptPath.startsWith(`${space.ownerId}/`)) {
+      return NextResponse.json({ error: 'Foto struk tidak valid' }, { status: 400 });
+    }
     if (
       process.env.DISALLOW_NEGATIVE_BALANCE === 'true' &&
       body.type === 'transfer' &&
@@ -185,6 +188,7 @@ export async function POST(req: Request) {
         category_id: body.type === 'transfer' ? null : body.categoryId,
         note: body.note,
         tags: body.tags,
+        receipt_path: body.receiptPath ?? null,
       })
       .select(
         `*,

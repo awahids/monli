@@ -93,6 +93,8 @@ export interface Transaction {
   recurringId?: string | null;
   /** Profile id of whoever recorded it (useful in shared spaces). */
   createdBy?: string | null;
+  /** Receipt photo in storage (see lib/receipts). */
+  receiptPath?: string | null;
   account?: Account;
   fromAccount?: Account;
   toAccount?: Account;
