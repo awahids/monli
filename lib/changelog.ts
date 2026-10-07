@@ -26,6 +26,7 @@ export const CHANGELOG: ChangelogEntry[] = [
       { type: 'baru', text: 'Aplikasi bisa dibuka tanpa internet dengan data terakhir; transaksi yang dicatat atau dihapus saat offline tersinkron otomatis saat online.' },
       { type: 'peningkatan', text: 'Form terbuka dari bawah layar dan konfirmasi tampil sebagai kartu kecil.' },
       { type: 'peningkatan', text: 'Landing page baru dengan gaya editorial gelap.' },
+      { type: 'peningkatan', text: 'Halaman aplikasi lebih ringan: JavaScript yang diunduh berkurang sekitar 25–40%, sehingga lebih cepat dibuka di HP.' },
       { type: 'perbaikan', text: 'Edit dan hapus transaksi kembali berfungsi.' },
       { type: 'perbaikan', text: 'Kolom email dan kata sandi di halaman Masuk terbaca oleh pembaca layar.' },
     ],

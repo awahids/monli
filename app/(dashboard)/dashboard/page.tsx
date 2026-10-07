@@ -22,7 +22,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
-import { DashboardCharts } from '@/components/dashboard/dashboard-charts';
+import dynamic from 'next/dynamic';
 import { RecentTransactions } from '@/components/dashboard/recent-transactions';
 import { GettingStarted } from '@/components/dashboard/getting-started';
 import { GoalsSummary } from '@/components/dashboard/goals-summary';
@@ -47,6 +47,12 @@ import {
 } from '@/lib/transactions-client';
 import { useOffline } from '@/hooks/use-offline';
 import { cn } from '@/lib/utils';
+
+// The chart library is large; load it after the numbers are on screen.
+const DashboardCharts = dynamic(
+  () => import('@/components/dashboard/dashboard-charts').then((m) => m.DashboardCharts),
+  { ssr: false, loading: () => <Skeleton className="h-80 rounded-xl" /> }
+);
 
 type BudgetSummary = { totalActual: number };
 
