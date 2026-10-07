@@ -1,21 +1,26 @@
-# E2E Tests
+# E2E tests
 
-Playwright tests cover Supabase email/password authentication flows.
+Playwright tests run the app against a local Supabase started from
+`supabase/config.toml` and `supabase/migrations`, so they exercise the real
+schema, auth and row level security. CI (`.github/workflows/ci.yml`) runs
+them on every pull request.
 
-## Environment Variables
-Set the following variables before running tests:
+## Running locally
 
-- `SUPABASE_URL`
-- `SUPABASE_ANON_KEY`
-- `SUPABASE_SERVICE_ROLE_KEY`
-- `SITE_URL` – URL where the Next.js app is running (default `http://localhost:3000`).
-
-## Running
-Install dependencies and run:
+Needs Docker and the Supabase CLI.
 
 ```bash
-npm install
-npm run test:e2e
+supabase start
+eval "$(supabase status -o env | grep -E '^(API_URL|ANON_KEY|SERVICE_ROLE_KEY)=')"
+export SUPABASE_URL=$API_URL SUPABASE_ANON_KEY=$ANON_KEY SUPABASE_SERVICE_ROLE_KEY=$SERVICE_ROLE_KEY
+export NEXT_PUBLIC_SUPABASE_URL=$API_URL NEXT_PUBLIC_SUPABASE_ANON_KEY=$ANON_KEY
+npm run test:e2e          # starts `npm run dev` unless something already runs on :3000
 ```
 
-Reports are available under `playwright-report` after execution.
+Each test that needs a user gets a fresh one from the `user` fixture
+(`tests/fixtures.ts`): confirmed, with a profile, one account and one
+category, deleted after the test. `newUser` is the same but still sees the
+first-run onboarding.
+
+Set `PW_CHROMIUM_PATH` to use a preinstalled Chromium instead of
+`npx playwright install chromium`.

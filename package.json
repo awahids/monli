@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "seed": "node scripts/seed-user.mjs",
-    "test": "tsx --test",
+    "test": "tsx --test lib/*.test.ts",
     "test:e2e": "playwright test"
   },
   "dependencies": {
