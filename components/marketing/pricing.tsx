@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { formatIDR } from '@/lib/currency';
 import { PLAN_FEATURES, PRO_ORIGINAL_PRICE, PRO_PRICE } from '@/lib/plans';
 import { SectionHeading } from './section-heading';
+import { track } from '@/lib/analytics';
 
 const valueText = (value: string | boolean) => (typeof value === 'string' ? value : value ? 'Termasuk' : '');
 
@@ -76,7 +77,7 @@ export function Pricing() {
               ))}
             </ul>
             <Button asChild className="relative mt-8 rounded-full font-editorial">
-              <Link href="/auth/sign-up" onClick={() => window.umami?.track('cta_pricing_click')}>
+              <Link href="/auth/sign-up" onClick={() => track('cta_pricing_click')}>
                 Mulai sekarang
               </Link>
             </Button>

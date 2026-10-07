@@ -9,6 +9,7 @@ import { ArrowRight, ArrowUpRight, Play } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { BRAND } from "@/lib/brand";
+import { track } from '@/lib/analytics';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -94,7 +95,7 @@ export function Hero() {
             </p>
             <div className="hero-rise mt-8 flex flex-wrap items-center gap-3">
               <Button asChild size="lg" className="rounded-full px-7 font-editorial text-base">
-                <Link href="/auth/sign-up" onClick={() => window.umami?.track("cta_hero_signup")}>
+                <Link href="/auth/sign-up" onClick={() => track("cta_hero_signup")}>
                   Mulai gratis <ArrowRight className="ml-1 h-4 w-4" />
                 </Link>
               </Button>
