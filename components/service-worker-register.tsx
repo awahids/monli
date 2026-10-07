@@ -6,7 +6,8 @@ import "@/lib/pwa";
 
 export function ServiceWorkerRegister() {
   useEffect(() => {
-    if ("serviceWorker" in navigator) {
+    // Production only: dev chunk names are not hashed, so caching them would serve stale code.
+    if (process.env.NODE_ENV === "production" && "serviceWorker" in navigator) {
       navigator.serviceWorker.register("/sw.js").catch(() => {
         // noop
       });

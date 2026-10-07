@@ -23,6 +23,7 @@ export const CHANGELOG: ChangelogEntry[] = [
       { type: 'baru', text: 'Pasang Qala Saku di layar utama langsung dari menu Lainnya.' },
       { type: 'baru', text: 'Tombol Perbarui muncul saat versi baru tersedia.' },
       { type: 'baru', text: 'Panduan awal untuk pengguna baru, bisa dibuka lagi dari Pengaturan.' },
+      { type: 'baru', text: 'Aplikasi bisa dibuka tanpa internet dengan data terakhir; transaksi yang dicatat atau dihapus saat offline tersinkron otomatis saat online.' },
       { type: 'peningkatan', text: 'Form terbuka dari bawah layar dan konfirmasi tampil sebagai kartu kecil.' },
       { type: 'peningkatan', text: 'Landing page baru dengan gaya editorial gelap.' },
       { type: 'perbaikan', text: 'Edit dan hapus transaksi kembali berfungsi.' },

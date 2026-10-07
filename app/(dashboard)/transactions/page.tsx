@@ -193,7 +193,12 @@ export default function TransactionsPage() {
   /** Loads page 1 (replacing the list) or appends the next page. */
   const fetchTransactions = useCallback(
     async (pageNumber = 1) => {
-      if (!user || !isOnline) return;
+      if (!user) return;
+      // Offline: show the last list kept on this device (see useOffline).
+      if (!isOnline) {
+        setLoading(false);
+        return;
+      }
       const requestId = ++requestIdRef.current;
       if (pageNumber === 1) setLoading(true);
       else setLoadingMore(true);
@@ -298,6 +303,14 @@ export default function TransactionsPage() {
 
   const confirmDelete = async () => {
     if (!pendingDelete) return;
+    if (!isOnline) {
+      await addOfflineChange('delete', 'transactions', { id: pendingDelete.id });
+      setTransactions(transactions.filter((t) => t.id !== pendingDelete.id));
+      if (editing?.id === pendingDelete.id) closeForm();
+      setPendingDelete(null);
+      toast.success('Dihapus offline, akan disinkronkan saat online');
+      return;
+    }
     try {
       await deleteTransaction(pendingDelete.id);
       toast.success('Transaksi dihapus');
