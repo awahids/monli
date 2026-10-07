@@ -6,6 +6,9 @@ export type OcrItem = {
   /** YYYY-MM-DD when the image shows a date per row (e.g. a bank history). */
   date?: string;
   type?: 'expense' | 'income';
+  /** Pre-selected in the review form (chat drafts name them). */
+  categoryId?: string;
+  accountId?: string;
 };
 
 export type OcrResult = { items: OcrItem[]; total: number; date: string | null };
@@ -20,28 +23,33 @@ const DATE = /^\d{4}-\d{2}-\d{2}$/;
 
 function toAmount(value: unknown): number {
   if (typeof value === 'number' && Number.isFinite(value)) return Math.round(Math.abs(value));
-  if (typeof value === 'string') return parseMoney(value);
+  if (typeof value === 'string') {
+    // "25rb", "1,5 juta": Indonesian shorthand, comma as the decimal mark.
+    const short = value.toLowerCase().match(/([\d.,]+)\s*(rb|ribu|k|jt|juta)\b/);
+    if (short) {
+      const n = parseFloat(short[1].replace(/\./g, '').replace(',', '.'));
+      return Math.round(n * (short[2].startsWith('j') ? 1_000_000 : 1_000));
+    }
+    return parseMoney(value);
+  }
   return 0;
 }
 
 const toDate = (value: unknown) => (typeof value === 'string' && DATE.test(value) ? value : undefined);
 
-/**
- * Turns the model's reply into items. Tolerates what models actually send:
- * JSON wrapped in ```json fences or prose, amounts as "Rp40.000" or -40000.
- */
-export function parseOcrReply(content: string): OcrResult {
+/** The first {...} in a reply; models wrap JSON in ```json fences or prose. */
+function extractJson(content: string): Record<string, unknown> {
   const start = content.indexOf('{');
   const end = content.lastIndexOf('}');
-  let data: Record<string, unknown> = {};
   try {
-    if (start !== -1 && end > start) data = JSON.parse(content.slice(start, end + 1));
-  } catch {
-    data = {};
-  }
+    if (start !== -1 && end > start) return JSON.parse(content.slice(start, end + 1));
+  } catch {}
+  return {};
+}
 
-  const rawItems = Array.isArray(data.items) ? (data.items as Record<string, unknown>[]) : [];
-  const items: OcrItem[] = rawItems
+function toItems(raw: unknown): OcrItem[] {
+  const rows = Array.isArray(raw) ? (raw as Record<string, unknown>[]) : [];
+  return rows
     .map((it) => {
       const negative = typeof it.amount === 'number' ? it.amount < 0 : String(it.amount ?? '').trim().startsWith('-');
       const type: OcrItem['type'] = it.type === 'income' && !negative ? 'income' : 'expense';
@@ -53,8 +61,48 @@ export function parseOcrReply(content: string): OcrResult {
       };
     })
     .filter((it) => it.amount > 0);
+}
 
-  return { items, total: toAmount(data.total), date: toDate(data.date) ?? null };
+/**
+ * Turns the model's reply into items. Tolerates what models actually send:
+ * JSON wrapped in ```json fences or prose, amounts as "Rp40.000" or -40000.
+ */
+export function parseOcrReply(content: string): OcrResult {
+  const data = extractJson(content);
+  return { items: toItems(data.items), total: toAmount(data.total), date: toDate(data.date) ?? null };
+}
+
+/** Asks the chat model to answer with drafts when the user wants to record transactions. */
+export const RECORD_INSTRUCTION =
+  'Jika pengguna meminta mencatat transaksi (mis. "catat makan siang 25rb pakai Dompet" atau "gaji masuk 5 juta"), ' +
+  'balas HANYA dengan JSON tanpa teks lain: {"record":[{"type":"expense"|"income","amount":number,"description":string,' +
+  '"category":string|null,"account":string|null,"date":"yyyy-mm-dd"}]}. Pakai nama kategori dan akun persis dari data ' +
+  'pengguna (null kalau tidak jelas), tanggal hari ini kalau tidak disebut, dan nominal angka utuh (25rb = 25000, 1,5 juta = 1500000). ' +
+  'Untuk pertanyaan lain, jawab seperti biasa.';
+
+const sameName = (a: string, b: unknown) => typeof b === 'string' && a.trim().toLowerCase() === b.trim().toLowerCase();
+
+/**
+ * Drafts from a chat reply that follows RECORD_INSTRUCTION, with category and
+ * account names matched to ids; null when the reply is an ordinary answer.
+ */
+export function parseRecordReply(
+  content: string,
+  accounts: { id: string; name: string }[],
+  categories: { id: string; name: string; type: string }[]
+): OcrItem[] | null {
+  if (!content.includes('"record"')) return null;
+  const rows = extractJson(content).record;
+  if (!Array.isArray(rows)) return null;
+  const items = toItems(rows).map((item, i) => {
+    const row = rows[i] as Record<string, unknown>;
+    return {
+      ...item,
+      categoryId: categories.find((c) => c.type === item.type && sameName(c.name, row.category))?.id,
+      accountId: accounts.find((a) => sameName(a.name, row.account))?.id,
+    };
+  });
+  return items.length ? items : null;
 }
 
 /**

@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { User, Account, Category, Transaction, Budget, ActiveSpace } from '@/types';
+import type { OcrItem } from '@/lib/ocr';
 
 // Check if we're in browser environment
 const isBrowser = typeof window !== 'undefined';
@@ -7,6 +8,8 @@ const isBrowser = typeof window !== 'undefined';
 export interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
+  /** Transactions the assistant proposes to record ("catat ..."). */
+  drafts?: OcrItem[];
 }
 
 interface AppState {
