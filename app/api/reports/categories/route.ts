@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { createServerClient } from '@/lib/supabase/server';
 import { getSpace } from '@/lib/auth/server';
 import type { Database } from '@/types/database';
+import { selectAll } from '@/lib/select-all';
 
 export const revalidate = 60;
 
@@ -33,17 +34,19 @@ export async function GET(req: Request) {
     type TxRow = Database['saku']['Tables']['transactions']['Row'] & {
       category: Pick<Database['saku']['Tables']['categories']['Row'], 'name' | 'color'> | null;
     };
-    let query = supabase
-      .from('transactions')
-      .select('amount, category_id, category:categories(name, color)')
-      .eq('user_id', space.ownerId)
-      .eq('type', 'expense')
-      .gte('actual_date', from)
-      .lte('actual_date', to);
-    if (accountId) {
-      query = query.eq('account_id', accountId);
-    }
-    const { data, error } = await query.returns<TxRow[]>();
+    const { data, error } = await selectAll((start, end) => {
+      let query = supabase
+        .from('transactions')
+        .select('amount, category_id, category:categories(name, color)')
+        .eq('user_id', space.ownerId)
+        .eq('type', 'expense')
+        .gte('actual_date', from)
+        .lte('actual_date', to);
+      if (accountId) {
+        query = query.eq('account_id', accountId);
+      }
+      return query.order('id').range(start, end).returns<TxRow[]>();
+    });
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }

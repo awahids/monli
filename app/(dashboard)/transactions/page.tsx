@@ -130,6 +130,7 @@ export default function TransactionsPage() {
     setAccounts,
     setCategories,
     setTransactions,
+    dataVersion,
   } = useAppStore();
   const searchParams = useSearchParams();
   const { isOnline, addOfflineChange } = useOffline();
@@ -228,9 +229,10 @@ export default function TransactionsPage() {
     [user, isOnline, buildParams, setTransactions]
   );
 
+  // dataVersion: reload after a change made anywhere (e.g. the + button).
   useEffect(() => {
     fetchTransactions(1);
-  }, [fetchTransactions]);
+  }, [fetchTransactions, dataVersion]);
 
   useEffect(() => {
     if (!user || !isOnline) return;
@@ -294,10 +296,10 @@ export default function TransactionsPage() {
       return;
     }
 
+    // Saving bumps dataVersion, which reloads the list and totals.
     await saveTransaction(payload, editing?.id);
     toast.success(isEditing ? 'Transaksi diperbarui' : 'Transaksi tersimpan');
     closeForm();
-    await fetchTransactions(1);
     await refreshAccounts();
   };
 
@@ -316,7 +318,6 @@ export default function TransactionsPage() {
       toast.success('Transaksi dihapus');
       if (editing?.id === pendingDelete.id) closeForm();
       setPendingDelete(null);
-      await fetchTransactions(1);
       await refreshAccounts();
     } catch (e) {
       toast.error((e as Error).message);
@@ -376,7 +377,6 @@ export default function TransactionsPage() {
         `${(e as Error).message}${saved ? ` (${saved} dari ${items.length} sudah tersimpan)` : ''}`
       );
     } finally {
-      await fetchTransactions(1);
       await refreshAccounts();
     }
   };

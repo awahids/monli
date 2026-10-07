@@ -43,6 +43,8 @@ type BudgetDetailDialogProps = {
   onChanged?: () => void;
 };
 
+const sumAmounts = (items: { amount: number }[]) => items.reduce((sum, i) => sum + i.amount, 0);
+
 export type BudgetStatus = { label: string; badge: string; bar: string };
 
 /** Aman < 80%, Hampir habis 80–100%, Lewat > 100%. */
@@ -67,6 +69,9 @@ export function BudgetDetailDialog({
   const [items, setItems] = useState<BudgetItem[]>([]);
   const [actuals, setActuals] = useState<Record<string, number>>({});
   const [totalSpent, setTotalSpent] = useState(0);
+  // Part of the total not tied to a category (the buffer picked when the
+  // budget was made); kept as is when category limits change.
+  const [buffer, setBuffer] = useState(0);
   const [loading, setLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [newCategoryId, setNewCategoryId] = useState('');
@@ -106,6 +111,7 @@ export function BudgetDetailDialog({
 
         setBudget(fetchedBudget);
         setItems(fetchedBudget.items || []);
+        setBuffer(Math.max(fetchedBudget.totalAmount - sumAmounts(fetchedBudget.items || []), 0));
         const map: Record<string, number> = {};
         (reportRes.data ?? []).forEach((row: { categoryId: string; actual: number }) => {
           map[row.categoryId] = row.actual;
@@ -143,12 +149,26 @@ export function BudgetDetailDialog({
     [categories, items]
   );
 
+  /** The total is the category limits plus the buffer, so it follows every change. */
+  const saveTotal = async (nextItems: BudgetItem[]) => {
+    if (!budget) return;
+    const totalAmount = buffer + sumAmounts(nextItems);
+    if (totalAmount === budget.totalAmount) return;
+    const { error } = await supabase.from('budgets').update({ total_amount: totalAmount }).eq('id', budget.id);
+    if (error) {
+      toast.error('Gagal menyimpan total budget');
+      return;
+    }
+    setBudget({ ...budget, totalAmount });
+  };
+
   const handleUpdateItem = async (itemId: string, amount: number) => {
     const { error } = await supabase.from('budget_items').update({ amount }).eq('id', itemId);
     if (error) {
       toast.error('Gagal menyimpan batas kategori');
       return;
     }
+    await saveTotal(items);
     onChanged?.();
   };
 
@@ -158,7 +178,9 @@ export function BudgetDetailDialog({
       toast.error('Gagal menghapus kategori');
       return;
     }
-    setItems((prev) => prev.filter((i) => i.id !== itemId));
+    const next = items.filter((i) => i.id !== itemId);
+    setItems(next);
+    await saveTotal(next);
     onChanged?.();
   };
 
@@ -173,7 +195,9 @@ export function BudgetDetailDialog({
       toast.error('Gagal menambah kategori');
       return;
     }
-    setItems((prev) => [...prev, keysToCamel<BudgetItem>(data)]);
+    const next = [...items, keysToCamel<BudgetItem>(data)];
+    setItems(next);
+    await saveTotal(next);
     onChanged?.();
     setNewCategoryId('');
     setNewAmount(0);

@@ -57,7 +57,8 @@ export default function ReportsPage() {
   const defaultMonth = currentMonth(now);
   const defaultYear = defaultMonth.slice(0, 4);
 
-  const { user, space } = useAppStore();
+  // dataVersion: reload after a transaction is added (e.g. the + button).
+  const { user, space, dataVersion } = useAppStore();
   const isPro = spacePlan(user, space) === 'PRO';
   const [month, setMonth] = useState(defaultMonth);
   const [year, setYear] = useState(defaultYear);
@@ -79,14 +80,14 @@ export default function ReportsPage() {
         })
       )
       .catch(() => setSummary({ daily: [], categories: [] }));
-  }, [month]);
+  }, [month, dataVersion]);
 
   useEffect(() => {
     fetch(`/api/reports/income-expense?year=${year}`)
       .then((res) => res.json())
       .then((res) => setTrend(res.data || []))
       .catch(() => setTrend([]));
-  }, [year]);
+  }, [year, dataVersion]);
 
   useEffect(() => {
     if (!isPro) {
@@ -97,7 +98,7 @@ export default function ReportsPage() {
       .then((res) => res.json())
       .then((res) => setCategoryData(res.data || []))
       .catch(() => setCategoryData([]));
-  }, [month, isPro]);
+  }, [month, isPro, dataVersion]);
 
   const exportCSV = (
     rows: Record<string, unknown>[],

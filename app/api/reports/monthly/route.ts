@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { createServerClient } from '@/lib/supabase/server';
 import { getSpace } from '@/lib/auth/server';
 import type { Database } from '@/types/database';
+import { selectAll } from '@/lib/select-all';
 
 export const revalidate = 60;
 
@@ -59,14 +60,18 @@ export async function GET(req: Request) {
       });
     });
 
-    const { data: txs, error: txErr } = await supabase
-      .from('transactions')
-      .select('amount, category_id, category:categories(name, color)')
-      .eq('user_id', space.ownerId)
-      .eq('type', 'expense')
-      // Budget reports attribute spending by budget_month, not actual date.
-      .eq('budget_month', month)
-      .returns<{ amount: number; category_id: string | null; category: { name: string; color: string | null } | null }[]>();
+    const { data: txs, error: txErr } = await selectAll((from, to) =>
+      supabase
+        .from('transactions')
+        .select('amount, category_id, category:categories(name, color)')
+        .eq('user_id', space.ownerId)
+        .eq('type', 'expense')
+        // Budget reports attribute spending by budget_month, not actual date.
+        .eq('budget_month', month)
+        .order('id')
+        .range(from, to)
+        .returns<{ amount: number; category_id: string | null; category: { name: string; color: string | null } | null }[]>()
+    );
     if (txErr) {
       return NextResponse.json({ error: txErr.message }, { status: 400 });
     }

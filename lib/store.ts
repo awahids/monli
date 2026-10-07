@@ -19,6 +19,11 @@ interface AppState {
   budgets: Budget[];
   loading: boolean;
   isOfflineMode: boolean;
+  /**
+   * Bumped after transactions change anywhere (the + button, edits, offline
+   * sync). Pages that show totals reload when it changes.
+   */
+  dataVersion: number;
 
   // Chat
   chatMessages: ChatMessage[];
@@ -32,6 +37,7 @@ interface AppState {
   setBudgets: (budgets: Budget[]) => void;
   setLoading: (loading: boolean) => void;
   setOfflineMode: (isOffline: boolean) => void;
+  bumpData: () => void;
 
   addChatMessage: (message: ChatMessage) => void;
   clearChatMessages: () => void;
@@ -46,6 +52,7 @@ export const useAppStore = create<AppState>((set) => ({
   budgets: [],
   loading: false,
   isOfflineMode: isBrowser ? !navigator.onLine : false,
+  dataVersion: 0,
   chatMessages: [],
 
   setUser: (user) => set({ user }),
@@ -56,6 +63,7 @@ export const useAppStore = create<AppState>((set) => ({
   setBudgets: (budgets) => set({ budgets }),
   setLoading: (loading) => set({ loading }),
   setOfflineMode: (isOffline) => set({ isOfflineMode: isOffline }),
+  bumpData: () => set((state) => ({ dataVersion: state.dataVersion + 1 })),
 
   addChatMessage: (message) =>
     set(state => ({ chatMessages: [...state.chatMessages, message] })),

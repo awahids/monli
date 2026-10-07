@@ -3,6 +3,7 @@ import { createServerClient } from '@/lib/supabase/server';
 import { getSpace, readOnlyResponse } from '@/lib/auth/server';
 import { transactionCreateSchema } from '@/lib/validation';
 import { z } from 'zod';
+import { selectAll } from '@/lib/select-all';
 
 const dateOrMonth = z.string().regex(/^\d{4}-\d{2}(-\d{2})?$/, 'Invalid date');
 const listQuerySchema = z.object({
@@ -81,26 +82,18 @@ export async function GET(req: Request) {
     );
 
     // Income/expense totals for the whole filtered set (first page only).
-    // PostgREST caps each response at 1000 rows, so read in chunks.
     let summary: { income: number; expense: number } | undefined;
     if (page === 1 && searchParams.get('summary') === '1') {
+      const { data: all, error: sumErr } = await selectAll<{ type: string; amount: number }>((from, to) =>
+        applyFilters(supabase.from('transactions').select('type, amount')).order('id').range(from, to)
+      );
+      if (sumErr) {
+        return NextResponse.json({ error: sumErr.message }, { status: 400 });
+      }
       summary = { income: 0, expense: 0 };
-      const CHUNK = 1000;
-      for (let offset = 0; offset < 50 * CHUNK; offset += CHUNK) {
-        const { data: chunk, error: sumErr } = (await applyFilters(
-          supabase.from('transactions').select('type, amount')
-        ).range(offset, offset + CHUNK - 1)) as {
-          data: { type: string; amount: number }[] | null;
-          error: { message: string } | null;
-        };
-        if (sumErr) {
-          return NextResponse.json({ error: sumErr.message }, { status: 400 });
-        }
-        for (const t of chunk ?? []) {
-          if (t.type === 'income') summary.income += t.amount;
-          else if (t.type === 'expense') summary.expense += t.amount;
-        }
-        if (!chunk || chunk.length < CHUNK) break;
+      for (const t of all ?? []) {
+        if (t.type === 'income') summary.income += t.amount;
+        else if (t.type === 'expense') summary.expense += t.amount;
       }
     }
 

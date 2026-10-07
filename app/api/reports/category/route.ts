@@ -3,6 +3,7 @@ import { createServerClient } from '@/lib/supabase/server';
 import { getSpace } from '@/lib/auth/server';
 import { nextMonthStart } from '@/lib/date';
 import type { Database } from '@/types/database';
+import { selectAll } from '@/lib/select-all';
 
 export const revalidate = 60;
 
@@ -27,14 +28,18 @@ export async function GET(req: Request) {
     type TxRow = Database['saku']['Tables']['transactions']['Row'] & {
       category: Pick<Database['saku']['Tables']['categories']['Row'], 'name' | 'color'> | null;
     };
-    const { data, error } = await supabase
-      .from('transactions')
-      .select('amount, category_id, category:categories(name, color)')
-      .eq('user_id', space.ownerId)
-      .eq('type', 'expense')
-      .gte('actual_date', `${month}-01`)
-      .lt('actual_date', nextMonthStart(month))
-      .returns<TxRow[]>();
+    const { data, error } = await selectAll((from, to) =>
+      supabase
+        .from('transactions')
+        .select('amount, category_id, category:categories(name, color)')
+        .eq('user_id', space.ownerId)
+        .eq('type', 'expense')
+        .gte('actual_date', `${month}-01`)
+        .lt('actual_date', nextMonthStart(month))
+        .order('id')
+        .range(from, to)
+        .returns<TxRow[]>()
+    );
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 400 });

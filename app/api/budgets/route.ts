@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getSpace, readOnlyResponse } from "@/lib/auth/server";
 import { budgetSchema } from "@/lib/validation";
 import { z } from "zod";
+import { selectAll } from "@/lib/select-all";
 
 export async function GET(req: Request) {
   const supabase = createClient();
@@ -37,15 +38,19 @@ export async function GET(req: Request) {
       return NextResponse.json({ data: [], total: count || 0 });
     }
     // Actual spending is attributed by budget_month (the budget rule).
-    const { data: tx, error: txError } = await supabase
-      .from("transactions")
-      .select("amount, budget_month")
-      .eq("user_id", space.ownerId)
-      .eq("type", "expense")
-      .in(
-        "budget_month",
-        budgets.map((b) => b.month),
-      );
+    const { data: tx, error: txError } = await selectAll((from, to) =>
+      supabase
+        .from("transactions")
+        .select("amount, budget_month")
+        .eq("user_id", space.ownerId)
+        .eq("type", "expense")
+        .in(
+          "budget_month",
+          budgets.map((b) => b.month),
+        )
+        .order("id")
+        .range(from, to),
+    );
     if (txError) {
       return NextResponse.json({ error: txError.message }, { status: 400 });
     }

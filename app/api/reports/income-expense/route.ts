@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createServerClient } from '@/lib/supabase/server';
 import { getSpace } from '@/lib/auth/server';
+import { selectAll } from '@/lib/select-all';
 
 export const revalidate = 60;
 
@@ -16,12 +17,16 @@ export async function GET(req: Request) {
     }
 
 
-    const { data, error } = await supabase
-      .from('transactions')
-      .select('actual_date, type, amount')
-      .eq('user_id', space.ownerId)
-      .gte('actual_date', `${year}-01-01`)
-      .lt('actual_date', `${year + 1}-01-01`);
+    const { data, error } = await selectAll((from, to) =>
+      supabase
+        .from('transactions')
+        .select('actual_date, type, amount')
+        .eq('user_id', space.ownerId)
+        .gte('actual_date', `${year}-01-01`)
+        .lt('actual_date', `${year + 1}-01-01`)
+        .order('id')
+        .range(from, to)
+    );
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 400 });

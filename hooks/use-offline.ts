@@ -97,6 +97,8 @@ export function useOffline() {
 
         const remaining = await offlineStorage.getPendingSync();
         setPendingSyncCount(remaining.length);
+        // Replace offline copies with server data and recompute totals.
+        if (failed < pendingItems.length) useAppStore.getState().bumpData();
 
         if (failed > 0) {
           toast({
