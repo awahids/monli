@@ -57,6 +57,7 @@ export const PLAN_FEATURES: PlanFeature[] = [
   },
   { label: 'Rincian budget per kategori', labelEn: 'Budget by category', free: false, pro: true },
   { label: 'Laporan & grafik lengkap', labelEn: 'Full reports & charts', free: false, pro: true },
+  { label: 'Saran kategori & tag saat mencatat', labelEn: 'Category & tag suggestions while recording', free: false, pro: true },
   {
     label: 'Scan struk otomatis (OCR)',
     labelEn: 'Automatic receipt scan (OCR)',

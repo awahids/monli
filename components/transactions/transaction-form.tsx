@@ -483,10 +483,12 @@ export function TransactionFields({
             <TagSuggestions
               note={field.value}
               categoryId={currentType === 'transfer' ? undefined : form.watch('categoryId') ?? undefined}
+              categories={currentType === 'transfer' ? [] : typeCategories}
               tags={form.watch('tags') ?? []}
               onAdd={(tag) =>
                 form.setValue('tags', [...(form.getValues('tags') ?? []), tag], { shouldDirty: true })
               }
+              onCategory={(id) => form.setValue('categoryId', id, { shouldDirty: true, shouldValidate: true })}
             />
             {(form.watch('tags') ?? []).length > 0 && !moreOpen && (
               <p className="text-xs text-muted-foreground">

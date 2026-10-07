@@ -52,3 +52,33 @@ export function suggestTags(
     .slice(0, limit)
     .map(([tag]) => tag);
 }
+
+/**
+ * The category a note most likely belongs to, among `categories` (those of
+ * the transaction's type): categories of past transactions whose notes share
+ * words with it, and categories whose name appears in it.
+ */
+export function suggestCategory(
+  history: TagHistoryRow[],
+  note: string | null | undefined,
+  categories: { id: string; name: string }[],
+): string | null {
+  const noteWords = new Set(tokenize(note));
+  if (!noteWords.size) return null;
+  const allowed = new Set(categories.map((c) => c.id));
+  const score = new Map<string, number>();
+  const add = (id: string, points: number) => score.set(id, (score.get(id) ?? 0) + points);
+
+  for (const row of history) {
+    if (!row.categoryId || !allowed.has(row.categoryId)) continue;
+    const shared = tokenize(row.note).filter((w) => noteWords.has(w)).length;
+    if (shared) add(row.categoryId, shared);
+  }
+  for (const c of categories) {
+    if (tokenize(c.name).some((w) => noteWords.has(w))) add(c.id, 3);
+  }
+
+  let best: string | null = null;
+  for (const [id, points] of Array.from(score)) if (!best || points > score.get(best)!) best = id;
+  return best;
+}
