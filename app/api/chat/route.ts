@@ -4,7 +4,8 @@ import { getSpace } from '@/lib/auth/server';
 import { createClient } from '@/lib/supabase/server';
 import { createSumopodClient, getSumopodModel } from '@/lib/sumopod';
 import { AI_MONTHLY_LIMITS, getAiUsageCount, logAiUsage } from '@/lib/ai-usage';
-import { currentMonth, shiftMonth } from '@/lib/date';
+import { currentMonth, formatDate, shiftMonth } from '@/lib/date';
+import { RECORD_INSTRUCTION, parseRecordReply } from '@/lib/ocr';
 
 export const maxDuration = 60;
 
@@ -104,7 +105,7 @@ export async function POST(req: Request) {
     const categoryName = new Map((categoriesRes.data ?? []).map((c) => [c.id, c.name]));
 
     const context = JSON.stringify({
-      today: new Date().toISOString().slice(0, 10),
+      today: formatDate(new Date()), // Jakarta, not UTC
       currency: profile.default_currency,
       name: profile.name,
       accounts: (accountsRes.data ?? []).map(({ id: _id, ...a }) => a),
@@ -159,6 +160,7 @@ export async function POST(req: Request) {
             'Jawab dalam Bahasa Indonesia yang santai dan jelas, hanya berdasarkan data pengguna di bawah. ' +
             'Kalau datanya tidak cukup, katakan terus terang. Gunakan Markdown singkat (poin-poin, tebalkan angka penting) ' +
             'dan format nominal dalam mata uang pengguna.\n\n' +
+            `${RECORD_INSTRUCTION}\n\n` +
             `Data pengguna: ${context}`,
         },
         ...history.slice(-HISTORY_TURNS),
@@ -168,11 +170,21 @@ export async function POST(req: Request) {
       max_tokens: 700,
     });
 
-    const answer = completion.choices[0]?.message?.content || '';
+    const reply = completion.choices[0]?.message?.content || '';
+    // "Catat ..." comes back as drafts the user confirms before anything is saved.
+    const drafts = parseRecordReply(
+      reply,
+      (accountsRes.data ?? []).filter((a) => !a.archived),
+      categoriesRes.data ?? []
+    );
+    const answer = drafts
+      ? `Siap, ${drafts.length} transaksi siap dicatat. Periksa dulu sebelum disimpan.`
+      : reply;
     // Only successful answers count towards the quota.
     await logAiUsage(supabase, user.email, 'chat');
     return NextResponse.json({
       answer,
+      drafts: drafts ?? undefined,
       usage: {
         unlimited: Boolean(isUnlimited),
         used: count + 1,

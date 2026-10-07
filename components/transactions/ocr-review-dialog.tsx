@@ -45,10 +45,10 @@ const OcrItemForm = forwardRef<ItemFormHandle, ItemFormProps>(
         budgetMonth: defaultBudgetMonth(date),
         actualDate: date,
         type: item.type ?? 'expense',
-        accountId: accounts[0]?.id,
+        accountId: item.accountId ?? accounts[0]?.id,
         fromAccountId: undefined,
         toAccountId: undefined,
-        categoryId: undefined,
+        categoryId: item.categoryId,
         amount: item.amount,
         note: item.description,
         tags: [],
@@ -91,6 +91,7 @@ interface Props {
   categories: Category[];
   date: Date;
   onSave: (items: TransactionFormValues[]) => Promise<void>;
+  title?: string;
 }
 
 export default function OcrReviewDialog({
@@ -101,6 +102,7 @@ export default function OcrReviewDialog({
   categories,
   date,
   onSave,
+  title = 'Periksa hasil scan struk',
 }: Props) {
   const contentRef = useRef<HTMLDivElement | null>(null);
   const itemRefs = useRef<ItemFormHandle[]>([]);
@@ -129,7 +131,7 @@ export default function OcrReviewDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent ref={contentRef}>
         <DialogHeader>
-          <DialogTitle>Periksa hasil scan struk ({items.length} item)</DialogTitle>
+          <DialogTitle>{title} ({items.length} item)</DialogTitle>
         </DialogHeader>
         <div className="space-y-6 max-h-[60vh] overflow-y-auto">
           {items.map((item, idx) => (
