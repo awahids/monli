@@ -35,6 +35,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { CategoryFormDialog, CategoryFormValues } from '@/components/settings/category-form-dialog';
 import { SharedSpaceCard } from '@/components/settings/shared-space-card';
+import { AboutAppCard } from '@/components/settings/about-app-card';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import {
   AlertDialog,
@@ -323,6 +324,8 @@ export default function SettingsPage() {
       </div>
 
       <SharedSpaceCard />
+
+      <AboutAppCard />
 
       <CategoryFormDialog
         open={categoryDialogOpen}
