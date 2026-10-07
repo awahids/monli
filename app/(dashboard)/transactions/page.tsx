@@ -43,7 +43,8 @@ import TransactionForm, {
   TransactionFormValues,
 } from '@/components/transactions/transaction-form';
 import { TransactionRow } from '@/components/transactions/transaction-row';
-import OcrReviewDialog, { OcrItem } from '@/components/transactions/ocr-review-dialog';
+import OcrReviewDialog from '@/components/transactions/ocr-review-dialog';
+import { shrinkImage, type OcrItem } from '@/lib/ocr';
 import { currentMonth, formatDate, nextMonthStart, shiftMonth } from '@/lib/date';
 import { keysToCamel } from '@/lib/case';
 import {
@@ -330,7 +331,7 @@ export default function TransactionsPage() {
     setScanning(true);
     try {
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append('file', await shrinkImage(file), 'scan.jpg');
       const res = await fetch('/api/transactions/ocr', { method: 'POST', body: formData });
       const data = await res.json();
       if (!res.ok) {
@@ -441,7 +442,6 @@ export default function TransactionsPage() {
         ref={fileInputRef}
         type="file"
         accept="image/*"
-        capture="environment"
         className="hidden"
         onChange={handleOcrFile}
       />
