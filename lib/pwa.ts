@@ -1,5 +1,6 @@
 import { useEffect, useState, useSyncExternalStore } from 'react';
 import { APP_VERSION } from '@/lib/changelog';
+import { offlineStorage } from '@/lib/offline-storage';
 
 /* ---------- Install ("Pasang aplikasi") ---------- */
 
@@ -123,4 +124,29 @@ export function useChangelogUnseen() {
     return () => window.removeEventListener(SEEN_EVENT, read);
   }, []);
   return unseen;
+}
+
+/* ---------- Offline ---------- */
+
+/** Pages warmed into the service worker cache so they open offline. */
+const OFFLINE_PAGES = ['/dashboard', '/transactions', '/budgets', '/accounts', '/goals', '/recurring', '/reports', '/settings', '/changelog'];
+
+/** Once per session, after sign-in: cache the main pages and their build files. */
+export function warmOfflineCache() {
+  try {
+    if (!navigator.onLine || sessionStorage.getItem('saku_warmed') === BUILD_ID) return;
+    navigator.serviceWorker?.ready.then((reg) => {
+      reg.active?.postMessage({ type: 'warm', urls: OFFLINE_PAGES });
+      sessionStorage.setItem('saku_warmed', BUILD_ID);
+    });
+  } catch {}
+}
+
+/** Drops everything kept for offline use, so the next person on this device starts clean. */
+export async function clearOfflineCopies() {
+  try {
+    for (const key of await caches.keys()) if (key.startsWith('saku-data')) await caches.delete(key);
+    await offlineStorage.clearOfflineData();
+    await offlineStorage.clearPendingSync();
+  } catch {}
 }

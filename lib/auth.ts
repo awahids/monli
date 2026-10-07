@@ -3,6 +3,7 @@ import { User } from "@/types";
 import { useAppStore } from "./store";
 import { ensureProfile } from "./profile";
 import { loadActiveSpace, writeSpaceCookie } from "./space-client";
+import { clearOfflineCopies } from "./pwa";
 
 export const supabase = createClient();
 
@@ -85,9 +86,16 @@ export async function signOut() {
   document.cookie = "sb-access-token=; Path=/; Max-Age=0; SameSite=Lax; Secure";
   document.cookie =
     "sb-refresh-token=; Path=/; Max-Age=0; SameSite=Lax; Secure";
-  useAppStore.getState().setUser(null);
+  const store = useAppStore.getState();
+  store.setUser(null);
+  // Don't leave this person's data in memory for whoever signs in next.
+  store.setTransactions([]);
+  store.setAccounts([]);
+  store.setCategories([]);
+  store.setBudgets([]);
   useAppStore.getState().setSpace(null);
   writeSpaceCookie(null);
+  await clearOfflineCopies();
   if (error) throw error;
 }
 

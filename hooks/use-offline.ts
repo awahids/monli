@@ -7,6 +7,22 @@ import { useAppStore } from '@/lib/store';
 import { useToast } from '@/hooks/use-toast';
 
 let syncInFlight: Promise<void> | null = null;
+let restored: Promise<void> | null = null;
+
+/** Loads the saved copy into the store, once per page load. */
+function restoreOnce() {
+  restored ??= (async () => {
+    await offlineStorage.init();
+    const saved = await offlineStorage.getOfflineData();
+    const store = useAppStore.getState();
+    // Data a page already loaded from the server is newer than the saved copy.
+    if (saved.transactions && store.transactions.length === 0) store.setTransactions(saved.transactions);
+    if (saved.accounts && store.accounts.length === 0) store.setAccounts(saved.accounts);
+    if (saved.categories && store.categories.length === 0) store.setCategories(saved.categories);
+    if (saved.budgets && store.budgets.length === 0) store.setBudgets(saved.budgets);
+  })();
+  return restored;
+}
 
 export function useOffline() {
   const [isOnline, setIsOnline] = useState(true);
@@ -14,41 +30,23 @@ export function useOffline() {
   const [pendingSyncCount, setPendingSyncCount] = useState(0);
   const { toast } = useToast();
 
-  const {
-    transactions,
-    accounts,
-    categories,
-    budgets,
-    setTransactions,
-    setAccounts,
-    setCategories,
-    setBudgets,
-  } = useAppStore();
+  const { transactions, accounts, categories, budgets } = useAppStore();
 
-  // Initialize offline storage and check connectivity
+  // Restore the last saved data once (shared by every component using this
+  // hook); saving starts only afterwards, so an empty store never overwrites
+  // the saved copy before it has been read back.
   useEffect(() => {
-    const initOffline = async () => {
-      try {
-        await offlineStorage.init();
-        setIsInitialized(true);
-
-        // Load offline data if available
-        const offlineData = await offlineStorage.getOfflineData();
-        if (offlineData.transactions) setTransactions(offlineData.transactions);
-        if (offlineData.accounts) setAccounts(offlineData.accounts);
-        if (offlineData.categories) setCategories(offlineData.categories);
-        if (offlineData.budgets) setBudgets(offlineData.budgets);
-
-        // Update pending sync count
-        const pending = await offlineStorage.getPendingSync();
-        setPendingSyncCount(pending.length);
-      } catch (error) {
-        console.error('Failed to initialize offline storage:', error);
-      }
+    let active = true;
+    restoreOnce().then(async () => {
+      if (!active) return;
+      setIsInitialized(true);
+      const pending = await offlineStorage.getPendingSync();
+      setPendingSyncCount(pending.length);
+    }).catch((error) => console.error('Failed to initialize offline storage:', error));
+    return () => {
+      active = false;
     };
-
-    initOffline();
-  }, [setTransactions, setAccounts, setCategories, setBudgets]);
+  }, []);
 
   // Sync any pending offline changes when back online. Several components
   // use this hook, so a module-level lock keeps the queue from being

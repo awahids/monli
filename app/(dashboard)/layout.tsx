@@ -12,6 +12,7 @@ import { SpaceBanner } from "@/components/layout/space-switcher";
 import ChatWidget from "@/components/chat/chat-widget";
 import { UpdateBanner } from "@/components/pwa/update-banner";
 import { OnboardingGate } from "@/components/onboarding/onboarding";
+import { warmOfflineCache } from "@/lib/pwa";
 
 export default function DashboardLayout({
   children,
@@ -32,6 +33,10 @@ export default function DashboardLayout({
       }
     })();
   }, [user, setUser, router]);
+
+  useEffect(() => {
+    if (user) warmOfflineCache();
+  }, [user]);
 
   // The app is a phone-sized column on every screen, like a mobile app;
   // wider screens just get a backdrop around it.
