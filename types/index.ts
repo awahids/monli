@@ -57,6 +57,10 @@ export interface Budget {
   userId: string;
   month: string;
   totalAmount: number;
+  /** Carries what is left into the next period's budget. */
+  rollover?: boolean;
+  /** Left over from the previous period (selected as the `carry` computed field). */
+  carry?: number;
   items: BudgetItem[];
 }
 

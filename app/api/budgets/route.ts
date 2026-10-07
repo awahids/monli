@@ -21,7 +21,7 @@ export async function GET(req: Request) {
     const space = await getSpace();
     let query = supabase
       .from("budgets")
-      .select("id, month, total_amount", { count: "exact" })
+      .select("id, month, total_amount, carry", { count: "exact" })
       .eq("user_id", space.ownerId);
     if (year !== "all") query = query.like("month", `${year}-%`);
     const {
@@ -62,7 +62,9 @@ export async function GET(req: Request) {
     const result = budgets.map((b) => ({
       id: b.id,
       month: b.month,
-      planned: b.total_amount,
+      // Includes what the previous period carried over (see saku.carry).
+      planned: b.total_amount + (b.carry ?? 0),
+      carry: b.carry ?? 0,
       actual: actualByMonth[b.month] || 0,
     }));
     return NextResponse.json({ data: result, total: count || 0 });
@@ -110,6 +112,25 @@ export async function POST(req: Request) {
       }
     }
 
+    // A new period keeps the rollover choice of the one before it.
+    const { data: existing } = await supabase
+      .from("budgets")
+      .select("id")
+      .eq("user_id", space.ownerId)
+      .eq("month", body.month)
+      .maybeSingle();
+    let rollover: boolean | undefined;
+    if (!existing) {
+      const [y, m] = body.month.split("-").map(Number);
+      const prevMonth = new Date(Date.UTC(y, m - 2, 1)).toISOString().slice(0, 7);
+      const { data: prev } = await supabase
+        .from("budgets")
+        .select("rollover")
+        .eq("user_id", space.ownerId)
+        .eq("month", prevMonth)
+        .maybeSingle();
+      rollover = prev?.rollover ?? false;
+    }
     const { data: budget, error } = await supabase
       .from("budgets")
       .upsert(
@@ -117,6 +138,7 @@ export async function POST(req: Request) {
           user_id: space.ownerId,
           month: body.month,
           total_amount: body.totalAmount,
+          ...(rollover !== undefined && { rollover }),
         },
         { onConflict: "user_id, month" },
       )
