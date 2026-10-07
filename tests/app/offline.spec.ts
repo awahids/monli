@@ -22,14 +22,16 @@ test('opens offline with the last data, records offline and syncs back', async (
 
   // A page opened only through the warm-up, never visited in this session.
   await page.goto('/budgets');
-  // TEMP: diagnose the CI-only failure below.
-  await page.waitForTimeout(3000);
-  console.log('OFFLINE_DEBUG', JSON.stringify(await page.evaluate(async () => ({
-    url: location.href,
-    body: document.body.innerText.slice(0, 400),
-    pages: (await (await caches.open('saku-pages-v1')).keys()).map((k) => k.url),
-  }))));
-  await expect(page.getByRole('heading', { name: 'Budget', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Budget', exact: true })).toBeVisible().catch(async (e) => {
+    // TEMP: the github reporter drops stdout, so surface the page state in the error.
+    const state = await page.evaluate(async () => ({
+      url: location.href,
+      body: document.body.innerText.slice(0, 400),
+      pages: (await (await caches.open('saku-pages-v1')).keys()).map((k) => k.url),
+      statics: (await (await caches.open('saku-static-v1')).keys()).length,
+    }));
+    throw new Error(`${e.message}\nOFFLINE_DEBUG ${JSON.stringify(state)}`);
+  });
 
   // Record while offline: queued locally.
   await page.getByRole('button', { name: 'Catat transaksi' }).click();
