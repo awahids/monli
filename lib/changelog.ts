@@ -30,6 +30,7 @@ export const CHANGELOG: ChangelogEntry[] = [
       { type: 'baru', text: 'Foto struk yang di-scan disimpan bersama transaksinya. Buka transaksi untuk melihat, mengganti, atau melampirkan foto struk; transaksi berfoto ditandai ikon klip.' },
       { type: 'baru', text: 'Bagi tagihan (tombol di halaman Transaksi): bagi satu tagihan ke beberapa kategori, dan bagian teman langsung tercatat sebagai piutang.' },
       { type: 'baru', text: 'Ringkasan tahunan (menu Lainnya): jumlah transaksi, persen yang ditabung, kategori terbesar, bulan paling hemat, dan pengeluaran terbesar, lengkap dengan tombol Bagikan.' },
+      { type: 'baru', text: 'Kunci aplikasi dengan PIN 6 angka (Pengaturan → Keamanan), bisa juga dibuka dengan sidik jari atau Face ID. Terkunci lagi setelah 1 menit di latar belakang.' },
       { type: 'baru', text: 'Aplikasi bisa dibuka tanpa internet dengan data terakhir; transaksi yang dicatat atau dihapus saat offline tersinkron otomatis saat online.' },
       { type: 'peningkatan', text: 'Form terbuka dari bawah layar dan konfirmasi tampil sebagai kartu kecil.' },
       { type: 'peningkatan', text: 'Landing page baru dengan gaya editorial gelap.' },

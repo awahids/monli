@@ -49,6 +49,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Pencil, Trash2 } from 'lucide-react';
 import { CategoryIcon } from '@/components/transactions/category-icon';
+import { AppLockCard } from '@/components/security/app-lock';
 
 const profileFormSchema = profileSchema;
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
@@ -330,6 +331,8 @@ export default function SettingsPage() {
       </div>
 
       <SharedSpaceCard />
+
+      <AppLockCard />
 
       <AboutAppCard />
 
