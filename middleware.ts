@@ -82,6 +82,7 @@ export async function middleware(request: NextRequest) {
     "/transactions",
     "/recurring",
     "/goals",
+    "/debts",
     "/reports",
     "/settings",
     "/upgrade",

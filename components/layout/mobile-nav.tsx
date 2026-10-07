@@ -7,6 +7,7 @@ import {
   BarChart3,
   BookOpen,
   CreditCard,
+  HandCoins,
   Home,
   LayoutGrid,
   Megaphone,
@@ -51,6 +52,7 @@ const tabs = [
 const more = [
   { href: "/accounts", icon: CreditCard, label: "Akun" },
   { href: "/goals", icon: Target, label: "Target tabungan" },
+  { href: "/debts", icon: HandCoins, label: "Hutang & piutang" },
   { href: "/recurring", icon: Repeat, label: "Transaksi rutin" },
   { href: "/reports", icon: BarChart3, label: "Laporan" },
   { href: "/zakat", icon: Package2, label: "Zakat" },
