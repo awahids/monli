@@ -55,6 +55,7 @@ const more = [
   { href: "/debts", icon: HandCoins, label: "Hutang & piutang" },
   { href: "/recurring", icon: Repeat, label: "Transaksi rutin" },
   { href: "/reports", icon: BarChart3, label: "Laporan" },
+  { href: "/wrapped", icon: Sparkles, label: "Ringkasan tahunan" },
   { href: "/zakat", icon: Package2, label: "Zakat" },
   { href: "/settings", icon: Settings, label: "Pengaturan" },
   { href: "/changelog", icon: Megaphone, label: "Yang baru" },
