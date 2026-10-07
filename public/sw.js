@@ -95,30 +95,27 @@ async function trim(cache, max) {
 
 /**
  * Caches the main pages and the build files they load, so pages the user has
- * not opened in this session still work offline.
+ * not opened in this session still work offline. A page goes in only after its
+ * build files, so a cached page is always one that can render offline.
  */
 async function warm(urls) {
   const pages = await caches.open(PAGES);
-  const assets = new Set();
-  for (const url of urls) {
-    try {
+  const statics = await caches.open(STATIC);
+  try {
+    for (const url of urls) {
       const response = await fetch(url, { credentials: 'same-origin' });
       if (!response.ok || response.redirected) continue;
-      await pages.put(url, response.clone());
-      const html = await response.text();
-      for (const m of html.matchAll(/\/_next\/static\/[^"'\\\s)]+\.(?:js|css)/g)) assets.add(m[0]);
-    } catch {
-      return; // offline: try again next time
+      const html = await response.clone().text();
+      // Route groups put parentheses in chunk paths: app/(dashboard)/budgets/page-….js
+      for (const [asset] of html.matchAll(/\/_next\/static\/[^"'\\\s]+?\.(?:js|css)/g)) {
+        if (await statics.match(asset)) continue;
+        const file = await fetch(asset);
+        if (file.ok) await statics.put(asset, file);
+      }
+      await pages.put(url, response);
     }
-  }
-  const statics = await caches.open(STATIC);
-  for (const asset of assets) {
-    if (!(await statics.match(asset))) {
-      try {
-        const response = await fetch(asset);
-        if (response.ok) await statics.put(asset, response);
-      } catch {}
-    }
+  } catch {
+    // Offline: try again next time.
   }
   trim(statics, MAX_STATIC);
 }
