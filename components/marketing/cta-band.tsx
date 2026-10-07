@@ -5,6 +5,7 @@ import { ArrowRight } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { BRAND } from "@/lib/brand";
+import { track } from '@/lib/analytics';
 
 /** Closing statement with one action, over a faint outline of the wordmark. */
 export function CTABand() {
@@ -31,7 +32,7 @@ export function CTABand() {
         </h2>
         <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
           <Button asChild size="lg" className="rounded-full px-8 font-editorial text-base">
-            <Link href="/auth/sign-up" onClick={() => window.umami?.track("cta_footer_signup")}>
+            <Link href="/auth/sign-up" onClick={() => track("cta_footer_signup")}>
               Mulai gratis <ArrowRight className="ml-1 h-4 w-4" />
             </Link>
           </Button>

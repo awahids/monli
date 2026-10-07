@@ -4,6 +4,7 @@ import { Inter, Poppins } from "next/font/google";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ServiceWorkerRegister } from "@/components/service-worker-register";
+import { Analytics } from "@/components/analytics";
 import { cn } from "@/lib/utils";
 import { BRAND } from "@/lib/brand";
 
@@ -116,6 +117,7 @@ export default function RootLayout({
           <Toaster />
         </ThemeProvider>
         <ServiceWorkerRegister />
+        <Analytics />
       </body>
     </html>
   );

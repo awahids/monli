@@ -6,6 +6,7 @@ import {
   AccordionTrigger,
   AccordionContent,
 } from "@/components/ui/accordion";
+import { track } from '@/lib/analytics';
 
 const faqs = [
   {
@@ -64,7 +65,7 @@ export function FAQ() {
           <Accordion
             type="single"
             collapsible
-            onValueChange={() => window.umami?.track("faq_toggle")}
+            onValueChange={() => track("faq_toggle")}
           >
             {faqs.map((f, i) => (
               <AccordionItem key={f.q} value={f.q} className="border-white/10">
