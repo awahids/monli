@@ -86,7 +86,7 @@ export function AccountForm({ account, onSuccess }: AccountFormProps) {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pb-24 sm:pb-0">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <FormField
           control={form.control}
           name="name"
@@ -189,7 +189,7 @@ export function AccountForm({ account, onSuccess }: AccountFormProps) {
         )}
         <div
           className="sticky bottom-0 border-t bg-background pt-4"
-          style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+          style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 1rem)' }}
         >
           <Button type="submit" className="w-full" disabled={isSubmitting}>
             {isSubmitting ? 'Menyimpan...' : account ? 'Simpan perubahan' : 'Buat akun'}

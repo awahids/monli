@@ -190,7 +190,7 @@ export function BudgetDetailDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl w-full h-full sm:h-auto p-0 overflow-hidden">
+      <DialogContent className="overflow-hidden p-0">
         {loading || !budget ? (
           <div className="space-y-4 p-6" aria-busy="true">
             <Skeleton className="h-7 w-48" />
@@ -199,10 +199,10 @@ export function BudgetDetailDialog({
             <Skeleton className="h-16 rounded-xl" />
           </div>
         ) : (
-          <div className="flex max-h-[100dvh] flex-col sm:max-h-[calc(100dvh-2rem)]">
+          <div className="flex max-h-[92dvh] flex-col">
             <DialogHeader
               className="sticky top-0 z-10 border-b bg-background px-4 py-3"
-              style={{ paddingTop: 'max(env(safe-area-inset-top), 0.75rem)' }}
+              style={{ paddingTop: '1.5rem' }}
             >
               <DialogTitle className="text-xl font-bold capitalize">
                 Budget {format(new Date(`${budget.month}-01T00:00:00`), 'MMMM yyyy', { locale: localeId })}
@@ -339,11 +339,11 @@ export function BudgetDetailDialog({
               className="sticky bottom-0 z-10 flex-row gap-2 border-t bg-background px-4 py-3"
               style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 0.75rem)' }}
             >
-              <Button variant="ghost" onClick={() => onOpenChange(false)} className="flex-1 sm:flex-none">
+              <Button variant="ghost" onClick={() => onOpenChange(false)} className="flex-1">
                 Tutup
               </Button>
               {isPro && (
-                <Button onClick={() => setIsEditing((v) => !v)} className="flex-1 sm:flex-none">
+                <Button onClick={() => setIsEditing((v) => !v)} className="flex-1">
                   {isEditing ? 'Selesai' : 'Atur kategori'}
                 </Button>
               )}

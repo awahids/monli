@@ -62,7 +62,7 @@ export function DashboardCharts({ transactions, categorySpends }: Props) {
   const pieTotal = pieData.reduce((s, d) => s + d.value, 0);
 
   return (
-    <div className="grid gap-4 lg:grid-cols-2">
+    <div className="grid gap-4">
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Pengeluaran harian bulan ini</CardTitle>
@@ -125,7 +125,7 @@ export function DashboardCharts({ transactions, categorySpends }: Props) {
         </CardHeader>
         <CardContent>
           {pieData.length ? (
-            <div className="flex flex-col items-center gap-6 sm:flex-row">
+            <div className="flex flex-col items-center gap-6">
               <div className="relative h-48 w-48 shrink-0">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>

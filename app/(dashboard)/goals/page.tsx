@@ -105,7 +105,7 @@ export default function GoalsPage() {
     <div className="space-y-6">
       <div className="flex items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Target tabungan</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Target tabungan</h1>
           <p className="text-sm text-muted-foreground">Sisihkan sedikit demi sedikit untuk tujuan yang jelas.</p>
         </div>
         {!limitReached && (
@@ -126,7 +126,7 @@ export default function GoalsPage() {
       )}
 
       {loading ? (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" aria-busy="true" aria-label="Memuat target">
+        <div className="grid gap-4" aria-busy="true" aria-label="Memuat target">
           {Array.from({ length: 3 }).map((_, i) => (
             <Skeleton key={i} className="h-44 rounded-xl" />
           ))}
@@ -167,7 +167,7 @@ export default function GoalsPage() {
             </Tabs>
           )}
 
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4">
             {shown.map((g) => {
               const p = goalProgress(g, today);
               const color = g.color || '#14A7A0';

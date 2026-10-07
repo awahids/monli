@@ -149,14 +149,14 @@ export function BudgetFormDialog({ open, onOpenChange, onCreated }: BudgetFormDi
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg w-full h-full sm:h-auto sm:max-h-[90vh] overflow-y-auto p-0 sm:p-6">
-        <DialogHeader className="px-4 pt-4 sm:px-0 sm:pt-0">
+      <DialogContent className="p-0">
+        <DialogHeader className="px-4 pt-4">
           <DialogTitle>Buat budget</DialogTitle>
           <DialogDescription>
             Tentukan batas belanja per kategori. Total budget dihitung otomatis.
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-5 px-4 pb-24 sm:px-0 sm:pb-0">
+        <div className="space-y-5 px-4">
           <div className="space-y-2">
             <Label htmlFor="budget-month">Bulan</Label>
             <Input id="budget-month" type="month" value={month} onChange={(e) => setMonth(e.target.value)} />
@@ -244,10 +244,10 @@ export function BudgetFormDialog({ open, onOpenChange, onCreated }: BudgetFormDi
           </div>
         </div>
         <DialogFooter
-          className="sticky bottom-0 border-t bg-background px-4 py-4 sm:px-0"
+          className="sticky bottom-0 border-t bg-background px-4 py-4"
           style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 1rem)' }}
         >
-          <Button onClick={handleSubmit} disabled={submitting || !month || total < 1} className="w-full sm:w-auto">
+          <Button onClick={handleSubmit} disabled={submitting || !month || total < 1} className="w-full">
             {submitting ? 'Menyimpan...' : 'Simpan budget'}
           </Button>
         </DialogFooter>

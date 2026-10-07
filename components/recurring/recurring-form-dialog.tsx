@@ -126,7 +126,7 @@ export function RecurringFormDialog({ open, onOpenChange, rule, accounts, catego
 
   return (
     <Dialog open={open} onOpenChange={(o) => !saving && onOpenChange(o)}>
-      <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-md">
+      <DialogContent>
         <DialogHeader>
           <DialogTitle>{rule ? 'Ubah transaksi rutin' : 'Transaksi rutin baru'}</DialogTitle>
           <DialogDescription>

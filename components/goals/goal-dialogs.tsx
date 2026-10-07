@@ -87,7 +87,7 @@ export function GoalFormDialog({ open, onOpenChange, goal, onSaved }: GoalFormPr
 
   return (
     <Dialog open={open} onOpenChange={(o) => !saving && onOpenChange(o)}>
-      <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-md">
+      <DialogContent>
         <DialogHeader>
           <DialogTitle>{goal ? 'Ubah target' : 'Target tabungan baru'}</DialogTitle>
           <DialogDescription>Dana darurat, liburan, DP rumah: tentukan jumlah dan kapan ingin tercapai.</DialogDescription>
@@ -219,7 +219,7 @@ export function ContributeDialog({ goal, onOpenChange, onSaved }: ContributeProp
 
   return (
     <Dialog open onOpenChange={(o) => !saving && onOpenChange(o)}>
-      <DialogContent className="sm:max-w-sm">
+      <DialogContent>
         <DialogHeader>
           <DialogTitle>{goal.name}</DialogTitle>
           <DialogDescription>

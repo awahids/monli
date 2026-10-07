@@ -184,14 +184,14 @@ export default function ReportsPage() {
   };
 
   return (
-    <div className="space-y-6 px-2 sm:px-4 md:px-8">
+    <div className="space-y-6">
       <Collapsible open={filtersOpen} onOpenChange={setFiltersOpen}>
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-4">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
+            <h1 className="text-2xl font-bold tracking-tight">
               Laporan
             </h1>
-            <p className="text-muted-foreground text-sm sm:text-base">
+            <p className="text-muted-foreground text-sm">
               Tren, kategori, dan budget vs realisasi.
             </p>
           </div>
@@ -199,14 +199,14 @@ export default function ReportsPage() {
             <Button
               variant="outline"
               size="sm"
-              className="gap-1 w-full sm:w-auto"
+              className="gap-1 w-full"
             >
               <Filter className="h-4 w-4" /> Filter
             </Button>
           </CollapsibleTrigger>
         </div>
         <CollapsibleContent>
-          <div className="mt-4 grid gap-4 grid-cols-1 sm:grid-cols-2">
+          <div className="mt-4 grid gap-4 grid-cols-1">
             <div className="space-y-2">
               <label className="text-sm font-medium">Bulan</label>
               <Input
@@ -233,51 +233,51 @@ export default function ReportsPage() {
         description="Tren tahunan, rincian kategori, budget vs realisasi, dan export CSV."
       >
       <Tabs defaultValue="summary" className="space-y-4">
-        <TabsList className="grid h-auto w-full grid-cols-2 gap-2 sm:flex sm:h-10 sm:overflow-visible">
+        <TabsList className="grid h-auto w-full grid-cols-4">
           <TabsTrigger
             value="summary"
-            className="w-full whitespace-nowrap sm:flex-1"
+            className="w-full px-1 text-xs"
           >
-            Ringkasan bulanan
+            Ringkasan
           </TabsTrigger>
           <TabsTrigger
             value="trend"
-            className="w-full whitespace-nowrap sm:flex-1"
+            className="w-full px-1 text-xs"
           >
-            Tren pemasukan & pengeluaran
+            Tren
           </TabsTrigger>
           <TabsTrigger
             value="category"
-            className="w-full whitespace-nowrap sm:flex-1"
+            className="w-full px-1 text-xs"
           >
-            Rincian kategori
+            Kategori
           </TabsTrigger>
           <TabsTrigger
             value="movement"
-            className="w-full whitespace-nowrap sm:flex-1"
+            className="w-full px-1 text-xs"
           >
-            Budget vs realisasi
+            Budget
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="summary" className="space-y-4">
-          <div className="flex justify-start sm:justify-end">
+          <div className="flex justify-start">
             <Button
               variant="outline"
               size="sm"
-              className="gap-1 w-full sm:w-auto"
+              className="gap-1 w-full"
               onClick={exportDailyCSV}
             >
               <Download className="h-4 w-4" /> Export CSV
             </Button>
           </div>
-          <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
+          <div className="grid gap-4 grid-cols-1">
             <Card>
               <CardHeader>
                 <CardTitle className="text-base">Pengeluaran harian</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="h-56 sm:h-72">
+                <div className="h-56">
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={dailyData}>
                       <defs>
@@ -301,8 +301,8 @@ export default function ReportsPage() {
                         </linearGradient>
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" />
-                      <YAxis width={64} tickFormatter={(v) => formatMoneyCompact(v)} />
+                      <XAxis dataKey="date" tick={{ fontSize: 11 }} />
+                      <YAxis width={56} tick={{ fontSize: 11 }} tickFormatter={(v) => formatMoneyCompact(v)} />
                       <Tooltip formatter={(v: number) => formatMoney(v)} />
                       <Area
                         type="monotone"
@@ -320,7 +320,7 @@ export default function ReportsPage() {
                 <CardTitle className="text-base">Pengeluaran per kategori</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="h-56 sm:h-72">
+                <div className="h-56">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
@@ -350,11 +350,11 @@ export default function ReportsPage() {
         </TabsContent>
 
         <TabsContent value="trend" className="space-y-4">
-          <div className="flex justify-start sm:justify-end">
+          <div className="flex justify-start">
             <Button
               variant="outline"
               size="sm"
-              className="gap-1 w-full sm:w-auto"
+              className="gap-1 w-full"
               onClick={exportTrendCSV}
             >
               <Download className="h-4 w-4" /> Export CSV
@@ -365,12 +365,12 @@ export default function ReportsPage() {
               <CardTitle className="text-base">Pemasukan vs pengeluaran ({year})</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="h-64 sm:h-80">
+              <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={trend}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis width={64} tickFormatter={(v) => formatMoneyCompact(v)} />
+                    <XAxis dataKey="month" tick={{ fontSize: 11 }} />
+                    <YAxis width={56} tick={{ fontSize: 11 }} tickFormatter={(v) => formatMoneyCompact(v)} />
                     <Tooltip formatter={(v: number) => formatMoney(v)} />
                     <Legend />
                     <Line type="monotone" dataKey="income" name="Pemasukan" stroke="#16a34a" strokeWidth={2} />
@@ -383,11 +383,11 @@ export default function ReportsPage() {
         </TabsContent>
 
         <TabsContent value="category" className="space-y-4">
-          <div className="flex justify-start sm:justify-end">
+          <div className="flex justify-start">
             <Button
               variant="outline"
               size="sm"
-              className="gap-1 w-full sm:w-auto"
+              className="gap-1 w-full"
               onClick={exportCategoryCSV}
             >
               <Download className="h-4 w-4" /> Export CSV
@@ -398,7 +398,7 @@ export default function ReportsPage() {
               <CardTitle className="text-base">Rincian kategori ({month})</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="h-64 sm:h-80">
+              <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie

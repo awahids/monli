@@ -69,12 +69,12 @@ export function ChatWidget() {
   };
 
   return (
-    <div className="fixed right-4 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] z-50 md:bottom-4">
+    <div className="fixed bottom-[calc(6.5rem+env(safe-area-inset-bottom))] right-[max(1rem,calc(50vw-13rem))] z-50">
       {open ? (
         <div
           role="dialog"
           aria-label="Asisten keuangan AI"
-          className="flex h-[calc(100dvh-8rem)] w-[calc(100vw-2rem)] max-w-sm flex-col overflow-hidden rounded-xl border bg-background shadow-xl sm:h-[32rem] sm:w-96"
+          className="flex h-[calc(100dvh-8rem)] w-[calc(100vw-2rem)] max-w-sm flex-col overflow-hidden rounded-xl border bg-background shadow-xl"
         >
           <div className="flex items-center justify-between border-b px-3 py-2">
             <div className="flex items-center gap-2">

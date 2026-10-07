@@ -154,9 +154,9 @@ export default function AccountsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <div className="flex flex-col gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Akun</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Akun</h1>
           <p className="text-sm text-muted-foreground">Rekening bank, e-wallet, dan uang tunai.</p>
         </div>
         <div className="flex gap-2">
@@ -180,7 +180,7 @@ export default function AccountsPage() {
       {loading ? (
         <div className="space-y-3" aria-busy="true" aria-label="Memuat akun">
           <Skeleton className="h-24 rounded-xl" />
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="grid gap-4">
             {Array.from({ length: 3 }).map((_, i) => (
               <Skeleton key={i} className="aspect-[1.586/1] rounded-2xl" />
             ))}
@@ -198,7 +198,7 @@ export default function AccountsPage() {
           <Card className="flex items-center justify-between gap-4 p-5">
             <div>
               <p className="text-sm text-muted-foreground">Total saldo akun aktif</p>
-              <p className="font-display text-2xl font-bold tabular-nums sm:text-3xl">
+              <p className="font-display text-2xl font-bold tabular-nums">
                 {money(totalBalance, user?.defaultCurrency || 'IDR')}
               </p>
             </div>
@@ -229,7 +229,7 @@ export default function AccountsPage() {
               {currentTab === 'active' ? 'Semua akun sedang diarsipkan.' : 'Tidak ada akun yang diarsipkan.'}
             </p>
           ) : (
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            <div className="grid gap-4">
               {accounts.map((account) => {
                 const meta = TYPE_META[account.type];
                 const Icon = meta.icon;
@@ -310,7 +310,7 @@ export default function AccountsPage() {
                         />
                         {account.accountNumber ? (
                           <>
-                            <span className="truncate font-mono text-base tracking-[0.2em] sm:text-lg">
+                            <span className="truncate font-mono text-base tracking-[0.2em]">
                               {isRevealed ? formatAccountNumber(account.accountNumber) : maskNumber(account.accountNumber)}
                             </span>
                             <span className="pointer-events-auto ml-auto flex shrink-0">
@@ -348,7 +348,7 @@ export default function AccountsPage() {
                           <p className="text-[10px] uppercase tracking-widest text-white/60">Saldo</p>
                           <p
                             className={cn(
-                              'font-display text-xl font-bold tabular-nums sm:text-2xl',
+                              'font-display text-xl font-bold tabular-nums',
                               balance < 0 && !hideBalances && 'text-red-200'
                             )}
                           >
@@ -366,11 +366,11 @@ export default function AccountsPage() {
       )}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-md w-full h-full sm:h-auto sm:max-h-[90vh] overflow-y-auto p-0 sm:p-6">
-          <DialogHeader className="px-4 pt-4 sm:px-0 sm:pt-0">
+        <DialogContent className="p-0">
+          <DialogHeader className="px-4 pt-4">
             <DialogTitle>{editingAccount ? 'Edit akun' : 'Tambah akun'}</DialogTitle>
           </DialogHeader>
-          <div className="px-4 sm:px-0">
+          <div className="px-4">
             <AccountForm
               key={editingAccount?.id ?? 'new'}
               account={editingAccount || undefined}

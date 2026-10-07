@@ -36,7 +36,6 @@ import { Button } from '@/components/ui/button';
 import { CategoryFormDialog, CategoryFormValues } from '@/components/settings/category-form-dialog';
 import { SharedSpaceCard } from '@/components/settings/shared-space-card';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -161,10 +160,10 @@ export default function SettingsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Pengaturan</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Pengaturan</h1>
         <p className="text-muted-foreground">Atur profil, mata uang, kategori, dan kelola bersama.</p>
       </div>
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-6">
         <Card>
           <CardHeader>
             <CardTitle>Profil & preferensi</CardTitle>
@@ -262,12 +261,12 @@ export default function SettingsPage() {
             </Button>
           </CardHeader>
           <CardContent className="space-y-4 flex-1">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <div className="flex flex-col gap-2">
               <ToggleGroup
                 type="single"
                 value={typeFilter}
                 onValueChange={(v) => setTypeFilter((v as any) || 'all')}
-                className="w-full sm:w-auto"
+                className="w-full"
               >
                 <ToggleGroupItem value="all">Semua</ToggleGroupItem>
                 <ToggleGroupItem value="expense">Pengeluaran</ToggleGroupItem>
@@ -277,7 +276,7 @@ export default function SettingsPage() {
                 placeholder="Cari kategori..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full sm:ml-auto sm:w-64"
+                className="w-full"
               />
             </div>
           {filtered.length === 0 ? (
@@ -286,48 +285,7 @@ export default function SettingsPage() {
             </div>
           ) : (
             <div className="overflow-x-auto">
-                <Table className="hidden md:table">
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-12"></TableHead>
-                      <TableHead>Nama</TableHead>
-                      <TableHead>Jenis</TableHead>
-                      <TableHead>Warna</TableHead>
-                      <TableHead className="w-24"></TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filtered.map((c) => {
-                      const Icon = (Icons as any)[c.icon as keyof typeof Icons];
-                      return (
-                        <TableRow key={c.id}>
-                          <TableCell>{Icon ? <Icon className="h-4 w-4" /> : null}</TableCell>
-                          <TableCell>{c.name}</TableCell>
-                          <TableCell>{c.type === 'income' ? 'Pemasukan' : 'Pengeluaran'}</TableCell>
-                          <TableCell>
-                            <div className="h-4 w-4 rounded-full" style={{ backgroundColor: c.color }} />
-                          </TableCell>
-                          <TableCell className="space-x-2 text-right">
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              onClick={() => {
-                                setEditingCategory(c);
-                                setCategoryDialogOpen(true);
-                              }}
-                            >
-                              <Icons.Edit className="h-4 w-4" />
-                            </Button>
-                            <Button size="icon" variant="ghost" onClick={() => setDeleteId(c.id)}>
-                              <Icons.Trash2 className="h-4 w-4" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-                <div className="space-y-2 md:hidden">
+                <div className="space-y-2">
                   {filtered.map((c) => {
                     const Icon = (Icons as any)[c.icon as keyof typeof Icons];
                     return (
