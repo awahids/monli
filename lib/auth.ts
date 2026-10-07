@@ -4,6 +4,7 @@ import { useAppStore } from "./store";
 import { ensureProfile } from "./profile";
 import { loadActiveSpace, writeSpaceCookie } from "./space-client";
 import { clearOfflineCopies } from "./pwa";
+import { writeLock } from "./app-lock";
 
 export const supabase = createClient();
 
@@ -82,6 +83,8 @@ export function nextFromLocation(fallback = "/dashboard"): string {
 
 export async function signOut() {
   const { error } = await supabase.auth.signOut();
+  // The PIN lock belongs to whoever was signed in on this device.
+  writeLock(null);
 
   document.cookie = "sb-access-token=; Path=/; Max-Age=0; SameSite=Lax; Secure";
   document.cookie =

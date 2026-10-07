@@ -13,6 +13,7 @@ import ChatWidget from "@/components/chat/chat-widget";
 import { UpdateBanner } from "@/components/pwa/update-banner";
 import { OnboardingGate } from "@/components/onboarding/onboarding";
 import { warmOfflineCache } from "@/lib/pwa";
+import { AppLockGate } from "@/components/security/app-lock";
 
 export default function DashboardLayout({
   children,
@@ -55,6 +56,7 @@ export default function DashboardLayout({
       <Toaster position="top-center" />
       {user?.plan === 'PRO' && <ChatWidget />}
       <OnboardingGate />
+      <AppLockGate />
     </div>
   );
 }
