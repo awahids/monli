@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { suggestTags, tokenize, type TagHistoryRow } from './tags';
+import { suggestCategory, suggestTags, tokenize, type TagHistoryRow } from './tags';
 
 const history: TagHistoryRow[] = [
   { note: 'Makan siang kantor', categoryId: 'food', tags: ['kantor'] },
@@ -31,4 +31,24 @@ test('suggestTags skips tags already added and returns nothing without input', (
   assert.ok(!suggestTags(history, { categoryId: 'transport', exclude: ['MOTOR'] }).includes('motor'));
   assert.deepEqual(suggestTags(history, {}), []);
   assert.deepEqual(suggestTags([], { note: 'apa saja' }), []);
+});
+
+const categories = [
+  { id: 'food', name: 'Makan' },
+  { id: 'transport', name: 'Transport' },
+  { id: 'bills', name: 'Tagihan listrik' },
+];
+
+test('suggestCategory follows past notes sharing words', () => {
+  assert.equal(suggestCategory(history, 'isi bensin motor', categories), 'transport');
+  assert.equal(suggestCategory(history, 'kopi sore', categories), 'food');
+});
+
+test('suggestCategory recognises a category named in the note', () => {
+  assert.equal(suggestCategory([], 'bayar listrik bulan ini', categories), 'bills');
+});
+
+test('suggestCategory only offers the given categories, and nothing without a note', () => {
+  assert.equal(suggestCategory(history, 'bensin', categories.filter((c) => c.id !== 'transport')), null);
+  assert.equal(suggestCategory(history, '', categories), null);
 });
