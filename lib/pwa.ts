@@ -129,7 +129,7 @@ export function useChangelogUnseen() {
 /* ---------- Offline ---------- */
 
 /** Pages warmed into the service worker cache so they open offline. */
-const OFFLINE_PAGES = ['/dashboard', '/transactions', '/budgets', '/accounts', '/goals', '/recurring', '/reports', '/settings', '/changelog'];
+const OFFLINE_PAGES = ['/dashboard', '/transactions', '/budgets', '/accounts', '/goals', '/debts', '/recurring', '/reports', '/settings', '/changelog'];
 
 /** Once per session, after sign-in: cache the main pages and their build files. */
 export function warmOfflineCache() {

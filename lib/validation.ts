@@ -190,3 +190,20 @@ export const savingsGoalPatchSchema = savingsGoalSchema.partial();
 export const savingsContributionSchema = z.object({
   amount: z.number().refine((n) => n !== 0, 'Nominal tidak boleh 0'),
 });
+
+export const debtSchema = z.object({
+  kind: z.enum(['payable', 'receivable']),
+  person: z.string().trim().min(1, 'Isi nama').max(80),
+  amount: z.number().positive('Masukkan nominal'),
+  /** The account the borrowed or lent money went through; none = record only. */
+  accountId: z.string().uuid().nullable().optional(),
+  date: dateSchema.optional(),
+  dueDate: dateSchema.nullable().optional(),
+  note: z.string().trim().max(200).nullable().optional(),
+});
+
+export const debtPaymentSchema = z.object({
+  amount: z.number().positive('Masukkan nominal'),
+  accountId: z.string().uuid().nullable().optional(),
+  date: dateSchema.optional(),
+});
