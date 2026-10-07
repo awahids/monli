@@ -25,6 +25,7 @@ export const CHANGELOG: ChangelogEntry[] = [
       { type: 'baru', text: 'Panduan awal untuk pengguna baru, bisa dibuka lagi dari Pengaturan.' },
       { type: 'baru', text: 'PRO: catat transaksi lewat chat atau suara di Asisten, misalnya "catat makan siang 25rb pakai Dompet"; periksa dulu sebelum disimpan.' },
       { type: 'baru', text: 'Hutang & piutang (menu Lainnya): catat pinjaman dan cicilannya; kalau dipilih akunnya, saldo ikut berubah tanpa dihitung sebagai pemasukan atau pengeluaran.' },
+      { type: 'peningkatan', text: 'Pencarian dari tombol kaca pembesar di atas: cari transaksi di semua waktu berdasarkan catatan, tag, nama kategori, atau nominal (mis. "25rb").' },
       { type: 'baru', text: 'Aplikasi bisa dibuka tanpa internet dengan data terakhir; transaksi yang dicatat atau dihapus saat offline tersinkron otomatis saat online.' },
       { type: 'peningkatan', text: 'Form terbuka dari bawah layar dan konfirmasi tampil sebagai kartu kecil.' },
       { type: 'peningkatan', text: 'Landing page baru dengan gaya editorial gelap.' },

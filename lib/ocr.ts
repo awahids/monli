@@ -1,4 +1,4 @@
-import { parseMoney } from '@/lib/currency';
+import { parseAmountText, parseMoney } from '@/lib/currency';
 
 export type OcrItem = {
   description: string;
@@ -23,15 +23,7 @@ const DATE = /^\d{4}-\d{2}-\d{2}$/;
 
 function toAmount(value: unknown): number {
   if (typeof value === 'number' && Number.isFinite(value)) return Math.round(Math.abs(value));
-  if (typeof value === 'string') {
-    // "25rb", "1,5 juta": Indonesian shorthand, comma as the decimal mark.
-    const short = value.toLowerCase().match(/([\d.,]+)\s*(rb|ribu|k|jt|juta)\b/);
-    if (short) {
-      const n = parseFloat(short[1].replace(/\./g, '').replace(',', '.'));
-      return Math.round(n * (short[2].startsWith('j') ? 1_000_000 : 1_000));
-    }
-    return parseMoney(value);
-  }
+  if (typeof value === 'string') return parseAmountText(value.replace(/^[-+]\s*/, '')) ?? parseMoney(value);
   return 0;
 }
 

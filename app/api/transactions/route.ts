@@ -4,6 +4,7 @@ import { getSpace, readOnlyResponse } from '@/lib/auth/server';
 import { transactionCreateSchema } from '@/lib/validation';
 import { z } from 'zod';
 import { selectAll } from '@/lib/select-all';
+import { parseAmountText } from '@/lib/currency';
 
 const dateOrMonth = z.string().regex(/^\d{4}-\d{2}(-\d{2})?$/, 'Invalid date');
 const listQuerySchema = z.object({
@@ -50,6 +51,24 @@ export async function GET(req: Request) {
     const { from, to, type, accountId, categoryId, tags, period } = parsedQuery.data;
     const dateField = parsedQuery.data.dateField === 'budget' ? 'budget_month' : 'actual_date';
     const search = sanitizeSearch(parsedQuery.data.search);
+    // A search matches the note, a tag, the amount ("25rb") or a category name.
+    let searchFilter = '';
+    if (search) {
+      const { data: cats } = await supabase
+        .from('categories')
+        .select('id')
+        .eq('user_id', space.ownerId)
+        .ilike('name', `%${search}%`);
+      const amount = parseAmountText(parsedQuery.data.search ?? '');
+      searchFilter = [
+        `note.ilike.%${search}%`,
+        `tags.cs.{"${search}"}`,
+        amount && `amount.eq.${amount}`,
+        cats?.length && `category_id.in.(${cats.map((c) => c.id).join(',')})`,
+      ]
+        .filter(Boolean)
+        .join(',');
+    }
 
     // Same filters for the page of rows and for the totals below.
     // Typed loosely: Supabase's builder generics are too deep to thread
@@ -69,7 +88,7 @@ export async function GET(req: Request) {
         const arr = tags.split(',').filter(Boolean);
         if (arr.length) out = out.contains('tags', arr);
       }
-      if (search) out = out.or(`note.ilike.%${search}%,tags.cs.{"${search}"}`);
+      if (searchFilter) out = out.or(searchFilter);
       return out;
     };
 
