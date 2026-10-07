@@ -13,6 +13,7 @@ const config: Config = {
       fontFamily: {
         sans: ['var(--font-inter)', 'Inter', 'system-ui', 'sans-serif'],
         display: ['var(--font-poppins)', 'Poppins', 'var(--font-inter)', 'sans-serif'],
+        editorial: ['var(--font-onest)', 'var(--font-inter)', 'system-ui', 'sans-serif'],
       },
       borderRadius: {
         lg: 'var(--radius)',

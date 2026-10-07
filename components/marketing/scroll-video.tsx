@@ -188,13 +188,16 @@ export function ScrollVideo() {
     <>
       <section
         ref={sectionRef}
+        id="cerita"
         aria-labelledby="promo-title"
-        className="relative h-[320vh] motion-reduce:hidden md:h-[400vh]"
+        className="relative h-[320vh] scroll-mt-16 motion-reduce:hidden md:h-[400vh]"
       >
         <div className="sticky top-16 flex h-[calc(100svh-4rem)] flex-col justify-center overflow-hidden">
           <div className="mb-6 px-4 text-center md:sr-only">
-            <p className="text-sm font-semibold text-primary">Lihat cara kerjanya</p>
-            <h2 id="promo-title" className="mt-1 text-2xl font-bold tracking-tight">
+            <p className="font-editorial text-[11px] font-medium uppercase tracking-[0.25em] text-muted-foreground">
+              <span className="text-primary">01</span> — Cerita
+            </p>
+            <h2 id="promo-title" className="mt-2 font-editorial text-3xl font-normal tracking-tight">
               Atur. Catat. Pahami.
             </h2>
           </div>
