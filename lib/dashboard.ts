@@ -3,11 +3,14 @@ import { TIMEZONE } from '@/lib/date';
 
 export type MonthTotals = { income: number; expense: number };
 
-/** Income and expense per month, by actual date (the timeline rule). */
+/**
+ * Income and expense of a budget month (the period, which may start on
+ * payday), so the KPIs match the budget card and the Budget page.
+ */
 export function monthTotals(transactions: Transaction[], month: string): MonthTotals {
   return transactions.reduce<MonthTotals>(
     (acc, t) => {
-      if (!t.actualDate?.startsWith(month)) return acc;
+      if (t.budgetMonth !== month) return acc;
       if (t.type === 'income') acc.income += t.amount;
       else if (t.type === 'expense') acc.expense += t.amount;
       return acc;

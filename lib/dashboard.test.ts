@@ -3,17 +3,18 @@ import assert from 'node:assert';
 import { greeting, monthDelta, monthTotals } from './dashboard';
 import type { Transaction } from '@/types';
 
-const tx = (actualDate: string, type: Transaction['type'], amount: number) =>
-  ({ id: actualDate + amount, actualDate, type, amount }) as Transaction;
+const tx = (actualDate: string, type: Transaction['type'], amount: number, budgetMonth = actualDate.slice(0, 7)) =>
+  ({ id: actualDate + amount, actualDate, budgetMonth, type, amount }) as Transaction;
 
-test('monthTotals sums income and expense by actual date', () => {
+test('monthTotals sums income and expense by budget month (the period)', () => {
   const txs = [
     tx('2024-05-02', 'income', 100),
     tx('2024-05-03', 'expense', 30),
     tx('2024-05-04', 'transfer', 999),
-    tx('2024-04-30', 'expense', 50),
+    tx('2024-05-27', 'expense', 50, '2024-06'), // after payday: next period
+    tx('2024-04-28', 'expense', 7, '2024-05'), // previous calendar month, this period
   ];
-  assert.deepEqual(monthTotals(txs, '2024-05'), { income: 100, expense: 30 });
+  assert.deepEqual(monthTotals(txs, '2024-05'), { income: 100, expense: 37 });
 });
 
 test('monthDelta colors by meaning, not by sign', () => {

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { rebucketTransactions } from '@/lib/budget-rebucket';
 import { createServerClient } from '@/lib/supabase/server';
 import { getUser } from '@/lib/auth/server';
 import { profilePatchSchema } from '@/lib/validation';
@@ -40,6 +41,11 @@ export async function PATCH(req: Request) {
   }
   try {
     const user = await getUser();
+    const { data: before } = await supabase
+      .from('profiles')
+      .select('budget_start_day')
+      .eq('id', user.id)
+      .single();
       const { data, error } = await supabase
         .from('profiles')
         .update({
@@ -53,6 +59,7 @@ export async function PATCH(req: Request) {
     if (error || !data) {
       return NextResponse.json({ error: error?.message || 'Not found' }, { status: 404 });
     }
+    await rebucketTransactions(supabase, user.id, before?.budget_start_day ?? 1, data.budget_start_day ?? 1);
       return NextResponse.json({
         id: data.id,
         email: data.email,

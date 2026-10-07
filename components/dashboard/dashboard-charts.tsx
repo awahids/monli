@@ -18,11 +18,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Transaction, CategorySpend } from "@/types";
 import { formatMoney, formatMoneyCompact } from "@/lib/currency";
-import { currentMonth } from "@/lib/date";
+import { budgetPeriod, daysBetweenInclusive } from "@/lib/date";
 
 interface Props {
   transactions: Transaction[];
   categorySpends: CategorySpend[];
+  /** Budget month shown; its period may start on payday (e.g. 26 Sep – 25 Oct). */
+  month: string;
+  startDay: number;
 }
 
 const tooltipStyle = {
@@ -32,23 +35,21 @@ const tooltipStyle = {
   color: "hsl(var(--foreground))",
 };
 
-export function DashboardCharts({ transactions, categorySpends }: Props) {
-  const month = currentMonth();
-
+export function DashboardCharts({ transactions, categorySpends, month, startDay }: Props) {
   const dailyExpenses = useMemo(() => {
-    const [y, m] = month.split("-").map(Number);
-    const days = new Date(Date.UTC(y, m, 0)).getUTCDate();
+    const { start, end } = budgetPeriod(month, startDay);
     const totals = new Map<string, number>();
     transactions.forEach((t) => {
-      if (t.type === "expense" && t.actualDate?.startsWith(month)) {
+      if (t.type === "expense" && t.budgetMonth === month && t.actualDate) {
         totals.set(t.actualDate, (totals.get(t.actualDate) ?? 0) + t.amount);
       }
     });
-    return Array.from({ length: days }, (_, i) => {
-      const key = `${month}-${String(i + 1).padStart(2, "0")}`;
-      return { day: String(i + 1), amount: totals.get(key) ?? 0 };
+    // One point per day of the period, labelled by day of month.
+    return Array.from({ length: daysBetweenInclusive(start, end) }, (_, i) => {
+      const key = new Date(Date.parse(`${start}T00:00:00Z`) + i * 86_400_000).toISOString().slice(0, 10);
+      return { day: String(Number(key.slice(8, 10))), amount: totals.get(key) ?? 0 };
     });
-  }, [transactions, month]);
+  }, [transactions, month, startDay]);
 
   const hasDaily = dailyExpenses.some((d) => d.amount > 0);
   const pieData = useMemo(
@@ -65,7 +66,7 @@ export function DashboardCharts({ transactions, categorySpends }: Props) {
     <div className="grid gap-4">
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Pengeluaran harian bulan ini</CardTitle>
+          <CardTitle className="text-base">Pengeluaran harian periode ini</CardTitle>
         </CardHeader>
         <CardContent>
           {hasDaily ? (
@@ -112,7 +113,7 @@ export function DashboardCharts({ transactions, categorySpends }: Props) {
           ) : (
             <EmptyState
               icon={BarChart3}
-              title="Belum ada pengeluaran bulan ini"
+              title="Belum ada pengeluaran periode ini"
               description="Grafik akan muncul setelah kamu mencatat pengeluaran."
             />
           )}

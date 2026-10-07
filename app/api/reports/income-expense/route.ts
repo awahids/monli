@@ -20,10 +20,11 @@ export async function GET(req: Request) {
     const { data, error } = await selectAll((from, to) =>
       supabase
         .from('transactions')
-        .select('actual_date, type, amount')
+        .select('budget_month, type, amount')
         .eq('user_id', space.ownerId)
-        .gte('actual_date', `${year}-01-01`)
-        .lt('actual_date', `${year + 1}-01-01`)
+        // By budget period, like Beranda and Budget (a pay-day period can start in the previous month).
+        .gte('budget_month', `${year}-01`)
+        .lte('budget_month', `${year}-12`)
         .order('id')
         .range(from, to)
     );
@@ -39,7 +40,7 @@ export async function GET(req: Request) {
     }));
 
     data?.forEach(tx => {
-      const idx = Number(tx.actual_date.slice(5, 7)) - 1;
+      const idx = Number(tx.budget_month.slice(5, 7)) - 1;
       if (tx.type === 'income') {
         months[idx].income += tx.amount;
       } else if (tx.type === 'expense') {

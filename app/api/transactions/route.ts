@@ -12,6 +12,8 @@ const listQuerySchema = z.object({
   from: dateOrMonth.optional(),
   to: dateOrMonth.optional(),
   dateField: z.enum(['actual', 'budget']).optional(),
+  // A budget month: "Periode ini" follows the pay-day period, like Beranda and Budget.
+  period: z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/, 'Invalid period').optional(),
   type: z.enum(['expense', 'income', 'transfer']).optional(),
   // UUIDs only: these values are interpolated into a PostgREST or() filter.
   accountId: z.string().uuid().optional(),
@@ -45,7 +47,7 @@ export async function GET(req: Request) {
         { status: 400 }
       );
     }
-    const { from, to, type, accountId, categoryId, tags } = parsedQuery.data;
+    const { from, to, type, accountId, categoryId, tags, period } = parsedQuery.data;
     const dateField = parsedQuery.data.dateField === 'budget' ? 'budget_month' : 'actual_date';
     const search = sanitizeSearch(parsedQuery.data.search);
 
@@ -56,6 +58,7 @@ export async function GET(req: Request) {
       let out = q.eq('user_id', space.ownerId);
       if (from) out = out.gte(dateField, from);
       if (to) out = out.lte(dateField, to);
+      if (period) out = out.eq('budget_month', period);
       if (type) out = out.eq('type', type);
       if (categoryId) out = out.eq('category_id', categoryId);
       if (accountId)

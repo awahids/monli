@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createServerClient } from '@/lib/supabase/server';
 import { getSpace } from '@/lib/auth/server';
-import { nextMonthStart } from '@/lib/date';
 import type { Database } from '@/types/database';
 import { selectAll } from '@/lib/select-all';
 
@@ -34,8 +33,8 @@ export async function GET(req: Request) {
         .select('amount, category_id, category:categories(name, color)')
         .eq('user_id', space.ownerId)
         .eq('type', 'expense')
-        .gte('actual_date', `${month}-01`)
-        .lt('actual_date', nextMonthStart(month))
+        // By budget period, like Beranda and Budget.
+        .eq('budget_month', month)
         .order('id')
         .range(from, to)
         .returns<TxRow[]>()

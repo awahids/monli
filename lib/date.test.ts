@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { budgetMonthFor, budgetPeriod, currentBudgetMonth, currentMonth, daysBetweenInclusive, nextMonthStart, shiftMonth } from './date';
+import { budgetMonthFor, budgetPeriod, currentBudgetMonth, currentMonth, daysBetweenInclusive, nextMonthStart, periodRange, rebucket, shiftMonth } from './date';
 
 test('currentMonth uses Jakarta time, not UTC', () => {
   // 2024-05-31 18:30 UTC is already 2024-06-01 01:30 in Jakarta.
@@ -51,4 +51,23 @@ test('currentBudgetMonth uses Jakarta time', () => {
 test('daysBetweenInclusive counts both ends', () => {
   assert.equal(daysBetweenInclusive('2024-10-01', '2024-10-01'), 1);
   assert.equal(daysBetweenInclusive('2024-09-25', '2024-10-24'), 30);
+});
+
+test('periodRange labels pay-day periods only', () => {
+  assert.equal(periodRange('2026-10', 1), null);
+  assert.equal(periodRange('2026-10', 26), '26 Sep – 25 Okt');
+  assert.equal(periodRange('2026-03', 31), '28 Feb – 30 Mar');
+});
+
+test('rebucket moves only automatic budget months', () => {
+  const rows = [
+    { id: 'a', actual_date: '2026-09-27', budget_month: '2026-09' }, // automatic under 1 -> October under 26
+    { id: 'b', actual_date: '2026-09-27', budget_month: '2026-11' }, // moved by hand: keep
+    { id: 'c', actual_date: '2026-10-03', budget_month: '2026-10' }, // same month either way
+  ];
+  assert.deepEqual(rebucket(rows, 1, 26), [{ id: 'a', budget_month: '2026-10' }]);
+  assert.deepEqual(rebucket([{ id: 'a', actual_date: '2026-09-27', budget_month: '2026-10' }], 26, 1), [
+    { id: 'a', budget_month: '2026-09' },
+  ]);
+  assert.deepEqual(rebucket(rows, 26, 26), []);
 });
