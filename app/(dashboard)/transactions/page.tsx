@@ -6,7 +6,7 @@ import { format } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
 import type { DateRange } from 'react-day-picker';
 import Link from 'next/link';
-import { Camera, ReceiptText, Repeat, Search, SearchX, SlidersHorizontal, X } from 'lucide-react';
+import { Camera, ReceiptText, Repeat, Search, SearchX, SlidersHorizontal, Split, X } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { useAppStore } from '@/lib/store';
@@ -46,6 +46,7 @@ import { TransactionRow } from '@/components/transactions/transaction-row';
 import OcrReviewDialog from '@/components/transactions/ocr-review-dialog';
 import { shrinkImage, type OcrItem } from '@/lib/ocr';
 import { uploadReceipt } from '@/lib/receipts';
+import { SplitBillDialog } from '@/components/transactions/split-bill-dialog';
 import { currentBudgetMonth, formatDate, periodRange, shiftMonth } from '@/lib/date';
 import { keysToCamel } from '@/lib/case';
 import {
@@ -166,6 +167,7 @@ export default function TransactionsPage() {
   const [ocrItems, setOcrItems] = useState<OcrItem[]>([]);
   const [ocrDate, setOcrDate] = useState<Date>(new Date());
   const [scanning, setScanning] = useState(false);
+  const [splitOpen, setSplitOpen] = useState(false);
   // The scanned photo, stored with the transactions saved from it (path set
   // once uploaded, so a retry after a partial save reuses it).
   const receiptRef = useRef<{ image: Blob; path?: string } | null>(null);
@@ -472,6 +474,7 @@ export default function TransactionsPage() {
         date={ocrDate}
         onSave={handleOcrSave}
       />
+      <SplitBillDialog open={splitOpen} onOpenChange={setSplitOpen} />
       <input
         ref={fileInputRef}
         type="file"
@@ -486,6 +489,9 @@ export default function TransactionsPage() {
           <p className="text-sm text-muted-foreground">Semua pemasukan, pengeluaran, dan transfer.</p>
         </div>
         <div className="flex gap-2">
+          <Button variant="outline" size="icon" onClick={() => setSplitOpen(true)} aria-label="Bagi tagihan">
+            <Split className="h-4 w-4" />
+          </Button>
           <Button variant="outline" size="icon" asChild aria-label="Transaksi rutin">
             <Link href="/recurring">
               <Repeat className="h-4 w-4" />
