@@ -9,7 +9,8 @@ import { toast } from 'sonner';
 
 import { useAppStore } from '@/lib/store';
 import { formatMoney } from '@/lib/currency';
-import { thisBudgetMonth } from '@/lib/budget-period';
+import { getBudgetStartDay, thisBudgetMonth } from '@/lib/budget-period';
+import { periodRange } from '@/lib/date';
 import { cn } from '@/lib/utils';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -163,7 +164,12 @@ export default function BudgetsPage() {
                       <span className="font-display font-semibold capitalize">
                         {format(new Date(`${b.month}-01T00:00:00`), 'MMMM yyyy', { locale: localeId })}
                         {b.month === thisMonth && (
-                          <span className="ml-2 align-middle text-xs font-normal text-muted-foreground">bulan ini</span>
+                          <span className="ml-2 align-middle text-xs font-normal text-muted-foreground">sekarang</span>
+                        )}
+                        {periodRange(b.month, getBudgetStartDay()) && (
+                          <span className="block text-xs font-normal normal-case text-muted-foreground">
+                            {periodRange(b.month, getBudgetStartDay())}
+                          </span>
                         )}
                       </span>
                       <span className={cn('rounded-full px-2 py-0.5 text-xs font-medium', status.badge)}>

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { createServerClient } from '@/lib/supabase/server';
 import { getUser } from '@/lib/auth/server';
 import { profilePatchSchema } from '@/lib/validation';
+import { rebucketTransactions } from '@/lib/budget-rebucket';
 import { z } from 'zod';
 
 const COLUMNS = 'id, email, name, default_currency, budget_start_day, created_at, updated_at';
@@ -52,6 +53,11 @@ export async function PATCH(req: Request) {
   }
   try {
     const user = await getUser();
+    const { data: before } = await supabase
+      .from('profiles')
+      .select('budget_start_day')
+      .eq('id', user.id)
+      .single();
     const update = {
       ...(body.name !== undefined ? { name: body.name } : {}),
       ...(body.defaultCurrency !== undefined ? { default_currency: body.defaultCurrency } : {}),
@@ -69,7 +75,14 @@ export async function PATCH(req: Request) {
     if (!data) {
       return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
     }
-    return NextResponse.json(toProfile(data));
+    // Totals everywhere follow budget_month, so move transactions into the new periods.
+    const moved = await rebucketTransactions(
+      supabase,
+      user.id,
+      before?.budget_start_day ?? 1,
+      data.budget_start_day ?? 1
+    );
+    return NextResponse.json({ ...toProfile(data), moved });
   } catch (e) {
     return NextResponse.json({ error: (e as Error).message }, { status: 401 });
   }

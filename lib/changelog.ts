@@ -29,6 +29,8 @@ export const CHANGELOG: ChangelogEntry[] = [
       { type: 'peningkatan', text: 'Landing page baru dengan gaya editorial gelap.' },
       { type: 'peningkatan', text: 'Halaman aplikasi lebih ringan: JavaScript yang diunduh berkurang sekitar 25–40%, sehingga lebih cepat dibuka di HP.' },
       { type: 'perbaikan', text: 'Edit dan hapus transaksi kembali berfungsi.' },
+      { type: 'perbaikan', text: 'Periode budget yang dimulai di tanggal gajian (mis. 26) kini dipakai di semua halaman: Beranda, Transaksi ("Periode ini"), Budget, dan Laporan, lengkap dengan rentang tanggalnya.' },
+      { type: 'perbaikan', text: 'Saat tanggal mulai periode diganti, transaksi lama ikut pindah ke periode yang sesuai; yang bulan budget-nya diubah manual tidak disentuh.' },
       { type: 'perbaikan', text: 'Scan struk bisa memakai foto dari galeri, tidak hanya kamera.' },
       { type: 'peningkatan', text: 'Scan struk juga membaca screenshot mutasi bank atau e-wallet, lengkap dengan tanggal dan jenis tiap transaksi.' },
       { type: 'perbaikan', text: 'Saldo, sisa budget, laporan, dan ringkasan langsung diperbarui setelah transaksi dicatat lewat tombol +, tanpa perlu muat ulang.' },

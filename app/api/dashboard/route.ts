@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createServerClient } from '@/lib/supabase/server';
 import { getSpace } from '@/lib/auth/server';
-import { budgetPeriod, daysBetweenInclusive, formatDate, nextMonthStart } from '@/lib/date';
+import { budgetPeriod, daysBetweenInclusive, formatDate } from '@/lib/date';
 import type { Database } from '@/types/database';
 import { ensureDefaultCategories } from '@/lib/categories';
 import { selectAll } from '@/lib/select-all';
@@ -20,8 +20,9 @@ const querySchema = z.object({
   accountId: z.string().uuid().optional(),
 });
 
-// Date rule: the timeline (daily chart, categories, MTD spend) uses
-// actual_date; budget planned vs actual uses budget_month.
+// Period rule: everything for `month` is attributed by budget_month, so a
+// pay-day period (e.g. 26 Sep – 25 Oct for October) matches the Budget page.
+// Within the period, the daily chart is laid out by actual_date.
 export async function GET(req: Request) {
   const supabase = createServerClient();
   try {
@@ -41,8 +42,12 @@ export async function GET(req: Request) {
     }
     const { month, accountId } = parse.data;
     const budgetMonth = parse.data.budgetMonth ?? month;
-    const start = `${month}-01`;
-    const end = nextMonthStart(month);
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('budget_start_day')
+      .eq('id', space.ownerId)
+      .maybeSingle();
+    const startDay = profile?.budget_start_day ?? 1;
 
     const { data: totalBalanceData, error: balanceErr } = await supabase.rpc(
       'space_total_balance',
@@ -71,8 +76,7 @@ export async function GET(req: Request) {
             category:categories(name, color, icon)`
           )
           .eq('user_id', space.ownerId)
-          .gte('actual_date', start)
-          .lt('actual_date', end)
+          .eq('budget_month', month)
       )
         .order('actual_date', { ascending: false })
         .order('created_at', { ascending: false })
@@ -169,20 +173,13 @@ export async function GET(req: Request) {
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([date, amount]) => ({ date, amount }));
 
-    // Daily averages follow the calendar month; the remaining allowance
-    // follows the budget period.
-    const [y, m] = month.split('-').map(Number);
-    const totalDays = new Date(Date.UTC(y, m, 0)).getUTCDate();
-    const monthEnd = `${month}-${String(totalDays).padStart(2, '0')}`;
+    // Daily average over the days of the period so far.
+    const shown = budgetPeriod(month, startDay);
+    const totalDays = daysBetweenInclusive(shown.start, shown.end);
     const daysPassed =
-      today < start ? 0 : today > monthEnd ? totalDays : Number(today.slice(8, 10));
+      today < shown.start ? 0 : today > shown.end ? totalDays : daysBetweenInclusive(shown.start, today);
     const dailyAverage = daysPassed > 0 ? mtdSpend / daysPassed : 0;
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('budget_start_day')
-      .eq('id', space.ownerId)
-      .maybeSingle();
-    const period = budgetPeriod(budgetMonth, profile?.budget_start_day ?? 1);
+    const period = budgetPeriod(budgetMonth, startDay);
     const remainingDays =
       today > period.end ? 0 : daysBetweenInclusive(today < period.start ? period.start : today, period.end);
     const remainingDaysAllowance =

@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createServerClient } from '@/lib/supabase/server';
 import { getSpace } from '@/lib/auth/server';
-import { nextMonthStart } from '@/lib/date';
 import { selectAll } from '@/lib/select-all';
 
 export const revalidate = 60;
@@ -54,10 +53,11 @@ export async function GET(req: Request) {
     const { data, error } = await selectAll((start, end) =>
       supabase
         .from('transactions')
-        .select('actual_date, type, amount')
+        .select('budget_month, type, amount')
         .eq('user_id', space.ownerId)
-        .gte('actual_date', `${from}-01`)
-        .lt('actual_date', nextMonthStart(to))
+        // By budget period, like Beranda and Budget.
+        .gte('budget_month', from)
+        .lte('budget_month', to)
         .order('id')
         .range(start, end)
     );
@@ -68,7 +68,7 @@ export async function GET(req: Request) {
     const result = months.map(m => ({ month: m, income: 0, expense: 0 }));
     const index = new Map(result.map((r, i) => [r.month, i]));
     data?.forEach(tx => {
-      const idx = index.get(tx.actual_date.slice(0, 7));
+      const idx = index.get(tx.budget_month);
       if (idx !== undefined) {
         if (tx.type === 'income') result[idx].income += tx.amount;
         else if (tx.type === 'expense') result[idx].expense += tx.amount;

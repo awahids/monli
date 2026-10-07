@@ -31,7 +31,7 @@ import { ProLock } from '@/components/ui/pro-lock';
 import { Download, Filter } from 'lucide-react';
 import CategoryMovementChart from '@/components/reports/category-movement-chart';
 import { useAppStore } from '@/lib/store';
-import { currentMonth } from '@/lib/date';
+import { currentBudgetMonth, periodRange } from '@/lib/date';
 import { spacePlan } from '@/lib/plans';
 
 interface TrendRow {
@@ -53,12 +53,12 @@ interface SummaryResponse {
 }
 
 export default function ReportsPage() {
-  const now = new Date();
-  const defaultMonth = currentMonth(now);
-  const defaultYear = defaultMonth.slice(0, 4);
-
   // dataVersion: reload after a transaction is added (e.g. the + button).
   const { user, space, dataVersion } = useAppStore();
+  // Months here are budget months: with a pay-day start (e.g. 26) "Oktober" is 26 Sep – 25 Okt.
+  const startDay = user?.budgetStartDay || 1;
+  const defaultMonth = currentBudgetMonth(startDay);
+  const defaultYear = defaultMonth.slice(0, 4);
   const isPro = spacePlan(user, space) === 'PRO';
   const [month, setMonth] = useState(defaultMonth);
   const [year, setYear] = useState(defaultYear);
@@ -209,12 +209,15 @@ export default function ReportsPage() {
         <CollapsibleContent>
           <div className="mt-4 grid gap-4 grid-cols-1">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Bulan</label>
+              <label className="text-sm font-medium">{startDay > 1 ? 'Periode (bulan budget)' : 'Bulan'}</label>
               <Input
                 type="month"
                 value={month}
                 onChange={(e) => setMonth(e.target.value)}
               />
+              {periodRange(month, startDay) && (
+                <p className="text-xs text-muted-foreground">{periodRange(month, startDay)}</p>
+              )}
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">Tahun</label>

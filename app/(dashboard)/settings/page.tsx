@@ -95,7 +95,12 @@ export default function SettingsPage() {
       toast({ description: error || 'Gagal menyimpan profil', variant: 'destructive' });
       return;
     }
-    toast({ description: 'Profil tersimpan' });
+    const { moved } = await res.json().catch(() => ({}));
+    toast({
+      description: moved
+        ? `Profil tersimpan. ${moved} transaksi dipindah ke periode yang sesuai.`
+        : 'Profil tersimpan',
+    });
     profileForm.reset(values);
     // Keep the shared user in sync so amounts re-render in the new currency.
     const current = useAppStore.getState().user;
@@ -107,6 +112,7 @@ export default function SettingsPage() {
         budgetStartDay: values.budgetStartDay,
       });
     }
+    if (moved) useAppStore.getState().bumpData();
   }
 
   async function handleSaveCategory(values: CategoryFormValues) {

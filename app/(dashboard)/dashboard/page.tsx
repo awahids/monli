@@ -32,9 +32,9 @@ import TransactionForm, {
 import {
   budgetPeriod,
   currentBudgetMonth,
-  currentMonth,
   daysBetweenInclusive,
   formatDate,
+  periodRange,
   shiftMonth,
 } from '@/lib/date';
 import { keysToCamel } from '@/lib/case';
@@ -139,12 +139,13 @@ export default function DashboardPage() {
   const [formOpen, setFormOpen] = useState(false);
   const { isOnline, addOfflineChange } = useOffline();
 
-  const thisMonth = currentMonth();
-  const prevMonth = shiftMonth(thisMonth, -1);
-  // The budget card follows the user's budget period, which may start on
-  // payday rather than the 1st; KPIs and charts stay on the calendar month.
+  // Everything here follows the budget period, which may start on payday
+  // (e.g. 26 Sep – 25 Oct is "October"), so KPIs, charts and the budget card agree.
   const budgetStartDay = user?.budgetStartDay || 1;
   const budgetMonth = currentBudgetMonth(budgetStartDay);
+  const thisMonth = budgetMonth;
+  const prevMonth = shiftMonth(thisMonth, -1);
+  const range = periodRange(thisMonth, budgetStartDay);
 
   // Throws on failure so the form keeps the user's input and shows the error.
   const handleSave = async (values: TransactionFormValues) => {
@@ -175,8 +176,7 @@ export default function DashboardPage() {
       try {
         // Record due recurring transactions first so they show up below.
         await runDueRecurring();
-        // Two months back covers this month and the comparison month.
-        const since = `${shiftMonth(thisMonth, -2)}-01`;
+
         const [accountsRes, categoriesRes, transactionsRes, budgetsRes] = await Promise.all([
           supabase.from('accounts').select('*').eq('user_id', (space?.ownerId ?? user.id)).eq('archived', false),
           supabase.from('categories').select('*').eq('user_id', (space?.ownerId ?? user.id)),
@@ -192,7 +192,8 @@ export default function DashboardPage() {
                 category:categories(name, color, icon)
               `)
               .eq('user_id', (space?.ownerId ?? user.id))
-              .gte('actual_date', since)
+              // This period and the one before, for the comparison.
+              .in('budget_month', [prevMonth, thisMonth])
               .order('actual_date', { ascending: false })
               .order('created_at', { ascending: false })
               .order('id')
@@ -218,7 +219,7 @@ export default function DashboardPage() {
     };
 
     fetchData();
-  }, [space?.ownerId, user, isOnline, thisMonth, budgetMonth, dataVersion, setAccounts, setTransactions, setBudgets, setCategories]);
+  }, [space?.ownerId, user, isOnline, thisMonth, prevMonth, budgetMonth, dataVersion, setAccounts, setTransactions, setBudgets, setCategories]);
 
   // Category breakdown and budget actuals come from the server so they match
   // Reports and Budgets exactly.
@@ -299,7 +300,8 @@ export default function DashboardPage() {
             {firstName ? `, ${firstName}` : ''}
           </h1>
           <p className="text-muted-foreground">
-            {space && !space.isOwn ? `Ringkasan keuangan bersama ${space.ownerName} bulan ini.` : 'Ringkasan keuanganmu bulan ini.'}
+            {space && !space.isOwn ? `Ringkasan keuangan bersama ${space.ownerName}` : 'Ringkasan keuanganmu'}{' '}
+            {range ? `periode ${range}.` : 'bulan ini.'}
           </p>
       </div>
 
@@ -368,7 +370,12 @@ export default function DashboardPage() {
         )}
       </div>
 
-      <DashboardCharts transactions={transactions} categorySpends={categorySpends} />
+      <DashboardCharts
+        transactions={transactions}
+        categorySpends={categorySpends}
+        month={thisMonth}
+        startDay={budgetStartDay}
+      />
 
       {isOnline && <GoalsSummary />}
 

@@ -80,3 +80,34 @@ export function daysBetweenInclusive(from: string, to: string): number {
   const ms = Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`);
   return Math.floor(ms / 86_400_000) + 1;
 }
+
+const SHORT_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+const shortDate = (d: string) => `${Number(d.slice(8, 10))} ${SHORT_MONTHS[Number(d.slice(5, 7)) - 1]}`;
+
+/**
+ * "26 Sep – 25 Okt" for a budget month when periods start after the 1st;
+ * null for calendar months, where the month name already says it all.
+ */
+export function periodRange(month: string, startDay = 1): string | null {
+  if (startDay <= 1) return null;
+  const { start, end } = budgetPeriod(month, startDay);
+  return `${shortDate(start)} – ${shortDate(end)}`;
+}
+
+/**
+ * Transactions to move when the period start day changes: those whose budget
+ * month is still the automatic one for the old setting. Ones the user moved
+ * by hand (e.g. an early salary put into next month) stay where they are.
+ */
+export function rebucket(
+  rows: { id: string; actual_date: string; budget_month: string }[],
+  oldStartDay: number,
+  newStartDay: number
+): { id: string; budget_month: string }[] {
+  if (oldStartDay === newStartDay) return [];
+  return rows.flatMap((r) => {
+    if (r.budget_month !== budgetMonthFor(r.actual_date, oldStartDay)) return [];
+    const next = budgetMonthFor(r.actual_date, newStartDay);
+    return next === r.budget_month ? [] : [{ id: r.id, budget_month: next }];
+  });
+}

@@ -34,6 +34,8 @@ import { Budget, BudgetItem, Category } from '@/types';
 import { keysToCamel } from '@/lib/case';
 import { cn } from '@/lib/utils';
 import { spacePlan } from '@/lib/plans';
+import { getBudgetStartDay } from '@/lib/budget-period';
+import { periodRange } from '@/lib/date';
 
 type BudgetDetailDialogProps = {
   budgetId: string | null;
@@ -230,6 +232,11 @@ export function BudgetDetailDialog({
             >
               <DialogTitle className="text-xl font-bold capitalize">
                 Budget {format(new Date(`${budget.month}-01T00:00:00`), 'MMMM yyyy', { locale: localeId })}
+                {periodRange(budget.month, getBudgetStartDay()) && (
+                  <span className="block text-sm font-normal normal-case text-muted-foreground">
+                    Periode {periodRange(budget.month, getBudgetStartDay())}
+                  </span>
+                )}
               </DialogTitle>
             </DialogHeader>
 

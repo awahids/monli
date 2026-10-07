@@ -45,7 +45,7 @@ import TransactionForm, {
 import { TransactionRow } from '@/components/transactions/transaction-row';
 import OcrReviewDialog from '@/components/transactions/ocr-review-dialog';
 import { shrinkImage, type OcrItem } from '@/lib/ocr';
-import { currentMonth, formatDate, nextMonthStart, shiftMonth } from '@/lib/date';
+import { currentBudgetMonth, formatDate, periodRange, shiftMonth } from '@/lib/date';
 import { keysToCamel } from '@/lib/case';
 import {
   deleteTransaction,
@@ -72,18 +72,17 @@ const TYPE_LABELS: Record<string, string> = {
   transfer: 'Transfer',
 };
 
-/** Inclusive YYYY-MM-DD bounds for a preset (actual-date filtering). */
+/** The budget month for "Bulan/Periode ini" and "… lalu"; these follow the pay-day period. */
+function presetPeriod(preset: Preset, startDay: number): string | undefined {
+  const month = currentBudgetMonth(startDay);
+  if (preset === 'this-month') return month;
+  if (preset === 'last-month') return shiftMonth(month, -1);
+  return undefined;
+}
+
+/** Inclusive YYYY-MM-DD bounds for the date-based presets (actual-date filtering). */
 function presetRange(preset: Preset, custom: DateRange): { from?: string; to?: string } {
-  const month = currentMonth();
-  const dayBefore = (d: string) =>
-    formatDate(new Date(new Date(`${d}T00:00:00+07:00`).getTime() - 86400000));
   switch (preset) {
-    case 'this-month':
-      return { from: `${month}-01`, to: dayBefore(nextMonthStart(month)) };
-    case 'last-month': {
-      const prev = shiftMonth(month, -1);
-      return { from: `${prev}-01`, to: dayBefore(`${month}-01`) };
-    }
     case '30d':
       return { from: formatDate(new Date(Date.now() - 29 * 86400000)), to: formatDate(new Date()) };
     case 'custom':
@@ -172,6 +171,9 @@ export default function TransactionsPage() {
   }, [searchParams]);
 
   const range = useMemo(() => presetRange(preset, customRange), [preset, customRange]);
+  const startDay = user?.budgetStartDay || 1;
+  const period = presetPeriod(preset, startDay);
+  const unit = startDay > 1 ? 'Periode' : 'Bulan';
 
   const buildParams = useCallback(
     (pageNumber: number) => {
@@ -182,6 +184,7 @@ export default function TransactionsPage() {
       });
       if (range.from) params.set('from', dateField === 'budget' ? range.from.slice(0, 7) : range.from);
       if (range.to) params.set('to', dateField === 'budget' ? range.to.slice(0, 7) : range.to);
+      if (period) params.set('period', period);
       if (accountFilter !== 'all') params.set('accountId', accountFilter);
       if (categoryFilter !== 'all') params.set('categoryId', categoryFilter);
       if (typeFilter !== 'all') params.set('type', typeFilter);
@@ -189,7 +192,7 @@ export default function TransactionsPage() {
       if (pageNumber === 1) params.set('summary', '1');
       return params;
     },
-    [range, dateField, accountFilter, categoryFilter, typeFilter, debouncedSearch]
+    [range, period, dateField, accountFilter, categoryFilter, typeFilter, debouncedSearch]
   );
 
   /** Loads page 1 (replacing the list) or appends the next page. */
@@ -506,7 +509,7 @@ export default function TransactionsPage() {
               preset === p.value ? 'border-primary bg-primary text-primary-foreground' : 'hover:bg-muted'
             )}
           >
-            {p.label}
+            {p.value === 'this-month' ? `${unit} ini` : p.value === 'last-month' ? `${unit} lalu` : p.label}
           </button>
         ))}
         <Popover>
@@ -548,6 +551,10 @@ export default function TransactionsPage() {
       </div>
 
       {/* Totals for the current view */}
+      {period && periodRange(period, startDay) && (
+        <p className="-mt-2 text-xs text-muted-foreground">Periode {periodRange(period, startDay)}</p>
+      )}
+
       {summary && !loading && total > 0 && (
         <Card className="grid grid-cols-3 divide-x p-0 text-center">
           <div className="p-3">
@@ -583,7 +590,7 @@ export default function TransactionsPage() {
         preset === 'this-month' && activeFilters.length === 0 && !debouncedSearch ? (
           <EmptyState
             icon={ReceiptText}
-            title="Belum ada transaksi bulan ini"
+            title={`Belum ada transaksi ${unit.toLowerCase()} ini`}
             description="Catat pengeluaran atau pemasukan, atau lihat periode sebelumnya."
             action={
               <div className="flex flex-wrap justify-center gap-2">
