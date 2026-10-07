@@ -54,6 +54,21 @@ export function formatIDR(amount: number): string {
  * numbers, so every non-digit (currency symbol, thousand separators) is
  * ignored: "Rp 1.234.567" and "$1,234,567" both become 1234567.
  */
+/**
+ * An amount typed the way people write it: "25000", "Rp 25.000", "25rb",
+ * "1,5 juta", "12k". Null when the text is not an amount.
+ */
+export function parseAmountText(value: string): number | null {
+  const m = value.trim().toLowerCase().match(/^(?:rp\.?\s*)?([\d.,]+)\s*(rb|ribu|k|jt|juta)?$/);
+  if (!m) return null;
+  if (m[2]) {
+    // Shorthand: comma is the decimal mark ("1,5 juta").
+    const n = parseFloat(m[1].replace(/\./g, '').replace(',', '.'));
+    return Number.isFinite(n) ? Math.round(n * (m[2].startsWith('j') ? 1_000_000 : 1_000)) : null;
+  }
+  return parseMoney(m[1]) || null;
+}
+
 export function parseMoney(value: string): number {
   const digits = value.replace(/\D/g, '');
   return digits ? parseInt(digits, 10) : 0;

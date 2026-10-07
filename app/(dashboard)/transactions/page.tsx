@@ -136,13 +136,14 @@ export default function TransactionsPage() {
   const { isOnline, addOfflineChange } = useOffline();
 
   // Filters
-  const [preset, setPreset] = useState<Preset>('this-month');
+  // Opened from the header's search button: search all time.
+  const [preset, setPreset] = useState<Preset>(searchParams.has('search') ? 'all' : 'this-month');
   const [customRange, setCustomRange] = useState<DateRange>({ from: undefined, to: undefined });
   const [accountFilter, setAccountFilter] = useState(searchParams.get('accountId') ?? 'all');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
   const [dateField, setDateField] = useState<'actual' | 'budget'>('actual');
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState(searchParams.get('search') ?? '');
   const debouncedSearch = useDebounce(search, 300);
   const [filtersOpen, setFiltersOpen] = useState(false);
 
@@ -479,10 +480,15 @@ export default function TransactionsPage() {
         <div className="relative flex-1">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Cari catatan atau tag"
+            placeholder="Cari catatan, tag, kategori, nominal"
             className="pl-9"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              // A new search looks through all time; the chips can narrow it again.
+              if (!search && e.target.value) setPreset('all');
+              setSearch(e.target.value);
+            }}
+            autoFocus={searchParams.has('search')}
             aria-label="Cari transaksi"
           />
         </div>

@@ -16,7 +16,7 @@ import {
   DropdownMenuSubContent,
 } from '@/components/ui/dropdown-menu';
 import { OfflineIndicator } from '@/components/ui/offline-indicator';
-import { Moon, Sun, Laptop, User, LogOut } from 'lucide-react';
+import { Moon, Sun, Laptop, User, LogOut, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTheme } from 'next-themes';
 import { useRouter } from 'next/navigation';
@@ -112,6 +112,11 @@ export function Header() {
         <QalaLogo />
         <div className="flex items-center gap-2">
           <OfflineIndicator />
+          <Button variant="ghost" size="icon" asChild>
+            <Link href="/transactions?search=" aria-label="Cari transaksi">
+              <Search className="h-5 w-5" />
+            </Link>
+          </Button>
           <SpaceSwitcher />
           <UserNav />
         </div>

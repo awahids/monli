@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { formatMoney, formatMoneyCompact, parseMoney } from './currency';
+import { formatMoney, formatMoneyCompact, parseAmountText, parseMoney } from './currency';
 import { useAppStore } from './store';
 
 const nbsp = (s: string) => s.replace(/ | /g, ' ');
@@ -26,4 +26,15 @@ test('parseMoney ignores symbols and separators', () => {
   assert.equal(parseMoney('$1,234,567'), 1234567);
   assert.equal(parseMoney(''), 0);
   assert.equal(parseMoney('abc'), 0);
+});
+
+test('parseAmountText reads typed amounts and rejects words', () => {
+  assert.equal(parseAmountText('25000'), 25000);
+  assert.equal(parseAmountText('Rp 25.000'), 25000);
+  assert.equal(parseAmountText('25rb'), 25000);
+  assert.equal(parseAmountText('1,5 juta'), 1500000);
+  assert.equal(parseAmountText('12K'), 12000);
+  assert.equal(parseAmountText('kopi'), null);
+  assert.equal(parseAmountText('kopi 25rb'), null);
+  assert.equal(parseAmountText('0'), null);
 });
