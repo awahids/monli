@@ -22,13 +22,6 @@ test('opens offline with the last data, records offline and syncs back', async (
 
   // A page opened only through the warm-up, never visited in this session.
   await page.goto('/budgets');
-  // TEMP: diagnose the CI-only failure below.
-  await page.waitForTimeout(3000);
-  console.log('OFFLINE_DEBUG', JSON.stringify(await page.evaluate(async () => ({
-    url: location.href,
-    body: document.body.innerText.slice(0, 400),
-    pages: (await (await caches.open('saku-pages-v1')).keys()).map((k) => k.url),
-  }))));
   await expect(page.getByRole('heading', { name: 'Budget', exact: true })).toBeVisible();
 
   // Record while offline: queued locally.
@@ -46,4 +39,17 @@ test('opens offline with the last data, records offline and syncs back', async (
   await expect
     .poll(async () => (await admin.from('transactions').select('note').eq('user_id', user.id).eq('note', 'Parkir offline')).data?.length, { timeout: 30_000 })
     .toBe(1);
+});
+
+test('the warm-up caches the build files of pages not opened yet', async ({ page, user }) => {
+  await signIn(page, user);
+  await page.goto('/transactions');
+  // A page is cached only after its build files, so once /budgets is in, its chunk must be too.
+  await expect
+    .poll(() => page.evaluate(async () => !!(await (await caches.open('saku-pages-v1')).match(location.origin + '/budgets'))), { timeout: 30_000 })
+    .toBe(true);
+  const chunks = await page.evaluate(async () =>
+    (await (await caches.open('saku-static-v1')).keys()).map((k) => decodeURIComponent(k.url))
+  );
+  expect(chunks.some((u) => u.includes('/app/(dashboard)/budgets/page-'))).toBe(true);
 });
