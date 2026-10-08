@@ -12,27 +12,28 @@ import { Button } from "@/components/ui/button";
 gsap.registerPlugin(ScrollTrigger);
 
 /**
- * Scroll-scrubbed promo video. The 10 s clip is shipped as 120 WebP frames
- * (12 fps) and painted onto a canvas, because seeking a <video> element on
+ * Scroll-scrubbed promo video. The 8 s 3D clip is shipped as 120 WebP frames
+ * (15 fps) and painted onto a canvas, because seeking a <video> element on
  * every scroll tick stutters badly on iOS Safari.
  */
 const FRAME_COUNT = 120;
 const BASE = "/landing/promo";
-const SRC_W = 1920;
-const SRC_H = 1080;
+const SRC_W = 1280;
+const SRC_H = 720;
 /** Share of the scroll distance that plays the clip; the rest holds the end card. */
 const PLAY_SHARE = 0.9;
-/** The "Mulai Sekarang" button painted in the last frame, in source pixels. */
-const CTA_BOX = { x: 657, y: 775, w: 603, h: 138 };
-/** First frame of the closing brand card. */
-const END_CARD = 108;
+/** The "Mulai Gratis" button painted in the last frames, in source pixels. */
+const CTA_BOX = { x: 490, y: 608, w: 298, h: 67 };
+/** First frame of the closing "Wujudkan targetmu" card. */
+const END_CARD = 101;
 
+/** One per chapter of the clip; the closing card (END_CARD on) has its own button. */
 const CAPTIONS = [
-  { from: 0, to: 19, title: "Uang masuk, langsung terlihat.", body: "Gaji dan pemasukan lain tercatat ke akun yang tepat." },
-  { from: 20, to: 34, title: "Semua akun di satu tempat.", body: "Rekening bank, e-wallet, dan tunai terkumpul dalam satu saldo." },
-  { from: 35, to: 58, title: "Setiap transaksi tercatat.", body: "Catat dalam hitungan detik, saldo akun ikut menyesuaikan." },
-  { from: 59, to: 69, title: "Rapi per kategori.", body: "Makan, transport, belanja: lihat ke mana uangmu pergi." },
-  { from: 70, to: 88, title: "Laporan yang mudah dipahami.", body: "Ringkasan bulanan dan tren pengeluaran dalam sekali lihat." },
+  { from: 0, to: 18, title: "Atur. Catat. Pahami.", body: "Satu aplikasi untuk semua urusan uang harianmu." },
+  { from: 19, to: 40, title: "Catat dalam hitungan detik.", body: "Ketik, ucapkan, atau scan struk, transaksi langsung tercatat." },
+  { from: 41, to: 59, title: "Semua akun, satu saldo.", body: "Rekening bank, e-wallet, dan tunai terkumpul di satu tempat." },
+  { from: 60, to: 78, title: "Budget yang terjaga.", body: "Lihat sisa jatah harianmu, dan bawa sisanya ke bulan depan." },
+  { from: 79, to: 100, title: "Patungan tanpa ribet.", body: "Bagi tagihan ke teman, bagian mereka langsung tercatat sebagai piutang." },
 ];
 
 const frameSrc = (set: string, i: number) => `${BASE}/${set}/${String(i + 1).padStart(3, "0")}.webp`;
@@ -192,19 +193,16 @@ export function ScrollVideo() {
         aria-labelledby="promo-title"
         className="relative h-[320vh] scroll-mt-16 motion-reduce:hidden md:h-[400vh]"
       >
-        <div className="sticky top-16 flex h-[calc(100svh-4rem)] flex-col justify-center overflow-hidden">
-          <div className="mb-6 px-4 text-center md:sr-only">
-            <p className="font-editorial text-[11px] font-medium uppercase tracking-[0.25em] text-muted-foreground">
-              <span className="text-primary">01</span> — Cerita
-            </p>
-            <h2 id="promo-title" className="mt-2 font-editorial text-3xl font-normal tracking-tight">
-              Atur. Catat. Pahami.
-            </h2>
-          </div>
+        {/* Full-bleed cream like the clip, so the frames blend into the page on phones too. */}
+        <div className="sticky top-16 flex h-[calc(100svh-4rem)] flex-col justify-center overflow-hidden bg-[#EEEAD7]">
+          {/* The clip paints this headline itself. */}
+          <h2 id="promo-title" className="sr-only">
+            Atur. Catat. Pahami.
+          </h2>
 
           <div
             ref={stageRef}
-            className="relative mx-4 aspect-video overflow-hidden rounded-2xl bg-[#e4f2ec] shadow-xl md:absolute md:inset-0 md:mx-0 md:aspect-auto md:rounded-none md:shadow-none"
+            className="relative aspect-video overflow-hidden bg-[#EEEAD7] md:absolute md:inset-0 md:aspect-auto"
           >
             <Image
               src={`${BASE}/sm/001.webp`}
@@ -217,7 +215,7 @@ export function ScrollVideo() {
             <canvas
               ref={canvasRef}
               role="img"
-              aria-label="Animasi Qala Saku: uang masuk tercatat, saldo semua akun, transaksi per kategori, dan laporan bulanan."
+              aria-label="Animasi Qala Saku: koin emas mengalir dari catat transaksi dan scan struk, ke semua akun, budget, patungan, sampai target tercapai."
               className="absolute inset-0 h-full w-full"
             />
             {ctaBox && (
@@ -244,16 +242,19 @@ export function ScrollVideo() {
                 key={c.title}
                 aria-hidden={caption !== i}
                 className={cn(
-                  "absolute inset-x-0 top-0 text-center transition-all duration-500 md:bottom-0 md:top-auto md:rounded-2xl md:bg-black/60 md:p-6 md:text-left md:shadow-2xl md:backdrop-blur-md",
+                  "absolute inset-x-0 top-0 text-center transition-all duration-500 md:bottom-0 md:top-auto md:rounded-2xl md:bg-white/85 md:p-6 md:text-left md:shadow-xl md:ring-1 md:ring-black/5 md:backdrop-blur-md",
                   caption === i ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-3 opacity-0"
                 )}
               >
-                <p className="text-xl font-bold tracking-tight text-foreground md:text-2xl md:text-white">
+                <p className="font-editorial text-[11px] font-medium uppercase tracking-[0.25em] text-[#0D4142]">
+                  {String(i + 1).padStart(2, "0")} / {String(CAPTIONS.length).padStart(2, "0")}
+                </p>
+                <p className="mt-1 text-xl font-bold tracking-tight text-[#0D4142] md:text-2xl">
                   {c.title}
                 </p>
-                <p className="mt-2 text-muted-foreground md:text-white/90">{c.body}</p>
+                <p className="mt-2 text-[#0D4142]/80">{c.body}</p>
                 {i === 0 && (
-                  <p className="mt-3 text-xs font-medium uppercase tracking-wider text-muted-foreground md:text-white/70">
+                  <p className="mt-3 text-xs font-medium uppercase tracking-wider text-[#0D4142]/60">
                     Gulir untuk memutar
                   </p>
                 )}
@@ -287,7 +288,7 @@ export function ScrollVideo() {
             playsInline
             preload="none"
             poster={`${BASE}/poster.webp`}
-            className="aspect-video w-full rounded-2xl bg-[#e4f2ec] shadow-xl"
+            className="aspect-video w-full rounded-2xl bg-[#EEEAD7] shadow-xl"
           >
             <source src={`${BASE}/qala-saku-promo.mp4`} type="video/mp4" />
           </video>
