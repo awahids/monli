@@ -7,6 +7,7 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -23,6 +24,8 @@ const SRC_H = 720;
 /** The "Mulai Gratis" button painted in the last frames, in source pixels. */
 const CTA_BOX = { x: 490, y: 608, w: 298, h: 67 };
 const HEADER = 64;
+/** First frame of the teal closing card; the frames before it sit on cream. */
+const END_CARD = 101;
 
 type Item = { title: string; text: string; pro?: boolean };
 type Chapter = {
@@ -144,7 +147,6 @@ export function ScrollVideo() {
     if (!section || !stage || !canvas || !ctx) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
-    const set = window.matchMedia("(min-width: 768px)").matches ? "lg" : "sm";
     const frames: (HTMLImageElement | null)[] = new Array(FRAME_COUNT).fill(
       null,
     );
@@ -154,17 +156,28 @@ export function ScrollVideo() {
     let started = false;
     let disposed = false;
 
-    /** Cover-fit of the source frame inside the stage, in CSS pixels. */
+    /**
+     * Where the frame goes in the stage, in CSS pixels. Portrait screens show the
+     * whole frame in the upper part, above the cards; landscape ones fill the
+     * screen but crop at most ~10% so the titles and the end button stay in view.
+     * The rest is painted in the frame's background colour.
+     */
     const fit = () => {
       const cw = stage.clientWidth;
       const ch = stage.clientHeight;
-      const scale = Math.max(cw / SRC_W, ch / SRC_H);
-      return {
-        scale,
-        dx: (cw - SRC_W * scale) / 2,
-        dy: (ch - SRC_H * scale) / 2,
-      };
+      const contain = Math.min(cw / SRC_W, ch / SRC_H);
+      const portrait = ch > cw;
+      const scale = portrait
+        ? contain
+        : Math.min(Math.max(cw / SRC_W, ch / SRC_H), contain * 1.1);
+      const w = SRC_W * scale;
+      const h = SRC_H * scale;
+      const dy = portrait ? Math.max(0, (ch * 0.45 - h) / 2) : (ch - h) / 2;
+      return { cw, ch, scale, w, h, dx: (cw - w) / 2, dy };
     };
+    // Frames are drawn at about their own size: the 768px set is sharp enough for phones.
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const set = fit().w * dpr > 900 ? "lg" : "sm";
 
     const nearestLoaded = (i: number) => {
       for (let d = 0; d < FRAME_COUNT; d++) {
@@ -177,15 +190,33 @@ export function ScrollVideo() {
     const draw = (force = false) => {
       const idx = nearestLoaded(Math.round(state.frame));
       if (idx < 0 || (idx === drawn && !force)) return;
-      const { scale, dx, dy } = fit();
-      const dpr = canvas.width / Math.max(stage.clientWidth, 1);
-      ctx.drawImage(
-        frames[idx]!,
-        dx * dpr,
-        dy * dpr,
-        SRC_W * scale * dpr,
-        SRC_H * scale * dpr,
-      );
+      const { cw, ch, w, h, dx, dy } = fit();
+      const bg = idx >= END_CARD ? "#0D4142" : "#EEEAD7";
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, cw, ch);
+      ctx.drawImage(frames[idx]!, dx, dy, w, h);
+      // Soften the frame's edges into the background where it does not reach the stage edge.
+      const b = Math.min(w, h) * 0.08;
+      const fade = (
+        x: number,
+        y: number,
+        rw: number,
+        rh: number,
+        x1: number,
+        y1: number,
+      ) => {
+        const g = ctx.createLinearGradient(x, y, x1, y1);
+        g.addColorStop(0, bg);
+        g.addColorStop(1, `${bg}00`);
+        ctx.fillStyle = g;
+        ctx.fillRect(Math.min(x, x1), Math.min(y, y1), rw, rh);
+      };
+      if (dx > 0) {
+        fade(dx, dy, b, h, dx + b, dy);
+        fade(dx + w, dy, b, h, dx + w - b, dy);
+      }
+      if (dy > 0) fade(dx, dy, w, b, dx, dy + b);
+      if (dy + h < ch) fade(dx, dy + h, w, b, dx, dy + h - b);
       drawn = idx;
     };
 
@@ -197,9 +228,9 @@ export function ScrollVideo() {
     };
 
     const resize = () => {
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
       canvas.width = Math.round(stage.clientWidth * dpr);
       canvas.height = Math.round(stage.clientHeight * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       const { scale, dx, dy } = fit();
       setCtaBox({
         left: dx + CTA_BOX.x * scale,
@@ -353,58 +384,67 @@ export function ScrollVideo() {
             key={c.label}
             className="story-chapter flex min-h-[calc(100svh-4rem)] items-end px-4 pb-10 pt-24 md:items-center md:justify-end md:px-12 md:py-16"
           >
-            {i === CHAPTERS.length - 1 ? (
-              // The clip's own end card shows this title and a "Mulai Gratis" button, made clickable above.
-              <div className="sr-only">
+            {i === CHAPTERS.length - 1 && (
+              // From md up the clip's own end card shows this, and its painted button is made clickable above.
+              <div className="hidden md:sr-only md:block">
                 <h3>{c.title}</h3>
                 <p>{c.body}</p>
               </div>
-            ) : (
-              <div className="pointer-events-auto w-full max-w-md space-y-3">
-                <div className="story-rise rounded-3xl bg-white/95 p-6 shadow-xl ring-1 ring-black/5 backdrop-blur-md md:bg-white/85 md:p-8">
-                  <p className="font-editorial text-[11px] font-medium uppercase tracking-[0.25em] text-[#0D4142]/70">
-                    {String(i + 1).padStart(2, "0")} /{" "}
-                    {String(CHAPTERS.length).padStart(2, "0")} · {c.label}
+            )}
+            <div
+              className={cn(
+                "pointer-events-auto w-full max-w-md space-y-3",
+                i === CHAPTERS.length - 1 && "md:hidden",
+              )}
+            >
+              <div className="story-rise rounded-3xl bg-white/95 p-6 shadow-xl ring-1 ring-black/5 backdrop-blur-md md:bg-white/85 md:p-8 [@media(max-height:700px)]:p-5">
+                <p className="font-editorial text-[11px] font-medium uppercase tracking-[0.25em] text-[#0D4142]/70">
+                  {String(i + 1).padStart(2, "0")} /{" "}
+                  {String(CHAPTERS.length).padStart(2, "0")} · {c.label}
+                </p>
+                <h3 className="mt-2 font-editorial text-3xl font-medium leading-tight tracking-tight md:text-4xl [@media(max-height:700px)]:text-2xl">
+                  {c.title}
+                </h3>
+                <p className="mt-3 text-[#0D4142]/80">{c.body}</p>
+                {i === 0 && (
+                  <p className="mt-4 text-xs font-medium uppercase tracking-wider text-[#0D4142]/60">
+                    Gulir untuk menjelajah
                   </p>
-                  <h3 className="mt-2 font-editorial text-3xl font-medium leading-tight tracking-tight md:text-4xl">
-                    {c.title}
-                  </h3>
-                  <p className="mt-3 text-[#0D4142]/80">{c.body}</p>
-                  {i === 0 && (
-                    <p className="mt-4 text-xs font-medium uppercase tracking-wider text-[#0D4142]/60">
-                      Gulir untuk menjelajah
-                    </p>
-                  )}
-                </div>
-                {c.items.length > 0 && (
-                  <ul
-                    className={cn(
-                      "grid gap-3",
-                      c.items.length > 1 && "sm:grid-cols-2",
-                    )}
-                  >
-                    {c.items.map((it) => (
-                      <li
-                        key={it.title}
-                        className="story-rise rounded-2xl bg-white/90 p-4 md:bg-white/75 shadow-lg ring-1 ring-black/5 backdrop-blur-md"
-                      >
-                        <p className="flex items-center gap-2 font-semibold">
-                          {it.title}
-                          {it.pro && (
-                            <span className="rounded-full bg-[#0D4142] px-2 py-0.5 font-editorial text-[10px] font-medium uppercase tracking-[0.15em] text-[#F2C14E]">
-                              PRO
-                            </span>
-                          )}
-                        </p>
-                        <p className="mt-1 text-sm text-[#0D4142]/75">
-                          {it.text}
-                        </p>
-                      </li>
-                    ))}
-                  </ul>
+                )}
+                {i === CHAPTERS.length - 1 && (
+                  <Button asChild size="lg" className="mt-5 rounded-full px-7">
+                    <Link href="/auth/sign-up">Mulai gratis</Link>
+                  </Button>
                 )}
               </div>
-            )}
+              {c.items.length > 0 && (
+                <ul
+                  className={cn(
+                    "grid gap-3",
+                    c.items.length > 1 && "sm:grid-cols-2",
+                  )}
+                >
+                  {c.items.map((it) => (
+                    <li
+                      key={it.title}
+                      className="story-rise rounded-2xl bg-white/90 p-4 md:bg-white/75 shadow-lg ring-1 ring-black/5 backdrop-blur-md"
+                    >
+                      <p className="flex items-center gap-2 font-semibold">
+                        {it.title}
+                        {it.pro && (
+                          <span className="rounded-full bg-[#0D4142] px-2 py-0.5 font-editorial text-[10px] font-medium uppercase tracking-[0.15em] text-[#F2C14E]">
+                            PRO
+                          </span>
+                        )}
+                      </p>
+                      <p className="mt-1 text-sm text-[#0D4142]/75 [@media(max-height:700px)]:hidden">
+                        {it.text}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           </article>
         ))}
       </div>
