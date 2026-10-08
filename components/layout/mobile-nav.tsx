@@ -42,6 +42,7 @@ import {
 import { READ_ONLY_MESSAGE } from "@/lib/space";
 import { useOffline } from "@/hooks/use-offline";
 import { useT } from '@/lib/i18n';
+import { trialDaysLeft } from '@/lib/plans';
 
 const tabs = [
   { href: "/dashboard", icon: Home, label: "Beranda", en: "Home" },
@@ -88,6 +89,7 @@ export function MobileNav() {
   const [formOpen, setFormOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const { user, space, accounts, categories, transactions, setTransactions } = useAppStore();
+  const trialLeft = trialDaysLeft(user?.proUntil);
   const { isOnline, addOfflineChange } = useOffline();
   const changelogUnseen = useChangelogUnseen();
   const { t } = useT();
@@ -203,12 +205,23 @@ export function MobileNav() {
             </li>
           </ul>
           <InstallCard className="mt-4" />
+          {(user?.plan !== 'PRO' || trialLeft !== null) && (
+            <div className="mt-4 flex items-center gap-3 rounded-xl bg-muted/60 p-4">
           {user?.plan !== 'PRO' && (
             <div className="web-only mt-4 flex items-center gap-3 rounded-xl bg-muted/60 p-4">
               <Sparkles className="h-5 w-5 shrink-0 text-brand-gold" />
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium">{t("Coba Qala Saku PRO", "Try Qala Saku PRO")}</p>
-                <p className="text-xs text-muted-foreground">{t("Scan struk, asisten AI, laporan lengkap.", "Receipt scan, AI assistant, full reports.")}</p>
+                {trialLeft !== null ? (
+                  <>
+                    <p className="text-sm font-medium">{t(`PRO gratis: sisa ${trialLeft} hari`, `Free PRO: ${trialLeft} days left`)}</p>
+                    <p className="text-xs text-muted-foreground">{t("Upgrade sebelum berakhir agar fitur PRO tetap aktif.", "Upgrade before it ends to keep PRO features.")}</p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-sm font-medium">{t("Coba Qala Saku PRO", "Try Qala Saku PRO")}</p>
+                    <p className="text-xs text-muted-foreground">{t("Scan struk, asisten AI, laporan lengkap.", "Receipt scan, AI assistant, full reports.")}</p>
+                  </>
+                )}
               </div>
               <Button asChild size="sm">
                 <Link href="/upgrade" onClick={() => setMoreOpen(false)}>{t("Lihat", "See")}</Link>

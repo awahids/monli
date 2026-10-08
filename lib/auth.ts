@@ -134,6 +134,7 @@ export async function getCurrentUser(): Promise<User | null> {
     defaultCurrency: profile.default_currency,
     onboardingCompleted: profile.onboarding_completed,
     plan: profile.plan,
+    proUntil: profile.pro_until,
     budgetStartDay: profile.budget_start_day ?? 1,
   };
 

@@ -5,6 +5,18 @@ import { SPACE_MEMBER_LIMIT } from '@/lib/space';
 export const PRO_PRICE = 9000;
 export const PRO_ORIGINAL_PRICE = 49000;
 
+/** New accounts get PRO free for this long (also in the pro_trial migration). */
+export const TRIAL_DAYS = 14;
+
+/** When a trial starting at `from` ends. */
+export const trialEnd = (from = new Date()) => new Date(from.getTime() + TRIAL_DAYS * 86_400_000);
+
+/** Whole days left of a PRO trial (rounded up), or null when not on a trial. */
+export function trialDaysLeft(proUntil: string | null | undefined, now = new Date()): number | null {
+  if (!proUntil) return null;
+  return Math.max(0, Math.ceil((new Date(proUntil).getTime() - now.getTime()) / 86_400_000));
+}
+
 /** FREE-plan caps enforced by the API routes of each feature. */
 export const FREE_LIMITS = { accounts: 1, budgets: 2, recurring: 3, goals: 1 } as const;
 

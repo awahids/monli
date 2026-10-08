@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { trialEnd } from "@/lib/plans";
 
 const signUpSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -64,6 +65,9 @@ export async function POST(req: Request) {
       email: body.email,
       name: body.name,
       default_currency: "IDR",
+      // Every new account starts with a free PRO trial.
+      plan: "PRO",
+      pro_until: trialEnd().toISOString(),
     });
 
     if (!profile) {

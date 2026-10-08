@@ -18,6 +18,7 @@ export const CHANGELOG: ChangelogEntry[] = [
     date: '2026-10-08',
     title: 'Beranda ala aplikasi',
     items: [
+      { type: 'baru', text: 'Akun baru langsung dapat PRO gratis 14 hari: scan struk, asisten AI, laporan lengkap, dan akun maupun budget tanpa batas.' },
       { type: 'perbaikan', text: 'Aplikasi yang dipasang di layar utama tidak lagi terbuka putih kosong: logo Qala Saku beranimasi tampil sampai Beranda siap.' },
       { type: 'peningkatan', text: 'Beranda baru: kartu saldo dengan sisa jatah hari ini, tombol cepat (Catat, Scan struk, Patungan, Hutang, Target), dan akun yang bisa digeser. Grafik pindah ke Laporan.' },
       { type: 'baru', text: 'Sembunyikan saldo dengan ikon mata di Beranda; pilihan diingat di perangkat ini.' },

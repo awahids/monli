@@ -9,6 +9,8 @@ export interface Database {
           name: string;
           default_currency: string;
           plan: 'FREE' | 'PRO';
+          /** End of a PRO trial; null when PRO has no end or the plan is FREE. */
+          pro_until: string | null;
           ai_unlimited: boolean;
           live_price_used_at: string | null;
           onboarding_completed: boolean;
@@ -22,6 +24,7 @@ export interface Database {
           name: string;
           default_currency?: string;
           plan?: 'FREE' | 'PRO';
+          pro_until?: string | null;
           ai_unlimited?: boolean;
           live_price_used_at?: string | null;
           onboarding_completed?: boolean;
@@ -35,6 +38,7 @@ export interface Database {
           name?: string;
           default_currency?: string;
           plan?: 'FREE' | 'PRO';
+          pro_until?: string | null;
           ai_unlimited?: boolean;
           live_price_used_at?: string | null;
           onboarding_completed?: boolean;
