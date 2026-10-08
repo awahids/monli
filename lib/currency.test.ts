@@ -10,7 +10,7 @@ test('formatMoney follows the user default currency', () => {
   assert.equal(nbsp(formatMoney(1234567)), 'Rp 1.234.567');
   useAppStore.getState().setUser({
     id: 'u', email: 'a@b.c', name: 'A', defaultCurrency: 'USD',
-    onboardingCompleted: true, plan: 'FREE', budgetStartDay: 1,
+    onboardingCompleted: true, plan: 'FREE', proUntil: null, budgetStartDay: 1,
   });
   assert.equal(formatMoney(1234567), '$1,234,567');
   assert.equal(nbsp(formatMoney(5000, 'IDR')), 'Rp 5.000');

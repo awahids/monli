@@ -31,8 +31,13 @@ test('sign up creates the user and profile', async ({ page, admin }) => {
   await page.getByRole('button', { name: 'Buat akun' }).click();
   await expect(page).toHaveURL(/\/auth\/sign-in/);
 
-  const { data: profile } = await admin.from('profiles').select('id, name').eq('email', email).single();
+  const { data: profile } = await admin.from('profiles').select('id, name, plan, pro_until').eq('email', email).single();
   expect(profile?.name).toBe('Pengguna Baru');
+  // New accounts start with 14 days of PRO.
+  expect(profile?.plan).toBe('PRO');
+  const days = (new Date(profile!.pro_until!).getTime() - Date.now()) / 86_400_000;
+  expect(days).toBeGreaterThan(13.9);
+  expect(days).toBeLessThanOrEqual(14);
   await admin.auth.admin.deleteUser(profile!.id);
 });
 

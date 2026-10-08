@@ -94,7 +94,7 @@ export async function syncPaymentStatus(orderId: string) {
   if (status === 'success') {
     const { error: profileError } = await admin
       .from('profiles')
-      .update({ plan: 'PRO' })
+      .update({ plan: 'PRO', pro_until: null })
       .eq('id', payment.user_id);
     if (profileError) throw profileError;
   }

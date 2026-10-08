@@ -11,7 +11,7 @@ export async function GET() {
     const user = await getUser();
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, email, name, default_currency, onboarding_completed, plan, budget_start_day')
+        .select('id, email, name, default_currency, onboarding_completed, plan, pro_until, budget_start_day')
         .eq('id', user.id)
         .single();
     if (error) {
@@ -24,6 +24,7 @@ export async function GET() {
         defaultCurrency: data.default_currency,
         onboardingCompleted: data.onboarding_completed,
         plan: data.plan,
+        proUntil: data.pro_until,
         budgetStartDay: data.budget_start_day ?? 1,
       });
   } catch (e) {
@@ -54,7 +55,7 @@ export async function PATCH(req: Request) {
           budget_start_day: body.budgetStartDay,
         })
         .eq('id', user.id)
-        .select('id, email, name, default_currency, onboarding_completed, plan, budget_start_day')
+        .select('id, email, name, default_currency, onboarding_completed, plan, pro_until, budget_start_day')
         .single();
     if (error || !data) {
       return NextResponse.json({ error: error?.message || 'Not found' }, { status: 404 });
@@ -67,6 +68,7 @@ export async function PATCH(req: Request) {
         defaultCurrency: data.default_currency,
         onboardingCompleted: data.onboarding_completed,
         plan: data.plan,
+        proUntil: data.pro_until,
         budgetStartDay: data.budget_start_day ?? 1,
       });
   } catch (e) {

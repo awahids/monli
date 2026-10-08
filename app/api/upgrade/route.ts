@@ -23,11 +23,12 @@ export async function POST() {
     const supabase = createClient();
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('plan')
+      .select('plan, pro_until')
       .eq('id', user.id)
       .single();
     if (profileError) throw profileError;
-    if (profile.plan === 'PRO') {
+    // Trial users can buy PRO to keep it; only paid PRO has nothing to buy.
+    if (profile.plan === 'PRO' && !profile.pro_until) {
       return NextResponse.json(
         { error: 'Already upgraded' },
         { status: 400 },

@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Check, Minus, Sparkles } from 'lucide-react';
-import { PLAN_FEATURES, PRO_ORIGINAL_PRICE, PRO_PRICE } from '@/lib/plans';
+import { format } from 'date-fns';
+import { PLAN_FEATURES, PRO_ORIGINAL_PRICE, PRO_PRICE, trialDaysLeft } from '@/lib/plans';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,7 +19,7 @@ export default function UpgradePage() {
   const { toast } = useToast();
   const router = useRouter();
   const { user, setUser } = useAppStore();
-  const { t } = useT();
+  const { t, dateLocale } = useT();
   const clientKey = process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY || '';
   const [checkingOut, setCheckingOut] = useState(false);
 
@@ -108,7 +109,8 @@ export default function UpgradePage() {
       <span className="text-xs">{t(...value)}</span>
     );
 
-  if (user.plan === 'PRO') {
+  // Trial users still get the offer: buying keeps PRO after the trial.
+  if (user.plan === 'PRO' && !user.proUntil) {
     return (
       <div className="mx-auto max-w-lg">
         <Card>
@@ -151,6 +153,14 @@ export default function UpgradePage() {
             'Receipt scan, AI assistant, full reports, and unlimited accounts and budgets.'
           )}
         </p>
+        {user.proUntil && (
+          <p className="mt-3 inline-block rounded-full bg-accent px-3 py-1 text-sm font-medium text-accent-foreground">
+            {t(
+              `Masa coba PRO: sisa ${trialDaysLeft(user.proUntil)} hari, sampai ${format(new Date(user.proUntil), 'd MMM', { locale: dateLocale })}`,
+              `PRO trial: ${trialDaysLeft(user.proUntil)} days left, until ${format(new Date(user.proUntil), 'd MMM', { locale: dateLocale })}`
+            )}
+          </p>
+        )}
       </div>
 
       <Card className="overflow-hidden">
