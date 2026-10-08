@@ -53,3 +53,25 @@ test('the warm-up caches the build files of pages not opened yet', async ({ page
   );
   expect(chunks.some((u) => u.includes('/app/(dashboard)/budgets/page-'))).toBe(true);
 });
+
+test('the installed app opens through the logo splash, online and offline', async ({ page, context, user }) => {
+  const manifest = await (await page.request.get('/manifest.json')).json();
+  expect(manifest.start_url).toBe('/launch.html');
+
+  await signIn(page, user);
+  await page.goto(manifest.start_url);
+  await expect(page).toHaveURL(/\/dashboard$/);
+  await expect(page.getByText('Saldo total')).toBeVisible();
+
+  // The service worker keeps the splash, so it still opens without a connection.
+  await expect
+    .poll(() => page.evaluate(async () => !!(await caches.match('/launch.html'))), { timeout: 30_000 })
+    .toBe(true);
+  await expect
+    .poll(() => page.evaluate(async () => !!(await (await caches.open('saku-pages-v1')).match(location.origin + '/dashboard'))), { timeout: 30_000 })
+    .toBe(true);
+  await context.setOffline(true);
+  await page.goto('/launch.html');
+  await expect(page).toHaveURL(/\/dashboard$/);
+  await expect(page.getByText('Saldo total')).toBeVisible();
+});

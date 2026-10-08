@@ -6,10 +6,15 @@ const STATIC = 'saku-static-v1'; // hashed build files, fonts, images
 const PAGES = 'saku-pages-v1'; // HTML of pages, for offline navigation
 const DATA = 'saku-data-v1'; // last API/Supabase reads; cleared on sign-out
 const KEEP = [STATIC, PAGES, DATA];
+/** The installed app's start page: a logo splash that then opens Beranda. */
+const LAUNCH = '/launch.html';
 // ponytail: plain entry cap per cache; switch to LRU if storage ever matters.
 const MAX_STATIC = 300;
 
-self.addEventListener('install', () => self.skipWaiting());
+self.addEventListener('install', (event) => {
+  self.skipWaiting();
+  event.waitUntil(caches.open(PAGES).then((cache) => cache.add(LAUNCH)).catch(() => undefined));
+});
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     (async () => {
@@ -28,7 +33,9 @@ self.addEventListener('fetch', (event) => {
   if (request.method !== 'GET') return;
   const url = new URL(request.url);
 
-  if (request.mode === 'navigate') {
+  if (request.mode === 'navigate' && url.pathname === LAUNCH) {
+    event.respondWith(launch(event));
+  } else if (request.mode === 'navigate') {
     event.respondWith(page(request));
   } else if (url.origin === location.origin && url.pathname.startsWith('/_next/static/')) {
     event.respondWith(cacheFirst(request, STATIC));
@@ -59,6 +66,17 @@ async function page(request) {
     const cached = await caches.match(stripSearch(request.url), { cacheName: PAGES });
     return cached || offlinePage();
   }
+}
+
+/** The splash paints from the cache at once; a fresh copy is saved for next time. */
+async function launch(event) {
+  const cache = await caches.open(PAGES);
+  const fresh = fetch(event.request).then(async (response) => {
+    if (response.ok) await cache.put(LAUNCH, response.clone());
+    return response;
+  });
+  event.waitUntil(fresh.catch(() => undefined));
+  return (await cache.match(LAUNCH)) || fresh.catch(offlinePage);
 }
 
 async function networkFirst(request, cacheName) {
