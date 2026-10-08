@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { isAppUA } from "@/lib/native";
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({
@@ -94,9 +95,19 @@ export async function middleware(request: NextRequest) {
     request.nextUrl.pathname.startsWith(p),
   );
 
+  const inApp = isAppUA(request.headers.get("user-agent"));
+
   // The installed app opens on "/": signed-in users go straight to Beranda.
+  // The iOS/Android app has no marketing site, so it starts at sign-in.
   if (request.nextUrl.pathname === "/") {
-    return user ? NextResponse.redirect(new URL("/dashboard", request.url)) : response;
+    if (user) return NextResponse.redirect(new URL("/dashboard", request.url));
+    return inApp ? NextResponse.redirect(new URL("/auth/sign-in", request.url)) : response;
+  }
+
+  // App Store and Play rules: no web payments inside the app. PRO is bought on
+  // the website and shows up in the app through the same account.
+  if (inApp && /^\/(upgrade|payments)(\/|$)/.test(request.nextUrl.pathname)) {
+    return NextResponse.redirect(new URL("/settings", request.url));
   }
 
   if (isProtectedPath) {

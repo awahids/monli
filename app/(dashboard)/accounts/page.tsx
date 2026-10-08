@@ -211,10 +211,12 @@ export default function AccountsPage() {
           {disableAdd && (
             <p className="rounded-lg border border-dashed p-3 text-sm text-muted-foreground">
               {t('Paket FREE dibatasi 1 akun.', 'The FREE plan is limited to 1 account.')}{' '}
-              <Link href="/upgrade" className="font-medium text-primary underline-offset-4 hover:underline">
-                {t('Upgrade ke PRO', 'Upgrade to PRO')}
-              </Link>{' '}
-              {t('untuk menambah akun tanpa batas.', 'for unlimited accounts.')}
+              <span className="web-only">
+                <Link href="/upgrade" className="font-medium text-primary underline-offset-4 hover:underline">
+                  {t('Upgrade ke PRO', 'Upgrade to PRO')}
+                </Link>{' '}
+                {t('untuk menambah akun tanpa batas.', 'for unlimited accounts.')}
+              </span>
             </p>
           )}
 

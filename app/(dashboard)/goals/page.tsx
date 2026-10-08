@@ -121,10 +121,12 @@ export default function GoalsPage() {
       {limitReached && (
         <p className="rounded-lg border border-dashed p-3 text-sm text-muted-foreground">
           {t(`Paket FREE dibatasi ${FREE_LIMITS.goals} target aktif.`, `The FREE plan is limited to ${FREE_LIMITS.goals} active goal.`)}{' '}
-          <Link href="/upgrade" className="font-medium text-primary underline-offset-4 hover:underline">
-            {t('Upgrade ke PRO', 'Upgrade to PRO')}
-          </Link>{' '}
-          {t('untuk target tanpa batas, atau arsipkan target yang sudah selesai.', 'for unlimited goals, or archive finished ones.')}
+          <span className="web-only">
+            <Link href="/upgrade" className="font-medium text-primary underline-offset-4 hover:underline">
+              {t('Upgrade ke PRO', 'Upgrade to PRO')}
+            </Link>{' '}
+            {t('untuk target tanpa batas, atau arsipkan target yang sudah selesai.', 'for unlimited goals, or archive finished ones.')}
+          </span>
         </p>
       )}
 

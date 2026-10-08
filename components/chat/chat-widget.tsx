@@ -12,6 +12,7 @@ import OcrReviewDialog from '@/components/transactions/ocr-review-dialog';
 import type { TransactionFormValues } from '@/components/transactions/transaction-form';
 import { ensureFormOptions, saveTransaction, toTransactionPayload } from '@/lib/transactions-client';
 import { useT } from '@/lib/i18n';
+import { isNativeApp } from '@/lib/native';
 
 // Web Speech API (Chrome/Android, Safari/iOS); not in TypeScript's DOM types yet.
 type Recognition = {
@@ -24,11 +25,41 @@ type Recognition = {
   stop: () => void;
 };
 function speechRecognition(): (new () => Recognition) | undefined {
+  if (isNativeApp()) return NativeRecognition;
   const w = window as unknown as {
     SpeechRecognition?: new () => Recognition;
     webkitSpeechRecognition?: new () => Recognition;
   };
   return w.SpeechRecognition ?? w.webkitSpeechRecognition;
+}
+
+/** The same interface over the speech plugin of the iOS/Android app, whose WebView has none. */
+class NativeRecognition implements Recognition {
+  lang = 'id-ID';
+  interimResults = false;
+  onresult: Recognition['onresult'] = null;
+  onerror: Recognition['onerror'] = null;
+  onend: Recognition['onend'] = null;
+
+  start() {
+    (async () => {
+      const { SpeechRecognition } = await import('@/lib/native-plugins');
+      try {
+        const { speechRecognition } = await SpeechRecognition.requestPermissions();
+        if (speechRecognition !== 'granted') return this.onerror?.({ error: 'not-allowed' });
+        const { matches } = await SpeechRecognition.start({ language: this.lang, maxResults: 1, partialResults: false, popup: false });
+        if (matches?.[0]) this.onresult?.({ results: [[{ transcript: matches[0] }]] });
+      } catch {
+        this.onerror?.({ error: 'no-speech' });
+      } finally {
+        this.onend?.();
+      }
+    })();
+  }
+
+  stop() {
+    import('@/lib/native-plugins').then(({ SpeechRecognition }) => SpeechRecognition.stop()).catch(() => undefined);
+  }
 }
 
 type Usage = { used: number; limit: number; unlimited: boolean };

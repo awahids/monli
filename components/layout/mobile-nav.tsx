@@ -204,7 +204,7 @@ export function MobileNav() {
           </ul>
           <InstallCard className="mt-4" />
           {user?.plan !== 'PRO' && (
-            <div className="mt-4 flex items-center gap-3 rounded-xl bg-muted/60 p-4">
+            <div className="web-only mt-4 flex items-center gap-3 rounded-xl bg-muted/60 p-4">
               <Sparkles className="h-5 w-5 shrink-0 text-brand-gold" />
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium">{t("Coba Qala Saku PRO", "Try Qala Saku PRO")}</p>

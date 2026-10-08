@@ -263,7 +263,7 @@ export function SharedSpaceCard() {
             )}
           </>
         ) : (
-          <div className="flex flex-col gap-3 rounded-lg border border-dashed p-4">
+          <div className="web-only flex flex-col gap-3 rounded-lg border border-dashed p-4">
             <p className="flex-1 text-sm text-muted-foreground">
               {t(
                 'Upgrade ke PRO untuk mengundang keluarga. Orang yang kamu undang tidak perlu berlangganan.',
