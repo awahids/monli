@@ -136,7 +136,7 @@ export function MobileNav() {
             type="button"
             onClick={handleAddTransaction}
             aria-label={t("Catat transaksi", "Add transaction")}
-            className="mx-1 -mt-7 flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 ring-4 ring-background transition-transform active:scale-90 focus:outline-none focus-visible:ring-primary/40"
+            className="mx-1 -mt-7 flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 ring-4 ring-background transition-transform hover:scale-110 active:scale-95"
           >
             <Plus className="h-7 w-7" />
           </button>
@@ -205,8 +205,6 @@ export function MobileNav() {
             </li>
           </ul>
           <InstallCard className="mt-4" />
-          {(user?.plan !== 'PRO' || trialLeft !== null) && (
-            <div className="mt-4 flex items-center gap-3 rounded-xl bg-muted/60 p-4">
           {user?.plan !== 'PRO' && (
             <div className="web-only mt-4 flex items-center gap-3 rounded-xl bg-muted/60 p-4">
               <Sparkles className="h-5 w-5 shrink-0 text-brand-gold" />
