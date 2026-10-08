@@ -7,8 +7,9 @@ android {
         applicationId "digital.qala.saku"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        // CI (.github/workflows/mobile-release.yml) passes -PversionCode / -PversionName.
+        versionCode((findProperty('versionCode') ?: '1') as int)
+        versionName((findProperty('versionName') ?: '1.0') as String)
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -16,8 +17,21 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        // Upload key for Play. CI passes these as ORG_GRADLE_PROJECT_release* env vars;
+        // locally they can live in ~/.gradle/gradle.properties.
+        if (findProperty('releaseStoreFile')) {
+            release {
+                storeFile file(findProperty('releaseStoreFile'))
+                storePassword findProperty('releaseStorePassword')
+                keyAlias findProperty('releaseKeyAlias')
+                keyPassword findProperty('releaseKeyPassword')
+            }
+        }
+    }
     buildTypes {
         release {
+            if (findProperty('releaseStoreFile')) signingConfig signingConfigs.release
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }

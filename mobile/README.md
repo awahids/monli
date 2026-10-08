@@ -65,3 +65,66 @@ Setelah dibuka sekali dengan internet, service worker menyimpan halaman dan data
 terakhir sehingga aplikasi tetap bisa dibuka offline (di iOS karena `monli.fun`
 terdaftar di `WKAppBoundDomains`). Kalau belum pernah dibuka sama sekali, aplikasi
 menampilkan `www/offline.html`.
+
+## CI/CD
+
+| Workflow | Kapan | Hasil |
+| --- | --- | --- |
+| `.github/workflows/mobile.yml` | setiap PR/push yang mengubah `mobile/` | build APK debug (bisa diunduh dari tab Actions, artefak `qala-saku-debug-apk`) dan build iOS simulator |
+| `.github/workflows/mobile-release.yml` | push tag `mobile-v1.2.0`, atau tombol *Run workflow* di tab Actions | AAB bertanda tangan → Play **internal testing**, IPA → **TestFlight** |
+
+Rilis baru:
+
+```bash
+git tag mobile-v1.0.0 && git push origin mobile-v1.0.0
+```
+
+Nomor versi di store diambil dari tag (`1.0.0`), nomor build dari nomor run
+GitHub Actions sehingga selalu naik. Dari internal testing / TestFlight, rilis
+ke publik dipromosikan manual di Play Console / App Store Connect.
+
+### Secret yang perlu diisi
+
+Simpan di **Settings → Environments → `mobile-release`** (bisa sekalian diberi
+*Required reviewers* supaya setiap rilis perlu persetujuan).
+
+Android:
+
+| Secret | Isi |
+| --- | --- |
+| `ANDROID_KEYSTORE_BASE64` | upload keystore, `base64 -w0 upload.jks` |
+| `ANDROID_KEYSTORE_PASSWORD` | password keystore |
+| `ANDROID_KEY_ALIAS` | alias kunci di keystore |
+| `ANDROID_KEY_PASSWORD` | password kunci |
+| `PLAY_SERVICE_ACCOUNT_JSON` | isi file JSON service account Google Cloud yang diberi akses *Release apps to testing tracks* di Play Console → Users and permissions |
+
+Membuat upload keystore (sekali, simpan baik-baik di luar repo):
+
+```bash
+keytool -genkeypair -v -keystore upload.jks -alias upload -keyalg RSA -keysize 2048 -validity 10000
+```
+
+iOS:
+
+| Secret | Isi |
+| --- | --- |
+| `APPLE_TEAM_ID` | Team ID 10 karakter (developer.apple.com → Membership) |
+| `ASC_KEY_ID` | Key ID dari App Store Connect → Users and Access → Integrations → App Store Connect API (role **Admin**, karena sertifikat dibuat otomatis) |
+| `ASC_ISSUER_ID` | Issuer ID di halaman yang sama |
+| `ASC_KEY_P8` | isi file `AuthKey_XXXX.p8` |
+
+Sertifikat dan provisioning profile tidak perlu disimpan: Xcode membuatnya
+otomatis lewat API key (cloud-managed signing).
+
+### Sekali di awal
+
+- **Play Console**: buat aplikasi `digital.qala.saku`. Google meminta upload
+  pertama dilakukan manual: jalankan rilis sekali, unduh artefak `qala-saku-aab`
+  dari run tersebut (langkah upload ke Play akan gagal kali ini), lalu unggah ke
+  *Internal testing*. Rilis berikutnya terunggah otomatis.
+- Selama aplikasi belum pernah rilis ke publik, Play hanya menerima rilis
+  berstatus draft (default workflow). Setelah rilis publik pertama, buat
+  variabel repo `PLAY_RELEASE_STATUS` = `completed` agar rilis internal langsung
+  aktif.
+- **App Store Connect**: buat aplikasi baru dengan bundle ID `digital.qala.saku`
+  sebelum upload pertama ke TestFlight.
