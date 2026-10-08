@@ -2,7 +2,7 @@
   "name": "Qala Saku",
   "short_name": "Qala Saku",
   "description": "Aplikasi keuangan pribadi untuk catat, atur budget, dan pantau tabungan. Bagian dari keluarga Qala.",
-  "start_url": "/dashboard",
+  "start_url": "/launch.html",
   "scope": "/",
   "display": "standalone",
   "background_color": "#F2EFE9",
