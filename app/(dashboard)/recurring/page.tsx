@@ -150,10 +150,12 @@ export default function RecurringPage() {
       {limitReached && (
         <p className="rounded-lg border border-dashed p-3 text-sm text-muted-foreground">
           {t(`Paket FREE dibatasi ${FREE_LIMITS.recurring} transaksi rutin.`, `The FREE plan is limited to ${FREE_LIMITS.recurring} recurring transactions.`)}{' '}
-          <Link href="/upgrade" className="font-medium text-primary underline-offset-4 hover:underline">
-            {t('Upgrade ke PRO', 'Upgrade to PRO')}
-          </Link>{' '}
-          {t('untuk tanpa batas.', 'for unlimited.')}
+          <span className="web-only">
+            <Link href="/upgrade" className="font-medium text-primary underline-offset-4 hover:underline">
+              {t('Upgrade ke PRO', 'Upgrade to PRO')}
+            </Link>{' '}
+            {t('untuk tanpa batas.', 'for unlimited.')}
+          </span>
         </p>
       )}
 

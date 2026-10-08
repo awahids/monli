@@ -5,6 +5,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ServiceWorkerRegister } from "@/components/service-worker-register";
 import { Analytics } from "@/components/analytics";
+import { NativeBridge } from "@/components/native-bridge";
+import { APP_UA } from "@/lib/native";
 import { cn } from "@/lib/utils";
 import { BRAND } from "@/lib/brand";
 
@@ -111,6 +113,15 @@ export default function RootLayout({
       suppressHydrationWarning
       className={cn(inter.variable, poppins.variable)}
     >
+      <head>
+        {/* Inside the iOS/Android app: mark <html> before the first paint so
+            web-only bits (install prompts, upgrade links) never flash. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `if(navigator.userAgent.indexOf("${APP_UA}")>-1)document.documentElement.dataset.app=/iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent)?"ios":"android"`,
+          }}
+        />
+      </head>
       <body className="bg-background font-sans text-foreground">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           {children}
@@ -118,6 +129,7 @@ export default function RootLayout({
         </ThemeProvider>
         <ServiceWorkerRegister />
         <Analytics />
+        <NativeBridge />
       </body>
     </html>
   );

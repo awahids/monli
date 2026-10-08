@@ -33,7 +33,7 @@ export function ProLock({ locked, title, description, children, className }: Pro
           </span>
           <p className="font-display text-lg font-semibold">{title}</p>
           <p className="text-sm text-muted-foreground">{description}</p>
-          <Button asChild className="w-full">
+          <Button asChild className="web-only w-full">
             <Link href="/upgrade">{t('Lihat paket PRO', 'See PRO plans')}</Link>
           </Button>
         </div>

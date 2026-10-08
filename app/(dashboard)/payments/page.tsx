@@ -44,7 +44,7 @@ export default function PaymentsPage() {
           title={t('Belum ada pembayaran', 'No payments yet')}
           description={t('Pembayaran upgrade ke PRO akan muncul di sini.', 'PRO upgrade payments will show up here.')}
           action={
-            <Button asChild variant="outline">
+            <Button asChild variant="outline" className="web-only">
               <Link href="/upgrade">{t('Lihat paket PRO', 'See the PRO plan')}</Link>
             </Button>
           }
