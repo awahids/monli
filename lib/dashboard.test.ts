@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { greeting, monthDelta, monthTotals } from './dashboard';
+import { greeting, monthTotals } from './dashboard';
 import type { Transaction } from '@/types';
 
 const tx = (actualDate: string, type: Transaction['type'], amount: number, budgetMonth = actualDate.slice(0, 7)) =>
@@ -15,14 +15,6 @@ test('monthTotals sums income and expense by budget month (the period)', () => {
     tx('2024-04-28', 'expense', 7, '2024-05'), // previous calendar month, this period
   ];
   assert.deepEqual(monthTotals(txs, '2024-05'), { income: 100, expense: 37 });
-});
-
-test('monthDelta colors by meaning, not by sign', () => {
-  assert.deepEqual(monthDelta(120, 100, false), { label: 'Naik 20% dari bulan lalu', tone: 'bad', direction: 'up' });
-  assert.equal(monthDelta(120, 100, true).tone, 'good');
-  assert.equal(monthDelta(80, 100, false).tone, 'good');
-  assert.equal(monthDelta(500, 0, true).label, 'Belum ada data bulan lalu');
-  assert.equal(monthDelta(100000, 10, true).label, 'Naik >999% dari bulan lalu');
 });
 
 test('greeting follows the Jakarta clock', () => {

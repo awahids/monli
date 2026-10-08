@@ -1,28 +1,13 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
 import { toast } from 'sonner';
-import {
-  ArrowDownRight,
-  ArrowUpRight,
-  Minus,
-  PiggyBank,
-  TrendingDown,
-  TrendingUp,
-  Wallet,
-} from 'lucide-react';
 
 import { useAppStore } from '@/lib/store';
 import { runDueRecurring } from '@/lib/recurring-client';
 import { supabase } from '@/lib/supabase';
-import { formatMoney } from '@/lib/currency';
-import { Account, Budget, Category, CategorySpend, Transaction } from '@/types';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
+import { Account, Budget, Category, Transaction } from '@/types';
 import { Skeleton } from '@/components/ui/skeleton';
-import dynamic from 'next/dynamic';
 import { RecentTransactions } from '@/components/dashboard/recent-transactions';
 import { GettingStarted } from '@/components/dashboard/getting-started';
 import { GoalsSummary } from '@/components/dashboard/goals-summary';
@@ -35,87 +20,35 @@ import {
   daysBetweenInclusive,
   formatDate,
   periodRange,
-  shiftMonth,
 } from '@/lib/date';
 import { keysToCamel } from '@/lib/case';
-import { greeting, monthDelta, monthTotals, type Delta } from '@/lib/dashboard';
+import { greeting, monthTotals } from '@/lib/dashboard';
 import {
   saveTransaction,
   toOfflineTransaction,
   toTransactionPayload,
 } from '@/lib/transactions-client';
 import { useOffline } from '@/hooks/use-offline';
-import { cn } from '@/lib/utils';
 import { selectAll } from '@/lib/select-all';
 import { useT } from '@/lib/i18n';
-
-// The chart library is large; load it after the numbers are on screen.
-const DashboardCharts = dynamic(
-  () => import('@/components/dashboard/dashboard-charts').then((m) => m.DashboardCharts),
-  { ssr: false, loading: () => <Skeleton className="h-80 rounded-xl" /> }
-);
+import { spacePlan } from '@/lib/plans';
+import { AccountStrip, BalanceHero, QuickActions, useHiddenBalance } from '@/components/dashboard/home-sections';
 
 type BudgetSummary = { totalActual: number };
-
-function DeltaLine({ delta }: { delta: Delta }) {
-  const Icon = delta.direction === 'up' ? ArrowUpRight : delta.direction === 'down' ? ArrowDownRight : Minus;
-  return (
-    <p
-      className={cn(
-        'mt-1 flex items-center gap-1 text-xs',
-        delta.tone === 'good' && 'text-green-600 dark:text-green-400',
-        delta.tone === 'bad' && 'text-red-600 dark:text-red-400',
-        delta.tone === 'neutral' && 'text-muted-foreground'
-      )}
-    >
-      <Icon className="h-3.5 w-3.5" />
-      {delta.label}
-    </p>
-  );
-}
-
-function KpiCard({
-  title,
-  icon: Icon,
-  value,
-  children,
-  half = false,
-}: {
-  title: string;
-  icon: typeof Wallet;
-  value: string;
-  children?: React.ReactNode;
-  /** Half-width tile in the two-column grid. */
-  half?: boolean;
-}) {
-  return (
-    <Card className={half ? undefined : 'col-span-2'}>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
-        <Icon className="h-4 w-4 text-muted-foreground" />
-      </CardHeader>
-      <CardContent>
-        <div className={cn('truncate font-display font-bold tabular-nums', half ? 'text-lg' : 'text-2xl')}>{value}</div>
-        {children}
-      </CardContent>
-    </Card>
-  );
-}
 
 function DashboardSkeleton() {
   const { t } = useT();
   return (
     <div className="space-y-6" aria-busy="true" aria-label={t('Memuat dashboard', 'Loading dashboard')}>
-      <Skeleton className="h-9 w-64" />
-      <div className="grid grid-cols-2 gap-3">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <Skeleton key={i} className={cn('h-32 rounded-xl', (i === 0 || i === 3) && 'col-span-2')} />
+      <Skeleton className="h-5 w-48" />
+      <Skeleton className="h-52 rounded-3xl" />
+      <div className="grid grid-cols-5 gap-2">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <Skeleton key={i} className="mx-auto h-12 w-12 rounded-2xl" />
         ))}
       </div>
-      <div className="grid gap-4">
-        <Skeleton className="h-80 rounded-xl" />
-        <Skeleton className="h-80 rounded-xl" />
-      </div>
+      <Skeleton className="h-28 rounded-2xl" />
+      <Skeleton className="h-64 rounded-2xl" />
     </div>
   );
 }
@@ -136,18 +69,17 @@ export default function DashboardPage() {
     dataVersion,
   } = useAppStore();
   const [loading, setLoading] = useState(true);
-  const [categorySpends, setCategorySpends] = useState<CategorySpend[]>([]);
   const [budgetSummary, setBudgetSummary] = useState<BudgetSummary | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const { isOnline, addOfflineChange } = useOffline();
   const { t, locale } = useT();
+  const [hidden, toggleHidden] = useHiddenBalance();
 
   // Everything here follows the budget period, which may start on payday
   // (e.g. 26 Sep – 25 Oct is "October"), so KPIs, charts and the budget card agree.
   const budgetStartDay = user?.budgetStartDay || 1;
   const budgetMonth = currentBudgetMonth(budgetStartDay);
   const thisMonth = budgetMonth;
-  const prevMonth = shiftMonth(thisMonth, -1);
   const range = periodRange(thisMonth, budgetStartDay, locale);
 
   // Throws on failure so the form keeps the user's input and shows the error.
@@ -195,8 +127,7 @@ export default function DashboardPage() {
                 category:categories(name, color, icon)
               `)
               .eq('user_id', (space?.ownerId ?? user.id))
-              // This period and the one before, for the comparison.
-              .in('budget_month', [prevMonth, thisMonth])
+              .eq('budget_month', thisMonth)
               .order('actual_date', { ascending: false })
               .order('created_at', { ascending: false })
               .order('id')
@@ -222,10 +153,9 @@ export default function DashboardPage() {
     };
 
     fetchData();
-  }, [space?.ownerId, user, isOnline, thisMonth, prevMonth, budgetMonth, dataVersion, setAccounts, setTransactions, setBudgets, setCategories, t]);
+  }, [space?.ownerId, user, isOnline, thisMonth, budgetMonth, dataVersion, setAccounts, setTransactions, setBudgets, setCategories, t]);
 
-  // Category breakdown and budget actuals come from the server so they match
-  // Reports and Budgets exactly.
+  // Budget actuals come from the server so they match Reports and Budgets exactly.
   useEffect(() => {
     if (!user || !isOnline) return;
     let cancelled = false;
@@ -233,15 +163,6 @@ export default function DashboardPage() {
       .then((res) => (res.ok ? res.json() : Promise.reject(res)))
       .then((data) => {
         if (cancelled) return;
-        setCategorySpends(
-          (data.categories ?? []).map((c: { categoryId: string; name: string; amount: number; color: string }) => ({
-            categoryId: c.categoryId,
-            categoryName: c.name,
-            amount: c.amount,
-            budgeted: 0,
-            color: c.color || '#6B7280',
-          }))
-        );
         setBudgetSummary({ totalActual: data.budget?.totalActual ?? 0 });
       })
       .catch(() => {});
@@ -252,13 +173,12 @@ export default function DashboardPage() {
 
   const kpis = useMemo(() => {
     const now = monthTotals(transactions, thisMonth);
-    const prev = monthTotals(transactions, prevMonth);
     const totalBalance = accounts.reduce(
       (sum, acc) => sum + (acc.currentBalance ?? acc.openingBalance),
       0
     );
-    return { now, prev, totalBalance, net: now.income - now.expense };
-  }, [transactions, accounts, thisMonth, prevMonth]);
+    return { now, totalBalance };
+  }, [transactions, accounts, thisMonth]);
 
   const budget = budgets.find((b) => b.month === budgetMonth);
   const budgetCard = useMemo(() => {
@@ -269,8 +189,6 @@ export default function DashboardPage() {
     const { end } = budgetPeriod(budgetMonth, budgetStartDay);
     const daysLeft = Math.max(daysBetweenInclusive(formatDate(new Date()), end), 1);
     return {
-      planned,
-      actual,
       remaining,
       daily: Math.max(remaining, 0) / daysLeft,
       daysLeft,
@@ -298,16 +216,16 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       <div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            {greeting(new Date(), t)}
-            {firstName ? `, ${firstName}` : ''}
-          </h1>
-          <p className="text-muted-foreground">
-            {space && !space.isOwn
-              ? t(`Ringkasan keuangan bersama ${space.ownerName}`, `Shared finances of ${space.ownerName}`)
-              : t('Ringkasan keuanganmu', 'Your finances')}{' '}
-            {range ? t(`periode ${range}.`, `for ${range}.`) : t('bulan ini.', 'this month.')}
-          </p>
+        <h1 className="text-lg font-semibold">
+          {greeting(new Date(), t)}
+          {firstName ? `, ${firstName}` : ''}
+        </h1>
+        <p className="text-xs text-muted-foreground">
+          {space && !space.isOwn
+            ? t(`Keuangan bersama ${space.ownerName}`, `Shared finances of ${space.ownerName}`)
+            : t('Keuanganmu', 'Your finances')}{' '}
+          {range ? t(`periode ${range}`, `for ${range}`) : t('bulan ini', 'this month')}
+        </p>
       </div>
 
       {showOnboarding && (
@@ -320,73 +238,18 @@ export default function DashboardPage() {
         />
       )}
 
-      <div className="grid grid-cols-2 gap-3">
-        <KpiCard title={t('Saldo total', 'Total balance')} icon={Wallet} value={formatMoney(kpis.totalBalance)}>
-          <p className="mt-1 text-xs text-muted-foreground">
-            {t(`${accounts.length} akun aktif · arus bersih bulan ini`, `${accounts.length} active accounts · net flow this month`)}{' '}
-            <span
-              className={cn(
-                'font-medium',
-                kpis.net >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
-              )}
-            >
-              {kpis.net >= 0 ? '+' : ''}
-              {formatMoney(kpis.net)}
-            </span>
-          </p>
-        </KpiCard>
-        <KpiCard half title={t('Pemasukan', 'Income')} icon={TrendingUp} value={formatMoney(kpis.now.income)}>
-          <DeltaLine delta={monthDelta(kpis.now.income, kpis.prev.income, true, t)} />
-        </KpiCard>
-        <KpiCard half title={t('Pengeluaran', 'Expenses')} icon={TrendingDown} value={formatMoney(kpis.now.expense)}>
-          <DeltaLine delta={monthDelta(kpis.now.expense, kpis.prev.expense, false, t)} />
-        </KpiCard>
-        {budgetCard ? (
-          <KpiCard
-            title={budgetCard.over ? t('Budget terlampaui', 'Over budget') : t('Sisa budget', 'Budget left')}
-            icon={PiggyBank}
-            value={formatMoney(Math.abs(budgetCard.remaining))}
-          >
-            <Progress
-              value={budgetCard.pct}
-              className="mt-2 h-1.5"
-              indicatorClassName={
-                budgetCard.over ? 'bg-red-500' : budgetCard.pct >= 80 ? 'bg-amber-500' : 'bg-primary'
-              }
-            />
-            <p className="mt-1.5 text-xs text-muted-foreground">
-              {budgetCard.over
-                ? t(
-                    `Lebih ${formatMoney(-budgetCard.remaining)} dari rencana ${formatMoney(budgetCard.planned)}`,
-                    `${formatMoney(-budgetCard.remaining)} over the plan of ${formatMoney(budgetCard.planned)}`
-                  )
-                : t(
-                    `Jatah harian ${formatMoney(budgetCard.daily)} untuk ${budgetCard.daysLeft} hari lagi`,
-                    `${formatMoney(budgetCard.daily)} a day for the next ${budgetCard.daysLeft} days`
-                  )}
-            </p>
-          </KpiCard>
-        ) : (
-          <Card className="col-span-2 flex flex-col justify-center border-dashed">
-            <CardContent className="space-y-2 pt-6">
-              <p className="text-sm font-medium">{t('Belum ada budget bulan ini', 'No budget this month')}</p>
-              <p className="text-xs text-muted-foreground">
-                {t('Tentukan batas belanja supaya tahu jatah harianmu.', 'Set a spending limit to know your daily allowance.')}
-              </p>
-              <Button asChild size="sm" variant="outline">
-                <Link href="/budgets">{t('Buat budget', 'Create budget')}</Link>
-              </Button>
-            </CardContent>
-          </Card>
-        )}
-      </div>
-
-      <DashboardCharts
-        transactions={transactions}
-        categorySpends={categorySpends}
-        month={thisMonth}
-        startDay={budgetStartDay}
+      <BalanceHero
+        balance={kpis.totalBalance}
+        income={kpis.now.income}
+        expense={kpis.now.expense}
+        budget={budgetCard}
+        hidden={hidden}
+        onToggleHidden={toggleHidden}
       />
+
+      <QuickActions isPro={spacePlan(user, space) === 'PRO'} onAdd={() => setFormOpen(true)} />
+
+      {accounts.length > 0 && <AccountStrip accounts={accounts} hidden={hidden} />}
 
       {isOnline && <GoalsSummary />}
 

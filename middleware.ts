@@ -94,8 +94,9 @@ export async function middleware(request: NextRequest) {
     request.nextUrl.pathname.startsWith(p),
   );
 
+  // The installed app opens on "/": signed-in users go straight to Beranda.
   if (request.nextUrl.pathname === "/") {
-    return response;
+    return user ? NextResponse.redirect(new URL("/dashboard", request.url)) : response;
   }
 
   if (isProtectedPath) {
@@ -117,6 +118,8 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
+    // "/" on its own: the pattern below needs at least one character.
+    "/",
     /*
      * Match all request paths except for the ones starting with:
      * - _next/static (static files)
