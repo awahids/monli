@@ -15,10 +15,9 @@ gsap.registerPlugin(ScrollTrigger);
 
 /** Table of contents along the bottom of the hero, numbered like chapters. */
 const CHAPTERS = [
-  { n: "01", label: "Cerita", href: "#cerita" },
-  { n: "02", label: "Fitur", href: "#features" },
-  { n: "03", label: "Cara kerja", href: "#how-it-works" },
-  { n: "04", label: "Harga", href: "#pricing" },
+  { n: "01", label: "Fitur", href: "#features" },
+  { n: "02", label: "Cara kerja", href: "#how-it-works" },
+  { n: "03", label: "Harga", href: "#pricing" },
 ];
 
 export function Hero() {
@@ -100,7 +99,7 @@ export function Hero() {
                 </Link>
               </Button>
               <Button asChild size="lg" variant="ghost" className="rounded-full px-5 font-editorial text-base">
-                <Link href="#cerita">Lihat cara kerjanya</Link>
+                <Link href="#features">Lihat cara kerjanya</Link>
               </Button>
             </div>
             <p className="hero-rise mt-5 font-editorial text-xs text-muted-foreground">
@@ -144,7 +143,7 @@ export function Hero() {
           </nav>
 
           <Link
-            href="#cerita"
+            href="#features"
             className="group flex items-center gap-4 self-start rounded-xl border border-white/10 bg-background/50 p-2 pr-5 backdrop-blur-md transition-colors hover:border-primary/40 sm:self-auto"
           >
             <span className="relative block h-16 w-28 overflow-hidden rounded-lg">
@@ -158,7 +157,7 @@ export function Hero() {
             <span>
               <span className="block font-editorial text-sm">Lihat Qala Saku beraksi</span>
               <span className="block font-editorial text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-                Video · 10 detik
+                Video · 8 detik
               </span>
             </span>
           </Link>

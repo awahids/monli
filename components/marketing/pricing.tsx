@@ -18,7 +18,7 @@ export function Pricing() {
     <section id="pricing" aria-labelledby="pricing-title" className="scroll-mt-16 py-24 sm:py-32">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <SectionHeading
-          index="04"
+          index="03"
           kicker="Harga"
           id="pricing-title"
           title="Mulai gratis. Upgrade kalau perlu."

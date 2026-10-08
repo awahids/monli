@@ -5,7 +5,6 @@ import { Header } from "@/components/site/header";
 import { Hero } from "@/components/marketing/hero";
 import { ScrollVideo } from "@/components/marketing/scroll-video";
 import { TrustSignals } from "@/components/marketing/trust-signals";
-import { Features } from "@/components/marketing/features";
 import { HowItWorks } from "@/components/marketing/how-it-works";
 import { Pricing } from "@/components/marketing/pricing";
 import { FAQ } from "@/components/marketing/faq";
@@ -66,7 +65,6 @@ export default function LandingPage() {
         <main>
           <Hero />
           <ScrollVideo />
-          <Features />
           <TrustSignals />
           <HowItWorks />
           <Pricing />

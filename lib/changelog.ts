@@ -21,7 +21,7 @@ export const CHANGELOG: ChangelogEntry[] = [
       { type: 'peningkatan', text: 'Beranda baru: kartu saldo dengan sisa jatah hari ini, tombol cepat (Catat, Scan struk, Patungan, Hutang, Target), dan akun yang bisa digeser. Grafik pindah ke Laporan.' },
       { type: 'baru', text: 'Sembunyikan saldo dengan ikon mata di Beranda; pilihan diingat di perangkat ini.' },
       { type: 'perbaikan', text: 'Aplikasi yang dipasang di layar utama kini langsung membuka Beranda, bukan halaman depan website.' },
-      { type: 'peningkatan', text: 'Video animasi 3D baru di halaman depan: koin emas mengantar dari Catat, Semua akun, Budget, Patungan sampai Target.' },
+      { type: 'peningkatan', text: 'Halaman depan baru: video animasi 3D jadi latar yang berputar saat digulir, dengan kartu fitur dari Catat, Semua akun, Budget, Patungan sampai Target.' },
     ],
   },
   {
