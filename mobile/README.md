@@ -71,13 +71,21 @@ menampilkan `www/offline.html`.
 | Workflow | Kapan | Hasil |
 | --- | --- | --- |
 | `.github/workflows/mobile.yml` | setiap PR/push yang mengubah `mobile/` | build APK debug (bisa diunduh dari tab Actions, artefak `qala-saku-debug-apk`) dan build iOS simulator |
-| `.github/workflows/mobile-release.yml` | push tag `mobile-v1.2.0`, atau tombol *Run workflow* di tab Actions | AAB bertanda tangan → Play **internal testing**, IPA → **TestFlight** |
+| `.github/workflows/mobile-release.yml` | push tag `mobile-v1.2.0`, atau tombol *Run workflow* di tab Actions | file **`.aab`** (Google Play) dan **`.ipa`** (App Store) bertanda tangan, bisa diunduh dari halaman run (artefak `qala-saku-aab`, `qala-saku-ipa`); lalu otomatis ke Play **internal testing** dan **TestFlight** |
 
 Rilis baru:
 
 ```bash
 git tag mobile-v1.0.0 && git push origin mobile-v1.0.0
 ```
+
+Hanya butuh filenya? Jalankan dari tab Actions dengan centang *upload*
+dimatikan, lalu unggah `.aab` di Play Console dan `.ipa` lewat aplikasi
+[Transporter](https://apps.apple.com/app/transporter/id1450874784) di Mac.
+Tanpa secret `PLAY_SERVICE_ACCOUNT_JSON`, `.aab` juga hanya disimpan sebagai file.
+
+`.ipa` selalu ditandatangani dengan akun Apple Developer (berbayar,
+USD 99/tahun); tanpa akun itu Apple tidak menerima atau memasang `.ipa` apa pun.
 
 Nomor versi di store diambil dari tag (`1.0.0`), nomor build dari nomor run
 GitHub Actions sehingga selalu naik. Dari internal testing / TestFlight, rilis

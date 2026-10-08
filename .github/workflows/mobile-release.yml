@@ -1,8 +1,10 @@
 name: Mobile release
 
-# Signed builds to the stores' test tracks: Play "internal testing" and
-# TestFlight. From there they are promoted to production in Play Console /
-# App Store Connect. Setup (secrets, first manual upload): mobile/README.md.
+# Signed store files: an .aab for Google Play and an .ipa for the App Store,
+# kept as downloads on the run (artifacts). Unless turned off, they also go to
+# the stores' test tracks: Play "internal testing" and TestFlight; from there
+# they are promoted to production in Play Console / App Store Connect.
+# Setup (secrets, first manual upload): mobile/README.md.
 #
 # Start it by pushing a tag like mobile-v1.2.0, or from the Actions tab.
 on:
@@ -18,6 +20,10 @@ on:
         type: choice
         options: [both, android, ios]
         default: both
+      upload:
+        description: Also upload to Play internal testing / TestFlight (off = files only)
+        type: boolean
+        default: true
 
 concurrency:
   group: mobile-release
@@ -37,11 +43,14 @@ defaults:
 
 jobs:
   android:
-    name: Android → Play internal testing
+    name: Android (.aab)
     if: ${{ inputs.platform != 'ios' }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     environment: mobile-release
+    env:
+      # Without a Play service account the .aab is only kept as a download.
+      PLAY_READY: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON != '' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -73,7 +82,9 @@ jobs:
         with:
           name: qala-saku-aab
           path: mobile/android/app/build/outputs/bundle/release/app-release.aab
-      - uses: r0adkll/upload-google-play@v1.1.3
+      - name: Upload to Play internal testing
+        if: ${{ inputs.upload != false && env.PLAY_READY == 'true' }}
+        uses: r0adkll/upload-google-play@v1.1.3
         with:
           serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
           packageName: digital.qala.saku
@@ -83,7 +94,7 @@ jobs:
           status: ${{ vars.PLAY_RELEASE_STATUS || 'draft' }}
 
   ios:
-    name: iOS → TestFlight
+    name: iOS (.ipa)
     if: ${{ inputs.platform != 'android' }}
     runs-on: macos-26
     timeout-minutes: 45
@@ -121,27 +132,20 @@ jobs:
           CODE_SIGN_STYLE=Automatic
           MARKETING_VERSION="${VERSION_NAME#mobile-v}"
           CURRENT_PROJECT_VERSION="$BUILD_NUMBER"
-      - name: Upload to TestFlight
+      - name: Export .ipa
         env:
           ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-        run: |
-          cat > "$RUNNER_TEMP/ExportOptions.plist" <<PLIST
-          <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-          <plist version="1.0"><dict>
-            <key>method</key><string>app-store-connect</string>
-            <key>destination</key><string>upload</string>
-            <key>teamID</key><string>$APPLE_TEAM_ID</string>
-            <key>signingStyle</key><string>automatic</string>
-          </dict></plist>
-          PLIST
-          xcodebuild -exportArchive \
-            -archivePath "$RUNNER_TEMP/App.xcarchive" \
-            -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" \
-            -exportPath "$RUNNER_TEMP/export" \
-            -allowProvisioningUpdates \
-            -authenticationKeyPath "$RUNNER_TEMP/asc.p8" \
-            -authenticationKeyID "$ASC_KEY_ID" \
-            -authenticationKeyIssuerID "$ASC_ISSUER_ID"
+        run: ios/export.sh export
+      - uses: actions/upload-artifact@v4
+        with:
+          name: qala-saku-ipa
+          path: ${{ runner.temp }}/export/*.ipa
+      - name: Upload to TestFlight
+        if: ${{ inputs.upload != false }}
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: ios/export.sh upload
