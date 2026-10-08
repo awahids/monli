@@ -1,7 +1,7 @@
 'use client';
 
 import { ChangeEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { format } from 'date-fns';
 import type { DateRange } from 'react-day-picker';
 import Link from 'next/link';
@@ -179,6 +179,17 @@ export default function TransactionsPage() {
   useEffect(() => {
     setAccountFilter(searchParams.get('accountId') ?? 'all');
   }, [searchParams]);
+
+  // Quick actions on Beranda open a tool here: ?action=scan or ?action=split.
+  const router = useRouter();
+  const action = searchParams.get('action');
+  useEffect(() => {
+    // Wait for the profile, which says whether scanning (PRO) is available.
+    if (!action || !user) return;
+    if (action === 'split') setSplitOpen(true);
+    if (action === 'scan' && user.plan === 'PRO') fileInputRef.current?.click();
+    router.replace('/transactions');
+  }, [action, user, router]);
 
   const range = useMemo(() => presetRange(preset, customRange), [preset, customRange]);
   const startDay = user?.budgetStartDay || 1;

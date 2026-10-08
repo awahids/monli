@@ -14,6 +14,16 @@ export type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2026.10.08',
+    date: '2026-10-08',
+    title: 'Beranda ala aplikasi',
+    items: [
+      { type: 'peningkatan', text: 'Beranda baru: kartu saldo dengan sisa jatah hari ini, tombol cepat (Catat, Scan struk, Patungan, Hutang, Target), dan akun yang bisa digeser. Grafik pindah ke Laporan.' },
+      { type: 'baru', text: 'Sembunyikan saldo dengan ikon mata di Beranda; pilihan diingat di perangkat ini.' },
+      { type: 'perbaikan', text: 'Aplikasi yang dipasang di layar utama kini langsung membuka Beranda, bukan halaman depan website.' },
+    ],
+  },
+  {
     version: '2026.10.07',
     date: '2026-10-07',
     title: 'Rasa aplikasi mobile',
