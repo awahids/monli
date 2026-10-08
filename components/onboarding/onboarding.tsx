@@ -18,14 +18,14 @@ const SLIDES = [
     textEn: 'Record daily, plan monthly, and understand where your money goes.',
   },
   {
-    image: '/landing/promo/lg/030.webp',
+    image: '/landing/promo/lg/050.webp',
     title: 'Semua akun, satu saldo',
     text: 'Rekening bank, e-wallet, dan uang tunai dalam satu layar. Saldo ikut bergerak setiap kali kamu mencatat.',
     titleEn: 'All accounts, one balance',
     textEn: 'Bank accounts, e-wallets and cash on one screen. Balances move every time you record.',
   },
   {
-    image: '/landing/promo/lg/050.webp',
+    image: '/landing/promo/lg/030.webp',
     title: 'Catat dalam detik',
     text: 'Tekan tombol + di bawah layar kapan saja. Kategori dan tag menyesuaikan kebiasaanmu.',
     titleEn: 'Record in seconds',

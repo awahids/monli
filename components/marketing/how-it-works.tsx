@@ -47,7 +47,7 @@ export function HowItWorks() {
     <section id="how-it-works" ref={sectionRef} aria-labelledby="how-title" className="scroll-mt-16 py-24 sm:py-32">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <SectionHeading
-          index="03"
+          index="02"
           kicker="Cara kerja"
           id="how-title"
           title="Tiga langkah, lima menit."
