@@ -34,6 +34,8 @@ import { useAppStore } from '@/lib/store';
 import { currentBudgetMonth, periodRange } from '@/lib/date';
 import { spacePlan } from '@/lib/plans';
 import { useT } from '@/lib/i18n';
+import { toast } from 'sonner';
+import { isNativeApp } from '@/lib/native';
 
 interface TrendRow {
   month: string;
@@ -120,6 +122,13 @@ export default function ReportsPage() {
       cols.map((k) => escape((r as Record<string, unknown>)[k])).join(',')
     );
     const csv = [header, ...lines].join('\n');
+    if (isNativeApp()) {
+      // The app's WebView has no downloads; hand the file to the share sheet.
+      import('@/lib/native-plugins')
+        .then(({ shareTextFile }) => shareTextFile(filename, csv))
+        .catch(() => toast.error(t('Gagal membagikan file', 'Could not share the file')));
+      return;
+    }
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');

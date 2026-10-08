@@ -1,0 +1,70 @@
+name: Mobile
+
+# Builds the iOS and Android shells (mobile/) on every change to them, so a
+# broken plugin, permission or Gradle/Xcode setting shows up before release.
+on:
+  pull_request:
+    paths: ['mobile/**', '.github/workflows/mobile*.yml']
+  push:
+    branches: [main]
+    paths: ['mobile/**', '.github/workflows/mobile*.yml']
+
+concurrency:
+  group: mobile-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: mobile
+
+jobs:
+  android:
+    name: Android (debug APK)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+          cache-dependency-path: mobile/android/**/*.gradle*
+      - run: npm ci
+      - run: npx cap sync android
+      - run: ./gradlew assembleDebug --no-daemon
+        working-directory: mobile/android
+      # Installable on a phone for a quick check (Settings > allow unknown apps).
+      - uses: actions/upload-artifact@v4
+        with:
+          name: qala-saku-debug-apk
+          path: mobile/android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 7
+
+  ios:
+    name: iOS (simulator build)
+    # Capacitor 8 targets the Xcode 26 SDK, which App Store uploads require too.
+    runs-on: macos-26
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+      - run: npm ci
+      - run: npx cap sync ios
+      - run: >
+          xcodebuild build
+          -project ios/App/App.xcodeproj -scheme App -configuration Debug
+          -destination 'generic/platform=iOS Simulator'
+          CODE_SIGNING_ALLOWED=NO

@@ -1,6 +1,7 @@
 import { useEffect, useState, useSyncExternalStore } from 'react';
 import { APP_VERSION } from '@/lib/changelog';
 import { offlineStorage } from '@/lib/offline-storage';
+import { isNativeApp } from '@/lib/native';
 
 /* ---------- Install ("Pasang aplikasi") ---------- */
 
@@ -33,6 +34,7 @@ const subscribe = (l: () => void) => {
 };
 
 const isStandalone = () =>
+  isNativeApp() ||
   window.matchMedia('(display-mode: standalone)').matches ||
   (navigator as Navigator & { standalone?: boolean }).standalone === true;
 

@@ -5,6 +5,7 @@ import { ensureProfile } from "./profile";
 import { loadActiveSpace, writeSpaceCookie } from "./space-client";
 import { clearOfflineCopies } from "./pwa";
 import { writeLock } from "./app-lock";
+import { APP_SCHEME, isNativeApp } from "./native";
 
 export const supabase = createClient();
 
@@ -62,16 +63,28 @@ export async function signIn(email: string, password: string) {
 }
 
 /**
- * Starts Google sign-in. The browser leaves the app and comes back to
- * /auth/callback, which exchanges the code for a session.
+ * Starts Google (or Apple) sign-in. The browser leaves the app and comes back
+ * to /auth/callback, which exchanges the code for a session.
+ *
+ * Google refuses sign-in inside an app's WebView, so the iOS/Android app opens
+ * it in the system browser instead; it returns through qalasaku://auth/callback
+ * and components/native-bridge.tsx finishes it in the WebView.
  */
-export async function signInWithGoogle(next = "/dashboard") {
-  const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`;
-  const { error } = await supabase.auth.signInWithOAuth({
-    provider: "google",
-    options: { redirectTo },
+export async function signInWithProvider(provider: "google" | "apple", next = "/dashboard") {
+  const query = `?next=${encodeURIComponent(next)}`;
+  const inApp = isNativeApp();
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider,
+    options: {
+      redirectTo: inApp ? `${APP_SCHEME}://auth/callback${query}` : `${window.location.origin}/auth/callback${query}`,
+      skipBrowserRedirect: inApp,
+    },
   });
   if (error) throw error;
+  if (inApp) {
+    const { Browser } = await import("@/lib/native-plugins");
+    await Browser.open({ url: data.url });
+  }
 }
 
 /** The ?next= of the current page if it is an internal path, for post-login redirects. */

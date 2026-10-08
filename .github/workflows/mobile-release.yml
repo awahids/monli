@@ -1,0 +1,151 @@
+name: Mobile release
+
+# Signed store files: an .aab for Google Play and an .ipa for the App Store,
+# kept as downloads on the run (artifacts). Unless turned off, they also go to
+# the stores' test tracks: Play "internal testing" and TestFlight; from there
+# they are promoted to production in Play Console / App Store Connect.
+# Setup (secrets, first manual upload): mobile/README.md.
+#
+# Start it by pushing a tag like mobile-v1.2.0, or from the Actions tab.
+on:
+  push:
+    tags: ['mobile-v*']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version shown in the stores, e.g. 1.2.0
+        required: true
+      platform:
+        description: Which store
+        type: choice
+        options: [both, android, ios]
+        default: both
+      upload:
+        description: Also upload to Play internal testing / TestFlight (off = files only)
+        type: boolean
+        default: true
+
+concurrency:
+  group: mobile-release
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  # mobile-v1.2.0 → 1.2.0; the run number is the build number, always increasing.
+  VERSION_NAME: ${{ inputs.version || github.ref_name }}
+  BUILD_NUMBER: ${{ github.run_number }}
+
+defaults:
+  run:
+    working-directory: mobile
+
+jobs:
+  android:
+    name: Android (.aab)
+    if: ${{ inputs.platform != 'ios' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: mobile-release
+    env:
+      # Without a Play service account the .aab is only kept as a download.
+      PLAY_READY: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+          cache-dependency-path: mobile/android/**/*.gradle*
+      - run: npm ci
+      - run: npx cap sync android
+      - name: Restore the upload keystore
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/upload.jks"
+      - name: Build signed app bundle
+        working-directory: mobile/android
+        env:
+          ORG_GRADLE_PROJECT_releaseStoreFile: ${{ runner.temp }}/upload.jks
+          ORG_GRADLE_PROJECT_releaseStorePassword: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ORG_GRADLE_PROJECT_releaseKeyAlias: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ORG_GRADLE_PROJECT_releaseKeyPassword: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: ./gradlew bundleRelease --no-daemon -PversionCode="$BUILD_NUMBER" -PversionName="${VERSION_NAME#mobile-v}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: qala-saku-aab
+          path: mobile/android/app/build/outputs/bundle/release/app-release.aab
+      - name: Upload to Play internal testing
+        if: ${{ inputs.upload != false && env.PLAY_READY == 'true' }}
+        uses: r0adkll/upload-google-play@v1.1.3
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: digital.qala.saku
+          releaseFiles: mobile/android/app/build/outputs/bundle/release/app-release.aab
+          track: internal
+          # "draft" until the app's first production release is live in Play Console.
+          status: ${{ vars.PLAY_RELEASE_STATUS || 'draft' }}
+
+  ios:
+    name: iOS (.ipa)
+    if: ${{ inputs.platform != 'android' }}
+    runs-on: macos-26
+    timeout-minutes: 45
+    environment: mobile-release
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+      - run: npm ci
+      - run: npx cap sync ios
+      - name: Restore the App Store Connect API key
+        env:
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+        run: echo "$ASC_KEY_P8" > "$RUNNER_TEMP/asc.p8"
+      # Xcode signs with cloud-managed certificates through the API key, so no
+      # certificate or provisioning profile has to be stored as a secret.
+      - name: Archive
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: >
+          xcodebuild archive
+          -project ios/App/App.xcodeproj -scheme App -configuration Release
+          -destination 'generic/platform=iOS'
+          -archivePath "$RUNNER_TEMP/App.xcarchive"
+          -allowProvisioningUpdates
+          -authenticationKeyPath "$RUNNER_TEMP/asc.p8"
+          -authenticationKeyID "$ASC_KEY_ID"
+          -authenticationKeyIssuerID "$ASC_ISSUER_ID"
+          DEVELOPMENT_TEAM="$APPLE_TEAM_ID"
+          CODE_SIGN_STYLE=Automatic
+          MARKETING_VERSION="${VERSION_NAME#mobile-v}"
+          CURRENT_PROJECT_VERSION="$BUILD_NUMBER"
+      - name: Export .ipa
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: ios/export.sh export
+      - uses: actions/upload-artifact@v4
+        with:
+          name: qala-saku-ipa
+          path: ${{ runner.temp }}/export/*.ipa
+      - name: Upload to TestFlight
+        if: ${{ inputs.upload != false }}
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: ios/export.sh upload

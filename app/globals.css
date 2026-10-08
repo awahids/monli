@@ -625,3 +625,12 @@
     writing-mode: vertical-rl;
   }
 }
+
+/* Inside the iOS/Android app (data-app set in app/layout.tsx): the stores do
+   not allow pointing to web payments, and the app is already installed. */
+html[data-app] .web-only {
+  display: none !important;
+}
+html:not([data-app="ios"]) .ios-app-only {
+  display: none !important;
+}

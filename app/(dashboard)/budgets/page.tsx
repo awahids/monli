@@ -108,10 +108,12 @@ export default function BudgetsPage() {
       {disableAdd && (
         <p className="rounded-lg border border-dashed p-3 text-sm text-muted-foreground">
           {t('Paket FREE dibatasi 2 budget.', 'The FREE plan is limited to 2 budgets.')}{' '}
-          <Link href="/upgrade" className="font-medium text-primary underline-offset-4 hover:underline">
-            {t('Upgrade ke PRO', 'Upgrade to PRO')}
-          </Link>{' '}
-          {t('untuk budget tanpa batas.', 'for unlimited budgets.')}
+          <span className="web-only">
+            <Link href="/upgrade" className="font-medium text-primary underline-offset-4 hover:underline">
+              {t('Upgrade ke PRO', 'Upgrade to PRO')}
+            </Link>{' '}
+            {t('untuk budget tanpa batas.', 'for unlimited budgets.')}
+          </span>
         </p>
       )}
 

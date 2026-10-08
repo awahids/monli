@@ -1,3 +1,5 @@
+import { isNativeApp } from './native';
+
 /**
  * App lock: a PIN (and optionally the phone's fingerprint / Face ID) asked
  * before the app shows anything on this device. It guards against someone
@@ -5,6 +7,13 @@
  * "Lupa PIN" just signs out. Kept per device in localStorage.
  */
 export type LockConfig = { salt: string; hash: string; credentialId?: string };
+
+/**
+ * WebViews have no WebAuthn, so the iOS/Android app asks the phone's own
+ * fingerprint / Face ID prompt instead; its lock stores this as credentialId.
+ */
+const NATIVE_CREDENTIAL = 'native';
+const nativeBiometric = async () => (await import('./native-plugins')).BiometricAuth;
 
 const KEY = 'qala-app-lock';
 /** Re-lock after the app has been in the background this long. */
@@ -55,6 +64,7 @@ export function writeLock(lock: LockConfig | null) {
 /** Whether this device has a fingerprint / Face ID sensor the browser can use. */
 export async function biometricAvailable(): Promise<boolean> {
   try {
+    if (isNativeApp()) return (await (await nativeBiometric()).checkBiometry()).isAvailable;
     return !!window.PublicKeyCredential && (await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable());
   } catch {
     return false;
@@ -66,6 +76,10 @@ export async function biometricAvailable(): Promise<boolean> {
  * (WebAuthn with user verification); returns its id.
  */
 export async function registerBiometric(userId: string, name: string): Promise<string> {
+  if (isNativeApp()) {
+    if (!(await verifyBiometric(NATIVE_CREDENTIAL))) throw new Error('Dibatalkan');
+    return NATIVE_CREDENTIAL;
+  }
   const credential = (await navigator.credentials.create({
     publicKey: {
       challenge: crypto.getRandomValues(new Uint8Array(32)),
@@ -86,6 +100,15 @@ export async function registerBiometric(userId: string, name: string): Promise<s
 /** Asks for the fingerprint / Face ID; true when the user verified. */
 export async function verifyBiometric(credentialId: string): Promise<boolean> {
   try {
+    if (credentialId === NATIVE_CREDENTIAL) {
+      if (!isNativeApp()) return false;
+      await (await nativeBiometric()).internalAuthenticate({
+        reason: 'Buka Qala Saku',
+        cancelTitle: 'Pakai PIN',
+        androidTitle: 'Buka Qala Saku',
+      });
+      return true;
+    }
     const result = await navigator.credentials.get({
       publicKey: {
         challenge: crypto.getRandomValues(new Uint8Array(32)),
