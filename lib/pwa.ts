@@ -33,7 +33,7 @@ const subscribe = (l: () => void) => {
   return () => listeners.delete(l);
 };
 
-const isStandalone = () =>
+export const isStandalone = () =>
   isNativeApp() ||
   window.matchMedia('(display-mode: standalone)').matches ||
   (navigator as Navigator & { standalone?: boolean }).standalone === true;
