@@ -56,8 +56,8 @@ test('calcZakat handles invalid values', () => {
   assert.deepEqual(res, { obligatory: true, amount: 1000 * ZAKAT_RATE });
 });
 
-test('calcIncomeZakat: 2.5% of monthly income from a twelfth of the gold nisab', () => {
-  // 85 g at Rp 2.000.000 = Rp 170.000.000 a year, so Rp 14.166.667 a month.
-  assert.deepEqual(calcIncomeZakat(10_000_000, 2_000_000), { obligatory: false, amount: 0 });
-  assert.deepEqual(calcIncomeZakat(20_000_000, 2_000_000), { obligatory: true, amount: 500_000 });
+test('calcIncomeZakat: 2.5% of gross monthly income from the BAZNAS 2026 nisab', () => {
+  assert.deepEqual(calcIncomeZakat(7_000_000), { obligatory: false, amount: 0 });
+  assert.deepEqual(calcIncomeZakat(7_640_144), { obligatory: true, amount: 191_003.6 });
+  assert.deepEqual(calcIncomeZakat(10_000_000), { obligatory: true, amount: 250_000 });
 });
