@@ -14,6 +14,14 @@ export type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2026.10.13',
+    date: '2026-10-13',
+    title: 'Sisa masa coba PRO',
+    items: [
+      { type: 'perbaikan', text: 'Menu Lainnya kini menampilkan sisa hari PRO gratis untuk akun baru.' },
+    ],
+  },
+  {
     version: '2026.10.08',
     date: '2026-10-08',
     title: 'Beranda ala aplikasi',
