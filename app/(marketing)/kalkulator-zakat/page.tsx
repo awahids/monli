@@ -4,15 +4,13 @@ import { ArrowRight } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { SectionHeading } from "@/components/marketing/section-heading";
-import { IncomeZakat } from "@/components/marketing/income-zakat";
 import ZakatCalculator from "@/app/(dashboard)/zakat/zakat-calculator";
 import { BRAND } from "@/lib/brand";
 import { TRIAL_DAYS } from "@/lib/plans";
-import { INCOME_NISAB_MONTHLY, INCOME_NISAB_YEAR, toIDR } from "@/lib/zakat";
 
-const title = `Kalkulator Zakat Penghasilan & Zakat Maal Online — ${BRAND.name}`;
+const title = `Kalkulator Zakat Maal Online — ${BRAND.name}`;
 const description =
-  "Hitung zakat penghasilan bulanan dengan nisab BAZNAS 2026 (Rp 7.640.144) dan zakat maal dari tabungan, emas, dan piutang. Gratis, lengkap dengan contoh perhitungan.";
+  "Hitung zakat maal dari tabungan, emas, piutang, dan persediaan dagang: 2,5% bila harta mencapai nisab 85 gram emas dan sudah tersimpan setahun. Gratis, tanpa daftar.";
 
 export const metadata: Metadata = {
   title,
@@ -31,20 +29,20 @@ export const metadata: Metadata = {
 
 const FAQS = [
   {
-    q: "Berapa nisab zakat penghasilan?",
-    a: `Untuk ${INCOME_NISAB_YEAR}, BAZNAS menetapkan nisab zakat penghasilan ${toIDR(INCOME_NISAB_MONTHLY)} per bulan, setara 85 gram emas 14 karat per tahun (SK Ketua BAZNAS No. 15 Tahun 2026).`,
+    q: "Berapa nisab zakat maal?",
+    a: "Nisabnya setara 85 gram emas murni. Nilai rupiahnya mengikuti harga emas di hari kamu menghitung: dengan harga Rp 2.000.000 per gram, nisabnya Rp 170.000.000.",
   },
   {
-    q: "Berapa persen zakat penghasilan dan zakat maal?",
-    a: "Keduanya 2,5%. Zakat penghasilan dihitung dari penghasilan kotor bulanan yang mencapai nisab; zakat maal dari harta yang mencapai nisab dan sudah tersimpan satu tahun (haul).",
+    q: "Berapa persen zakat maal?",
+    a: "2,5% dari seluruh harta yang mencapai nisab dan sudah tersimpan satu tahun hijriah (haul).",
   },
   {
-    q: "Harta apa saja yang dihitung dalam zakat maal?",
+    q: "Harta apa saja yang dihitung?",
     a: "Uang tunai, tabungan, deposito, saldo e-wallet, emas dan perak, piutang yang bisa ditagih, serta persediaan dagang, dikurangi utang jangka pendek yang jatuh tempo dalam setahun.",
   },
   {
-    q: "Harga emas mana yang dipakai?",
-    a: "Zakat penghasilan memakai nisab tetap dari BAZNAS, jadi tidak perlu harga emas. Untuk zakat maal, masukkan harga emas murni per gram di hari kamu menghitung.",
+    q: "Apakah gaji dizakati setiap bulan?",
+    a: "Tidak. Gaji yang kamu terima tidak dizakati per bulan. Sisa gaji yang tersimpan menjadi bagian dari hartamu, lalu dihitung bersama harta lain saat haul tiba.",
   },
   {
     q: "Apakah hasil kalkulator ini pasti benar?",
@@ -81,63 +79,45 @@ export default function ZakatCalculatorPage() {
             Gratis · tanpa daftar
           </p>
           <h1 className="mt-6 max-w-3xl font-editorial text-4xl font-normal leading-[1.05] tracking-[-0.02em] sm:text-6xl">
-            Kalkulator zakat penghasilan &amp; zakat maal
+            Kalkulator zakat maal
           </h1>
           <p className="mt-6 max-w-2xl font-editorial text-base font-light leading-relaxed text-foreground/75 sm:text-lg">
-            Hitung zakat dari gaji bulanan atau dari tabungan, emas, dan piutang yang sudah setahun. Kalkulator memakai
-            nisab resmi BAZNAS untuk penghasilan dan harga emas yang kamu masukkan untuk zakat maal.
+            Hitung zakat dari tabungan, emas, piutang, dan persediaan dagang yang sudah tersimpan setahun. Masukkan harga emas
+            hari ini, dan kalkulator menghitung nisab 85 gram emas serta zakat 2,5% untukmu.
           </p>
 
-          <div className="mt-12 grid gap-6 lg:grid-cols-2">
-            <section aria-labelledby="income-title" className="rounded-2xl border border-white/10 bg-white/[0.02] p-5 sm:p-6">
-              <h2 id="income-title" className="font-editorial text-2xl">
-                Zakat penghasilan
-              </h2>
-              <p className="mb-5 mt-1 font-editorial text-sm font-light text-foreground/65">Untuk gaji atau honor, dibayar bulanan.</p>
-              <IncomeZakat />
-            </section>
-            <section aria-labelledby="maal-title" className="rounded-2xl border border-white/10 bg-white/[0.02] p-5 sm:p-6">
-              <h2 id="maal-title" className="font-editorial text-2xl">
-                Zakat maal
-              </h2>
-              <p className="mb-5 mt-1 font-editorial text-sm font-light text-foreground/65">
-                Untuk harta yang sudah tersimpan satu tahun (haul).
-              </p>
-              <ZakatCalculator plan="FREE" canUseLivePrice={false} embedded />
-            </section>
-          </div>
+          <section
+            aria-labelledby="maal-title"
+            className="mt-12 max-w-2xl rounded-2xl border border-white/10 bg-white/[0.02] p-5 sm:p-6"
+          >
+            <h2 id="maal-title" className="font-editorial text-2xl">
+              Zakat maal
+            </h2>
+            <p className="mb-5 mt-1 font-editorial text-sm font-light text-foreground/65">
+              Untuk harta yang sudah tersimpan satu tahun (haul).
+            </p>
+            <ZakatCalculator plan="FREE" canUseLivePrice={false} embedded />
+          </section>
         </div>
       </section>
 
       <section aria-labelledby="how-title" className="py-20 sm:py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
-          <SectionHeading index="01" kicker="Panduan" id="how-title" title="Cara menghitung zakat" />
-          <div className="mt-10 grid gap-10 font-editorial font-light leading-relaxed text-foreground/75 md:grid-cols-2">
-            <div className="space-y-3">
-              <h3 className="text-lg font-normal text-foreground">Zakat penghasilan</h3>
-              <p>
-                Rumusnya: <strong className="font-medium text-foreground">2,5% × penghasilan kotor per bulan</strong>, bila
-                penghasilan itu mencapai nisab bulanan BAZNAS, {toIDR(INCOME_NISAB_MONTHLY)} untuk {INCOME_NISAB_YEAR}.
-              </p>
-              <p>
-                Contoh: gaji Rp 15.000.000 sudah melewati nisab, sehingga zakatnya Rp 375.000 per bulan.{" "}
-                <Link href="/panduan/cara-menghitung-zakat-penghasilan" className="text-foreground underline underline-offset-4">
-                  Baca panduan lengkapnya
-                </Link>
-                .
-              </p>
-            </div>
-            <div className="space-y-3">
-              <h3 className="text-lg font-normal text-foreground">Zakat maal</h3>
-              <p>
-                Jumlahkan uang tunai dan tabungan, emas dan perak, piutang yang bisa ditagih, serta persediaan dagang, lalu
-                kurangi utang jangka pendek. Bila hasilnya mencapai nisab 85 gram emas dan sudah tersimpan setahun, zakatnya{" "}
-                <strong className="font-medium text-foreground">2,5% dari total harta itu</strong>.
-              </p>
-              <p>
-                Contoh: harta bersih Rp 200.000.000 dengan nisab Rp 170.000.000 sudah wajib zakat, yaitu Rp 5.000.000.
-              </p>
-            </div>
+          <SectionHeading index="01" kicker="Panduan" id="how-title" title="Cara menghitung zakat maal" />
+          <div className="mt-10 max-w-3xl space-y-4 font-editorial font-light leading-relaxed text-foreground/75">
+            <p>
+              Jumlahkan uang tunai dan tabungan, emas dan perak, piutang yang bisa ditagih, serta persediaan dagang, lalu kurangi
+              utang jangka pendek. Bila hasilnya mencapai nisab 85 gram emas dan sudah tersimpan setahun, zakatnya{" "}
+              <strong className="font-medium text-foreground">2,5% dari total harta itu</strong>.
+            </p>
+            <p>
+              Contoh: dengan harga emas Rp 2.000.000 per gram, nisabnya Rp 170.000.000. Harta bersih Rp 200.000.000 yang sudah
+              setahun wajib dizakati Rp 5.000.000.{" "}
+              <Link href="/panduan/cara-menghitung-zakat-maal" className="text-foreground underline underline-offset-4">
+                Baca panduan lengkapnya
+              </Link>
+              .
+            </p>
           </div>
         </div>
       </section>

@@ -1,7 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert';
 import {
-  calcIncomeZakat,
   calcNisab,
   calcZakat,
   GOLD_NISAB_GRAMS,
@@ -54,10 +53,4 @@ test('calcZakat handles invalid values', () => {
 
   res = calcZakat(1000, 0, NaN);
   assert.deepEqual(res, { obligatory: true, amount: 1000 * ZAKAT_RATE });
-});
-
-test('calcIncomeZakat: 2.5% of gross monthly income from the BAZNAS 2026 nisab', () => {
-  assert.deepEqual(calcIncomeZakat(7_000_000), { obligatory: false, amount: 0 });
-  assert.deepEqual(calcIncomeZakat(7_640_144), { obligatory: true, amount: 191_003.6 });
-  assert.deepEqual(calcIncomeZakat(10_000_000), { obligatory: true, amount: 250_000 });
 });

@@ -117,7 +117,7 @@ export default function ZakatCalculator({
       {/* Price */}
       <section className="space-y-2">
         <div className="flex items-center justify-between">
-          <label className="text-sm font-medium">
+          <label htmlFor="zakat-gold-price" className="text-sm font-medium">
             {t("Harga emas per gram (IDR)", "Gold price per gram (IDR)")}
           </label>
           {plan === "PRO" ? (
@@ -140,6 +140,7 @@ export default function ZakatCalculator({
           )}
         </div>
         <input
+          id="zakat-gold-price"
           type="number"
           inputMode="numeric"
           className="w-full rounded-md border bg-background p-2 text-base"
@@ -174,10 +175,11 @@ export default function ZakatCalculator({
       {/* Inputs: assets/liabilities */}
       <section className="grid gap-3">
         <div className="grid gap-1">
-          <label className="text-sm">{t("Aset likuid (Kas/Bank/E-wallet)", "Liquid assets (cash/bank/e-wallet)")}</label>
+          <label htmlFor="zakat-cash" className="text-sm">{t("Aset likuid (Kas/Bank/E-wallet)", "Liquid assets (cash/bank/e-wallet)")}</label>
           <input
             type="number"
             className="rounded-md border bg-background p-2 text-base"
+            id="zakat-cash"
             value={assets.cash}
             onChange={(e) =>
               setAssets((a) => ({
@@ -188,10 +190,11 @@ export default function ZakatCalculator({
           />
         </div>
         <div className="grid gap-1">
-          <label className="text-sm">{t("Emas/Perak (nilai IDR)", "Gold/silver (IDR value)")}</label>
+          <label htmlFor="zakat-metals" className="text-sm">{t("Emas/Perak (nilai IDR)", "Gold/silver (IDR value)")}</label>
           <input
             type="number"
             className="rounded-md border bg-background p-2 text-base"
+            id="zakat-metals"
             value={assets.metals}
             onChange={(e) =>
               setAssets((a) => ({
@@ -202,10 +205,11 @@ export default function ZakatCalculator({
           />
         </div>
         <div className="grid gap-1">
-          <label className="text-sm">{t("Piutang tertagih", "Collectible receivables")}</label>
+          <label htmlFor="zakat-receivables" className="text-sm">{t("Piutang tertagih", "Collectible receivables")}</label>
           <input
             type="number"
             className="rounded-md border bg-background p-2 text-base"
+            id="zakat-receivables"
             value={assets.receivables}
             onChange={(e) =>
               setAssets((a) => ({
@@ -216,10 +220,11 @@ export default function ZakatCalculator({
           />
         </div>
         <div className="grid gap-1">
-          <label className="text-sm">{t("Persediaan dagang", "Trade inventory")}</label>
+          <label htmlFor="zakat-inventory" className="text-sm">{t("Persediaan dagang", "Trade inventory")}</label>
           <input
             type="number"
             className="rounded-md border bg-background p-2 text-base"
+            id="zakat-inventory"
             value={assets.inventory}
             onChange={(e) =>
               setAssets((a) => ({
@@ -230,10 +235,11 @@ export default function ZakatCalculator({
           />
         </div>
         <div className="grid gap-1">
-          <label className="text-sm">{t("Utang jangka pendek (≤ 1 tahun)", "Short-term debts (≤ 1 year)")}</label>
+          <label htmlFor="zakat-short-term" className="text-sm">{t("Utang jangka pendek (≤ 1 tahun)", "Short-term debts (≤ 1 year)")}</label>
           <input
             type="number"
             className="rounded-md border bg-background p-2 text-base"
+            id="zakat-short-term"
             value={liabs.shortTerm}
             onChange={(e) =>
               setLiabs({ shortTerm: parseFloat(e.target.value) || 0 })
