@@ -3,14 +3,12 @@
 import { useState } from 'react';
 import { Label } from '@/components/ui/label';
 import { MoneyInput } from '@/components/ui/money-input';
-import { GOLD_NISAB_GRAMS, calcIncomeZakat, calcNisab, toIDR } from '@/lib/zakat';
+import { INCOME_NISAB_MONTHLY, INCOME_NISAB_YEAR, calcIncomeZakat, toIDR } from '@/lib/zakat';
 
-/** Zakat penghasilan for the public calculator: monthly income against a twelfth of the gold nisab. */
+/** Zakat penghasilan: gross monthly income against the BAZNAS monthly nisab. */
 export function IncomeZakat() {
   const [income, setIncome] = useState(0);
-  const [goldPrice, setGoldPrice] = useState(0);
-  const monthlyNisab = calcNisab(goldPrice, GOLD_NISAB_GRAMS) / 12;
-  const { obligatory, amount } = calcIncomeZakat(income, goldPrice);
+  const { obligatory, amount } = calcIncomeZakat(income);
 
   return (
     <div className="space-y-4">
@@ -18,18 +16,14 @@ export function IncomeZakat() {
         <Label htmlFor="zakat-income">Penghasilan kotor per bulan</Label>
         <MoneyInput id="zakat-income" currency="IDR" value={income} onValueChange={setIncome} />
       </div>
-      <div className="space-y-2">
-        <Label htmlFor="zakat-gold">Harga emas per gram</Label>
-        <MoneyInput id="zakat-gold" currency="IDR" value={goldPrice} onValueChange={setGoldPrice} />
-      </div>
       <dl className="space-y-2 rounded-lg border border-white/10 p-4 text-sm" aria-live="polite">
         <div className="flex justify-between gap-4">
-          <dt className="text-muted-foreground">Nisab per bulan ({GOLD_NISAB_GRAMS} g emas ÷ 12)</dt>
-          <dd className="tabular-nums">{toIDR(monthlyNisab)}</dd>
+          <dt className="text-muted-foreground">Nisab per bulan (BAZNAS {INCOME_NISAB_YEAR})</dt>
+          <dd className="tabular-nums">{toIDR(INCOME_NISAB_MONTHLY)}</dd>
         </div>
         <div className="flex justify-between gap-4">
           <dt className="text-muted-foreground">Status</dt>
-          <dd>{goldPrice > 0 && income > 0 ? (obligatory ? 'Wajib zakat' : 'Belum wajib') : '—'}</dd>
+          <dd>{income > 0 ? (obligatory ? 'Wajib zakat' : 'Belum wajib') : '—'}</dd>
         </div>
         <div className="flex justify-between gap-4 border-t border-white/10 pt-2 font-medium">
           <dt>Zakat penghasilan (2,5%)</dt>
@@ -38,6 +32,9 @@ export function IncomeZakat() {
           </dd>
         </div>
       </dl>
+      <p className="text-xs text-muted-foreground">
+        Nisab setara 85 gram emas 14 karat per tahun, sesuai SK Ketua BAZNAS No. 15 Tahun 2026.
+      </p>
     </div>
   );
 }

@@ -8,10 +8,11 @@ import { IncomeZakat } from "@/components/marketing/income-zakat";
 import ZakatCalculator from "@/app/(dashboard)/zakat/zakat-calculator";
 import { BRAND } from "@/lib/brand";
 import { TRIAL_DAYS } from "@/lib/plans";
+import { INCOME_NISAB_MONTHLY, INCOME_NISAB_YEAR, toIDR } from "@/lib/zakat";
 
 const title = `Kalkulator Zakat Penghasilan & Zakat Maal Online — ${BRAND.name}`;
 const description =
-  "Hitung zakat penghasilan bulanan dan zakat maal (tabungan, emas, piutang) secara gratis. Lengkap dengan nisab 85 gram emas, tarif 2,5%, dan contoh perhitungan.";
+  "Hitung zakat penghasilan bulanan dengan nisab BAZNAS 2026 (Rp 7.640.144) dan zakat maal dari tabungan, emas, dan piutang. Gratis, lengkap dengan contoh perhitungan.";
 
 export const metadata: Metadata = {
   title,
@@ -31,7 +32,7 @@ export const metadata: Metadata = {
 const FAQS = [
   {
     q: "Berapa nisab zakat penghasilan?",
-    a: "Nisab zakat penghasilan setara 85 gram emas per tahun. Bila dibayar bulanan, penghasilan dibandingkan dengan seperduabelas nilai itu. Dengan harga emas Rp 2.000.000 per gram, nisabnya sekitar Rp 14.166.667 per bulan.",
+    a: `Untuk ${INCOME_NISAB_YEAR}, BAZNAS menetapkan nisab zakat penghasilan ${toIDR(INCOME_NISAB_MONTHLY)} per bulan, setara 85 gram emas 14 karat per tahun (SK Ketua BAZNAS No. 15 Tahun 2026).`,
   },
   {
     q: "Berapa persen zakat penghasilan dan zakat maal?",
@@ -43,7 +44,7 @@ const FAQS = [
   },
   {
     q: "Harga emas mana yang dipakai?",
-    a: "Gunakan harga emas murni terkini per gram di hari kamu menghitung. Hasil kalkulator mengikuti harga yang kamu masukkan.",
+    a: "Zakat penghasilan memakai nisab tetap dari BAZNAS, jadi tidak perlu harga emas. Untuk zakat maal, masukkan harga emas murni per gram di hari kamu menghitung.",
   },
   {
     q: "Apakah hasil kalkulator ini pasti benar?",
@@ -83,8 +84,8 @@ export default function ZakatCalculatorPage() {
             Kalkulator zakat penghasilan &amp; zakat maal
           </h1>
           <p className="mt-6 max-w-2xl font-editorial text-base font-light leading-relaxed text-foreground/75 sm:text-lg">
-            Hitung zakat dari gaji bulanan atau dari tabungan, emas, dan piutang yang sudah setahun. Masukkan harga emas
-            hari ini, dan kalkulator menghitung nisab serta zakat 2,5% untukmu.
+            Hitung zakat dari gaji bulanan atau dari tabungan, emas, dan piutang yang sudah setahun. Kalkulator memakai
+            nisab resmi BAZNAS untuk penghasilan dan harga emas yang kamu masukkan untuk zakat maal.
           </p>
 
           <div className="mt-12 grid gap-6 lg:grid-cols-2">
@@ -116,11 +117,14 @@ export default function ZakatCalculatorPage() {
               <h3 className="text-lg font-normal text-foreground">Zakat penghasilan</h3>
               <p>
                 Rumusnya: <strong className="font-medium text-foreground">2,5% × penghasilan kotor per bulan</strong>, bila
-                penghasilan itu mencapai nisab bulanan, yaitu nilai 85 gram emas dibagi 12.
+                penghasilan itu mencapai nisab bulanan BAZNAS, {toIDR(INCOME_NISAB_MONTHLY)} untuk {INCOME_NISAB_YEAR}.
               </p>
               <p>
-                Contoh: harga emas Rp 2.000.000 per gram, jadi nisab setahun Rp 170.000.000 dan nisab per bulan sekitar
-                Rp 14.166.667. Gaji Rp 15.000.000 sudah mencapai nisab, sehingga zakatnya Rp 375.000 per bulan.
+                Contoh: gaji Rp 15.000.000 sudah melewati nisab, sehingga zakatnya Rp 375.000 per bulan.{" "}
+                <Link href="/panduan/cara-menghitung-zakat-penghasilan" className="text-foreground underline underline-offset-4">
+                  Baca panduan lengkapnya
+                </Link>
+                .
               </p>
             </div>
             <div className="space-y-3">
