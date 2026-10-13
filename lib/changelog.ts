@@ -19,6 +19,7 @@ export const CHANGELOG: ChangelogEntry[] = [
     title: 'Laporan lebih rapi',
     items: [
       { type: 'peningkatan', text: 'Laporan lebih rapi saat kategorinya banyak: donut dengan total di tengah dan daftar semua kategori, serta budget per kategori sebagai bar sisa/lebih.' },
+      { type: 'perbaikan', text: 'Menu Lainnya kini menampilkan sisa hari PRO gratis untuk akun baru.' },
     ],
   },
   {
