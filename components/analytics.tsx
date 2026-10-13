@@ -3,7 +3,8 @@
 import { useEffect } from 'react';
 import Script from 'next/script';
 import { usePathname } from 'next/navigation';
-import { GA_ID, analyticsPath, gtag } from '@/lib/analytics';
+import { GA_ID, analyticsPath, appPlatform, gtag } from '@/lib/analytics';
+import { isStandalone } from '@/lib/pwa';
 
 let started = false;
 
@@ -19,6 +20,7 @@ export function Analytics() {
     if (!started) {
       started = true;
       gtag('js', new Date());
+      gtag('set', 'user_properties', { app_platform: appPlatform(navigator.userAgent, isStandalone()) });
       gtag('config', GA_ID, { send_page_view: false });
     }
     gtag('event', 'page_view', { page_location, page_title: document.title });
