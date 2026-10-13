@@ -39,4 +39,9 @@ test('split a bill: my share is spending, friends owe the rest', async ({ page, 
     ['receivable', 'Budi', 100000],
   ]);
   await expect(page.getByRole('button', { name: /Makan bareng/ })).toBeVisible();
+
+  // Next time, friends' names are suggested.
+  await page.getByRole('button', { name: 'Patungan' }).click();
+  await expect(page.locator('#split-people option')).toHaveCount(2);
+  await expect(page.locator('#split-people option[value="Budi"]')).toHaveCount(1);
 });

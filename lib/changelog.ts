@@ -18,6 +18,8 @@ export const CHANGELOG: ChangelogEntry[] = [
     date: '2026-10-13',
     title: 'Laporan, patungan & hutang lebih rapi',
     items: [
+      { type: 'baru', text: 'Nama teman dari hutang/piutang sebelumnya muncul sebagai saran saat mengisi Patungan dan hutang baru.' },
+      { type: 'peningkatan', text: 'Tombol Patungan, Transaksi rutin, dan Scan struk di halaman Transaksi kini ada tulisannya.' },
       { type: 'perbaikan', text: 'Tanggal hutang/piutang yang dicatat tanpa akun kini tersimpan, tidak lagi berubah jadi hari ini.' },
       { type: 'baru', text: 'Hutang dan piutang bisa diubah lewat menu ⋮: nama, nominal, tanggal, jatuh tempo, dan catatan.' },
       { type: 'peningkatan', text: 'Hutang yang lewat jatuh tempo tampil paling atas; yang sudah lunas tampil ringkas di bawah.' },
