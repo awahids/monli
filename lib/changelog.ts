@@ -16,8 +16,13 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '2026.10.13',
     date: '2026-10-13',
-    title: 'Laporan lebih rapi',
+    title: 'Laporan, patungan & hutang lebih rapi',
     items: [
+      { type: 'perbaikan', text: 'Tanggal hutang/piutang yang dicatat tanpa akun kini tersimpan, tidak lagi berubah jadi hari ini.' },
+      { type: 'baru', text: 'Hutang dan piutang bisa diubah lewat menu ⋮: nama, nominal, tanggal, jatuh tempo, dan catatan.' },
+      { type: 'peningkatan', text: 'Hutang yang lewat jatuh tempo tampil paling atas; yang sudah lunas tampil ringkas di bawah.' },
+      { type: 'peningkatan', text: 'Form hutang langsung memilih akun pertama dan menunjukkan saldo mana yang bertambah atau berkurang.' },
+      { type: 'peningkatan', text: 'Patungan: alasan tombol Simpan belum aktif tampil di dekatnya, bagian "Saya" langsung terisi kategori terakhir, dan Bagi rata kini berupa tombol.' },
       { type: 'perbaikan', text: 'Layar tidak lagi membesar sendiri di iPhone saat mengisi form, termasuk patungan dan hutang piutang.' },
       { type: 'peningkatan', text: 'Laporan lebih rapi saat kategorinya banyak: donut dengan total di tengah dan daftar semua kategori, serta budget per kategori sebagai bar sisa/lebih.' },
       { type: 'perbaikan', text: 'Menu Lainnya kini menampilkan sisa hari PRO gratis untuk akun baru.' },

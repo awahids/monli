@@ -15,6 +15,7 @@ test('lending and repayments move the account balance, not income or expenses', 
   await form.getByLabel('Dipinjam oleh').fill('Budi');
   await form.getByLabel('Nominal').fill('200000');
   await form.getByLabel('Uang keluar dari akun').selectOption({ label: 'Dompet' });
+  await expect(form.getByTestId('debt-account-effect')).toHaveText('Saldo Dompet berkurang Rp 200.000.');
   // iOS zooms the page into any field under 16px when it is focused.
   const sizes = await form.locator('input:not([type=radio]):not([type=checkbox]), select, textarea')
     .evaluateAll((els) => els.map((el) => parseFloat(getComputedStyle(el).fontSize)));
@@ -47,7 +48,19 @@ test('lending and repayments move the account balance, not income or expenses', 
   await expect(page.getByTestId('debt-remaining')).toHaveText('Rp 200.000');
   expect(await balance()).toBe(300000);
 
+  // Fixing the amount moves the balance by the difference.
   await page.getByRole('button', { name: 'Opsi Budi' }).click();
+  await page.getByRole('menuitem', { name: 'Ubah' }).click();
+  const edit = page.getByRole('dialog', { name: 'Ubah piutang' });
+  await expect(edit.getByLabel('Dipinjam oleh')).toHaveValue('Budi');
+  await edit.getByLabel('Dipinjam oleh').fill('Budi Santoso');
+  await edit.getByLabel('Nominal').fill('250000');
+  await edit.getByRole('button', { name: 'Simpan' }).click();
+  await expect(page.getByText('Perubahan disimpan')).toBeVisible();
+  await expect(page.getByTestId('debt-remaining')).toHaveText('Rp 250.000');
+  expect(await balance()).toBe(250000);
+
+  await page.getByRole('button', { name: 'Opsi Budi Santoso' }).click();
   await page.getByRole('menuitem', { name: 'Hapus' }).click();
   await page.getByRole('alertdialog').getByRole('button', { name: 'Hapus' }).click();
   await expect(page.getByText('Belum ada hutang atau piutang')).toBeVisible();
@@ -61,12 +74,18 @@ test('a record-only debt leaves balances alone', async ({ page, user, admin }) =
   const form = page.getByRole('dialog');
   await form.getByLabel('Pinjam dari').fill('Ani');
   await form.getByLabel('Nominal').fill('1000000');
+  await form.getByLabel('Uang masuk ke akun').selectOption({ label: 'Tanpa akun (hanya dicatat)' });
+  await expect(form.getByTestId('debt-account-effect')).toHaveText('Hanya dicatat, saldo akun tidak berubah.');
+  await form.getByLabel('Tanggal', { exact: true }).fill('2026-07-10');
   await form.getByRole('button', { name: 'Simpan' }).click();
   await expect(page.getByTestId('total-payable')).toHaveText('Rp 1.000.000');
+  // The date is kept even though no account was used.
+  await expect(page.getByTestId('debt-card')).toContainText('10 Jul 2026');
   await page.getByRole('button', { name: 'Bayar' }).click();
   await page.getByRole('dialog').getByRole('button', { name: 'Catat pembayaran' }).click();
   await expect(page.getByText('Lunas!')).toBeVisible();
   await expect(page.getByTestId('total-payable')).toHaveText('Rp 0');
+  await expect(page.getByTestId('debt-settled')).toContainText('Lunas');
   const { data } = await admin.from('accounts').select('current_balance').eq('id', user.accountId).single();
   expect(Number(data?.current_balance)).toBe(500000);
 });

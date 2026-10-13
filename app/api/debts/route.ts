@@ -51,20 +51,19 @@ export async function POST(req: Request) {
       .select('*')
       .single();
     if (error) return NextResponse.json({ error: error.message }, { status: 400 });
-    // The money borrowed or lent; the trigger moves the account balance.
-    if (body.accountId) {
-      const { error: entryError } = await supabase.from('debt_entries').insert({
-        debt_id: data.id,
-        user_id: space.ownerId,
-        kind: 'principal',
-        amount: body.amount,
-        account_id: body.accountId,
-        ...(body.date && { date: body.date }),
-      });
-      if (entryError) {
-        await supabase.from('debts').delete().eq('id', data.id);
-        return NextResponse.json({ error: entryError.message }, { status: 400 });
-      }
+    // The money borrowed or lent, kept even without an account so its date is
+    // stored; the trigger moves the account balance when there is one.
+    const { error: entryError } = await supabase.from('debt_entries').insert({
+      debt_id: data.id,
+      user_id: space.ownerId,
+      kind: 'principal',
+      amount: body.amount,
+      account_id: body.accountId ?? null,
+      ...(body.date && { date: body.date }),
+    });
+    if (entryError) {
+      await supabase.from('debts').delete().eq('id', data.id);
+      return NextResponse.json({ error: entryError.message }, { status: 400 });
     }
     return NextResponse.json(data, { status: 201 });
   } catch (e) {

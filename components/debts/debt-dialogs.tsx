@@ -57,9 +57,9 @@ function AccountSelect({
   );
 }
 
-async function post(url: string, body: unknown) {
+async function send(url: string, body: unknown, method = 'POST') {
   const res = await fetch(url, {
-    method: 'POST',
+    method,
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   });
@@ -71,12 +71,14 @@ interface DebtFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   kind: DebtKind;
+  /** The debt being edited; a new one when absent. */
+  debt?: Debt | null;
   accounts: Account[];
   /** `moved` is true when an account balance changed. */
   onSaved: (moved: boolean) => void;
 }
 
-export function DebtFormDialog({ open, onOpenChange, kind: initialKind, accounts, onSaved }: DebtFormProps) {
+export function DebtFormDialog({ open, onOpenChange, kind: initialKind, debt, accounts, onSaved }: DebtFormProps) {
   const [kind, setKind] = useState<DebtKind>(initialKind);
   const { t } = useT();
   const [person, setPerson] = useState('');
@@ -88,17 +90,24 @@ export function DebtFormDialog({ open, onOpenChange, kind: initialKind, accounts
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
+  const principal = debt?.entries?.find((e) => e.kind === 'principal');
+
   useEffect(() => {
     if (!open) return;
-    setKind(initialKind);
-    setPerson('');
-    setAmount(0);
-    setAccountId('');
-    setDate(formatDate(new Date()));
-    setDueDate('');
-    setNote('');
+    setKind(debt?.kind ?? initialKind);
+    setPerson(debt?.person ?? '');
+    setAmount(debt?.amount ?? 0);
+    // Cash usually changes hands, so start from the first account.
+    setAccountId(accounts[0]?.id ?? '');
+    setDate(principal?.date ?? debt?.created_at.slice(0, 10) ?? formatDate(new Date()));
+    setDueDate(debt?.due_date ?? '');
+    setNote(debt?.note ?? '');
     setError(null);
-  }, [open, initialKind]);
+    // Reset only when the dialog opens.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, initialKind, debt]);
+
+  const accountName = accounts.find((a) => a.id === accountId)?.name;
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -106,18 +115,23 @@ export function DebtFormDialog({ open, onOpenChange, kind: initialKind, accounts
     if (amount <= 0) return setError(t('Masukkan nominal', 'Enter an amount'));
     setSaving(true);
     try {
-      await post('/api/debts', {
-        kind,
-        person,
-        amount,
-        accountId: accountId || null,
-        date,
-        dueDate: dueDate || null,
-        note: note || null,
-      });
-      toast.success(kind === 'payable' ? t('Hutang dicatat', 'Debt recorded') : t('Piutang dicatat', 'Receivable recorded'));
+      if (debt) {
+        await send(`/api/debts/${debt.id}`, { person, amount, date, dueDate: dueDate || null, note: note || null }, 'PATCH');
+        toast.success(t('Perubahan disimpan', 'Changes saved'));
+      } else {
+        await send('/api/debts', {
+          kind,
+          person,
+          amount,
+          accountId: accountId || null,
+          date,
+          dueDate: dueDate || null,
+          note: note || null,
+        });
+        toast.success(kind === 'payable' ? t('Hutang dicatat', 'Debt recorded') : t('Piutang dicatat', 'Receivable recorded'));
+      }
       onOpenChange(false);
-      onSaved(!!accountId);
+      onSaved(debt ? !!principal?.account_id : !!accountId);
     } catch (err) {
       setError(err instanceof Error ? err.message : t('Gagal menyimpan', 'Could not save'));
     } finally {
@@ -129,27 +143,41 @@ export function DebtFormDialog({ open, onOpenChange, kind: initialKind, accounts
     <Dialog open={open} onOpenChange={(o) => !saving && onOpenChange(o)}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{kind === 'payable' ? t('Hutang baru', 'New debt') : t('Piutang baru', 'New receivable')}</DialogTitle>
-          <DialogDescription>{t('Tidak dihitung sebagai pemasukan atau pengeluaran.', 'Not counted as income or spending.')}</DialogDescription>
+          <DialogTitle>
+            {debt
+              ? kind === 'payable'
+                ? t('Ubah hutang', 'Edit debt')
+                : t('Ubah piutang', 'Edit receivable')
+              : kind === 'payable'
+                ? t('Hutang baru', 'New debt')
+                : t('Piutang baru', 'New receivable')}
+          </DialogTitle>
+          <DialogDescription>
+            {debt
+              ? t('Jenis dan akunnya tetap seperti saat dicatat.', 'The type and account stay as recorded.')
+              : t('Tidak dihitung sebagai pemasukan atau pengeluaran.', 'Not counted as income or spending.')}
+          </DialogDescription>
         </DialogHeader>
         <form onSubmit={submit} className="space-y-4" noValidate>
-          <div role="radiogroup" aria-label={t('Jenis', 'Type')} className="grid grid-cols-2 gap-1 rounded-lg bg-muted p-1">
-            {(['payable', 'receivable'] as const).map((k) => (
-              <button
-                key={k}
-                type="button"
-                role="radio"
-                aria-checked={kind === k}
-                onClick={() => setKind(k)}
-                className={cn(
-                  'rounded-md py-1.5 text-sm font-medium transition-colors',
-                  kind === k ? 'bg-background shadow-sm' : 'text-muted-foreground'
-                )}
-              >
-                {k === 'payable' ? t('Saya meminjam', 'I borrowed') : t('Saya meminjamkan', 'I lent')}
-              </button>
-            ))}
-          </div>
+          {!debt && (
+            <div role="radiogroup" aria-label={t('Jenis', 'Type')} className="grid grid-cols-2 gap-1 rounded-lg bg-muted p-1">
+              {(['payable', 'receivable'] as const).map((k) => (
+                <button
+                  key={k}
+                  type="button"
+                  role="radio"
+                  aria-checked={kind === k}
+                  onClick={() => setKind(k)}
+                  className={cn(
+                    'rounded-md py-1.5 text-sm font-medium transition-colors',
+                    kind === k ? 'bg-background shadow-sm' : 'text-muted-foreground'
+                  )}
+                >
+                  {k === 'payable' ? t('Saya meminjam', 'I borrowed') : t('Saya meminjamkan', 'I lent')}
+                </button>
+              ))}
+            </div>
+          )}
           <div className="space-y-2">
             <Label htmlFor="debt-person">{kind === 'payable' ? t('Pinjam dari', 'Borrowed from') : t('Dipinjam oleh', 'Lent to')}</Label>
             <Input
@@ -165,13 +193,24 @@ export function DebtFormDialog({ open, onOpenChange, kind: initialKind, accounts
             <Label htmlFor="debt-amount">{t('Nominal', 'Amount')}</Label>
             <MoneyInput id="debt-amount" value={amount} onValueChange={setAmount} />
           </div>
-          <AccountSelect
-            id="debt-account"
-            label={kind === 'payable' ? t('Uang masuk ke akun', 'Money goes into') : t('Uang keluar dari akun', 'Money comes from')}
-            accounts={accounts}
-            value={accountId}
-            onChange={setAccountId}
-          />
+          {!debt && (
+            <div className="space-y-2">
+              <AccountSelect
+                id="debt-account"
+                label={kind === 'payable' ? t('Uang masuk ke akun', 'Money goes into') : t('Uang keluar dari akun', 'Money comes from')}
+                accounts={accounts}
+                value={accountId}
+                onChange={setAccountId}
+              />
+              <p className="text-xs text-muted-foreground" data-testid="debt-account-effect">
+                {!accountName
+                  ? t('Hanya dicatat, saldo akun tidak berubah.', 'Recorded only; no account balance changes.')
+                  : kind === 'payable'
+                    ? t(`Saldo ${accountName} bertambah ${formatMoney(amount)}.`, `${accountName} goes up by ${formatMoney(amount)}.`)
+                    : t(`Saldo ${accountName} berkurang ${formatMoney(amount)}.`, `${accountName} goes down by ${formatMoney(amount)}.`)}
+              </p>
+            </div>
+          )}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
               <Label htmlFor="debt-date">{t('Tanggal', 'Date')}</Label>
@@ -237,7 +276,7 @@ export function PaymentDialog({ debt, accounts, onOpenChange, onSaved }: Payment
     if (amount <= 0) return;
     setSaving(true);
     try {
-      await post(`/api/debts/${debt.id}/payments`, { amount, accountId: accountId || null, date });
+      await send(`/api/debts/${debt.id}/payments`, { amount, accountId: accountId || null, date });
       toast.success(amount >= remaining ? t('Lunas!', 'Paid off!') : t('Pembayaran dicatat', 'Payment recorded'));
       onOpenChange(false);
       onSaved(!!accountId);

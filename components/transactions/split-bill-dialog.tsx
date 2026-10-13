@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Plus, Trash2, UserPlus } from 'lucide-react';
+import { Equal, Plus, Trash2, UserPlus } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAppStore } from '@/lib/store';
 import { formatMoney } from '@/lib/currency';
@@ -31,7 +31,7 @@ const selectClass =
   'flex h-10 w-full rounded-md border border-input bg-background px-3 text-base ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2';
 
 let nextKey = 0;
-const part = (friend: boolean): Part => ({ key: nextKey++, friend, categoryId: '', person: '', amount: 0 });
+const part = (friend: boolean, categoryId = ''): Part => ({ key: nextKey++, friend, categoryId, person: '', amount: 0 });
 
 interface Props {
   open: boolean;
@@ -44,9 +44,12 @@ interface Props {
  * account drops by the full bill while only my part counts as spending.
  */
 export function SplitBillDialog({ open, onOpenChange }: Props) {
-  const { user, space, accounts, categories } = useAppStore();
+  const { user, space, accounts, categories, transactions } = useAppStore();
   const { t } = useT();
   const expenseCategories = categories.filter((c) => c.type === 'expense');
+  // My share starts in the category of the latest expense (newest first).
+  const lastCategory =
+    transactions.find((x) => x.type === 'expense' && expenseCategories.some((c) => c.id === x.categoryId))?.categoryId ?? '';
   const [total, setTotal] = useState(0);
   const [accountId, setAccountId] = useState('');
   const [date, setDate] = useState('');
@@ -60,7 +63,7 @@ export function SplitBillDialog({ open, onOpenChange }: Props) {
     setAccountId(accounts[0]?.id ?? '');
     setDate(formatDate(new Date()));
     setNote('');
-    setParts([part(false), part(true)]);
+    setParts([part(false, lastCategory), part(true)]);
     // Reset only when the dialog opens.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
@@ -72,8 +75,24 @@ export function SplitBillDialog({ open, onOpenChange }: Props) {
 
   const assigned = parts.reduce((s, p) => s + p.amount, 0);
   const left = total - assigned;
-  const incomplete = parts.some((p) => p.amount <= 0 || (p.friend ? !p.person.trim() : !p.categoryId));
-  const canSave = total > 0 && left === 0 && !incomplete && !!accountId && parts.length > 0;
+  // What still stops Save, shown next to it; null when it can save.
+  const blocker = (() => {
+    if (total <= 0) return t('Isi total tagihan dulu.', 'Enter the bill total first.');
+    if (!parts.length) return t('Tambahkan bagian saya atau teman.', 'Add my share or a friend.');
+    if (left > 0) return t(`Belum dibagi ${formatMoney(left)}`, `${formatMoney(left)} not assigned`);
+    if (left < 0) return t(`Kelebihan ${formatMoney(-left)}`, `${formatMoney(-left)} too much`);
+    const i = parts.findIndex((p) => (p.friend ? !p.person.trim() : !p.categoryId));
+    if (i >= 0) {
+      return parts[i].friend
+        ? t(`Isi nama teman di baris ${i + 1}.`, `Enter the friend's name in row ${i + 1}.`)
+        : t(`Pilih kategori di baris ${i + 1}.`, `Pick a category in row ${i + 1}.`);
+    }
+    const zero = parts.findIndex((p) => p.amount <= 0);
+    if (zero >= 0) return t(`Nominal baris ${zero + 1} masih 0. Isi atau hapus barisnya.`, `Row ${zero + 1} is 0. Fill it in or remove it.`);
+    if (!accountId) return t('Pilih akun pembayar.', 'Pick the account that paid.');
+    return null;
+  })();
+  const canSave = blocker === null;
 
   const update = (key: number, patch: Partial<Part>) =>
     setParts((ps) => ps.map((p) => (p.key === key ? { ...p, ...patch } : p)));
@@ -87,7 +106,7 @@ export function SplitBillDialog({ open, onOpenChange }: Props) {
     if (!user || !canSave) return;
     setSaving(true);
     const ownerId = space?.ownerId ?? user.id;
-    const title = note.trim() || t('Bagi tagihan', 'Split bill');
+    const title = note.trim() || t('Patungan', 'Split bill');
     let saved = 0;
     try {
       for (const p of parts) {
@@ -140,7 +159,7 @@ export function SplitBillDialog({ open, onOpenChange }: Props) {
     <Dialog open={open} onOpenChange={(o) => !saving && onOpenChange(o)}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{t('Bagi tagihan', 'Split bill')}</DialogTitle>
+          <DialogTitle>{t('Patungan', 'Split bill')}</DialogTitle>
           <DialogDescription>
             {t(
               'Bagianmu dicatat sebagai pengeluaran per kategori; bagian teman jadi piutang.',
@@ -183,74 +202,77 @@ export function SplitBillDialog({ open, onOpenChange }: Props) {
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label>{t('Pembagian', 'Shares')}</Label>
-              <Button type="button" variant="ghost" size="sm" onClick={evenly} disabled={total <= 0 || !parts.length}>
-                {t('Bagi rata', 'Split evenly')}
+              <Button type="button" variant="outline" size="sm" onClick={evenly} disabled={total <= 0 || !parts.length}>
+                <Equal className="mr-1 h-4 w-4" /> {t('Bagi rata', 'Split evenly')}
               </Button>
             </div>
             {parts.map((p, i) => (
-              <div key={p.key} className="flex items-center gap-2">
-                {p.friend ? (
-                  <Input
-                    value={p.person}
-                    onChange={(e) => update(p.key, { person: e.target.value })}
-                    placeholder={t('Nama teman', "Friend's name")}
-                    aria-label={t(`Nama teman ${i + 1}`, `Friend name ${i + 1}`)}
-                    maxLength={80}
-                  />
-                ) : (
-                  <select
-                    className={selectClass}
-                    value={p.categoryId}
-                    onChange={(e) => update(p.key, { categoryId: e.target.value })}
-                    aria-label={t(`Kategori bagian ${i + 1}`, `Share category ${i + 1}`)}
+              <div key={p.key} className="space-y-2 rounded-lg border p-2">
+                <div className="flex items-center justify-between">
+                  <span className="pl-1 text-xs font-medium text-muted-foreground">
+                    {p.friend ? t('Teman (jadi piutang)', 'Friend (becomes a receivable)') : t('Saya', 'Me')}
+                  </span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7"
+                    aria-label={t(`Hapus bagian ${i + 1}`, `Remove share ${i + 1}`)}
+                    onClick={() => setParts((ps) => ps.filter((x) => x.key !== p.key))}
                   >
-                    <option value="">{t('Bagianku: kategori…', 'My share: category…')}</option>
-                    {expenseCategories.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.name}
-                      </option>
-                    ))}
-                  </select>
-                )}
-                <MoneyInput
-                  className="w-36 shrink-0"
-                  value={p.amount}
-                  onValueChange={(amount) => update(p.key, { amount })}
-                  aria-label={t(`Nominal bagian ${i + 1}`, `Share amount ${i + 1}`)}
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="shrink-0"
-                  aria-label={t(`Hapus bagian ${i + 1}`, `Remove share ${i + 1}`)}
-                  onClick={() => setParts((ps) => ps.filter((x) => x.key !== p.key))}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="flex items-center gap-2">
+                  {p.friend ? (
+                    <Input
+                      value={p.person}
+                      onChange={(e) => update(p.key, { person: e.target.value })}
+                      placeholder={t('Nama teman', "Friend's name")}
+                      aria-label={t(`Nama teman ${i + 1}`, `Friend name ${i + 1}`)}
+                      maxLength={80}
+                    />
+                  ) : (
+                    <select
+                      className={selectClass}
+                      value={p.categoryId}
+                      onChange={(e) => update(p.key, { categoryId: e.target.value })}
+                      aria-label={t(`Kategori bagian ${i + 1}`, `Share category ${i + 1}`)}
+                    >
+                      <option value="">{t('Pilih kategori', 'Pick a category')}</option>
+                      {expenseCategories.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.name}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                  <MoneyInput
+                    className="w-36 shrink-0"
+                    value={p.amount}
+                    onValueChange={(amount) => update(p.key, { amount })}
+                    aria-label={t(`Nominal bagian ${i + 1}`, `Share amount ${i + 1}`)}
+                  />
+                </div>
               </div>
             ))}
             <div className="flex gap-2">
-              <Button type="button" variant="outline" size="sm" onClick={() => setParts((ps) => [...ps, part(false)])}>
+              <Button type="button" variant="outline" size="sm" onClick={() => setParts((ps) => [...ps, part(false, lastCategory)])}>
                 <Plus className="mr-1 h-4 w-4" /> {t('Kategori', 'Category')}
               </Button>
               <Button type="button" variant="outline" size="sm" onClick={() => setParts((ps) => [...ps, part(true)])}>
                 <UserPlus className="mr-1 h-4 w-4" /> {t('Teman', 'Friend')}
               </Button>
             </div>
-            <p
-              role="status"
-              className={cn('text-sm', left === 0 ? 'text-muted-foreground' : 'text-amber-700 dark:text-amber-400')}
-            >
-              {left === 0
-                ? t('Pas dengan total.', 'Matches the total.')
-                : left > 0
-                  ? t(`Belum dibagi ${formatMoney(left)}`, `${formatMoney(left)} not assigned`)
-                  : t(`Kelebihan ${formatMoney(-left)}`, `${formatMoney(-left)} too much`)}
-            </p>
           </div>
         </div>
-        <DialogFooter>
+        <DialogFooter className="flex-col">
+          <p
+            role="status"
+            className={cn('text-center text-sm', canSave ? 'text-muted-foreground' : 'text-amber-700 dark:text-amber-400')}
+          >
+            {blocker ?? t('Pas dengan total.', 'Matches the total.')}
+          </p>
           <Button type="button" className="w-full" onClick={save} disabled={saving || !canSave}>
             {saving ? t('Menyimpan...', 'Saving...') : t('Simpan', 'Save')}
           </Button>

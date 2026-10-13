@@ -2,13 +2,13 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { format } from 'date-fns';
-import { HandCoins, MoreVertical, Plus, Trash2, Undo2 } from 'lucide-react';
+import { CheckCircle2, HandCoins, MoreVertical, Pencil, Plus, Trash2, Undo2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { useAppStore } from '@/lib/store';
 import { formatMoney } from '@/lib/currency';
 import { formatDate } from '@/lib/date';
-import { type Debt, type DebtKind, debtStatus, debtTotals } from '@/lib/debts';
+import { type Debt, type DebtKind, compareDebts, debtStatus, debtTotals } from '@/lib/debts';
 import { ensureFormOptions, refreshActiveAccounts } from '@/lib/transactions-client';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -37,6 +37,7 @@ export default function DebtsPage() {
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<DebtKind>('payable');
   const [formOpen, setFormOpen] = useState(false);
+  const [editing, setEditing] = useState<Debt | null>(null);
   const [paying, setPaying] = useState<Debt | null>(null);
   const [deleting, setDeleting] = useState<Debt | null>(null);
 
@@ -44,8 +45,7 @@ export default function DebtsPage() {
   const totals = debtTotals(debts);
   const shown = debts
     .filter((d) => d.kind === tab)
-    // Open ones first; settled ones sink to the bottom.
-    .sort((a, b) => Number(debtStatus(a, today).settled) - Number(debtStatus(b, today).settled));
+    .sort(compareDebts);
   const accountName = (id: string | null) => accounts.find((a) => a.id === id)?.name;
 
   const fetchDebts = useCallback(async () => {
@@ -161,7 +161,7 @@ export default function DebtsPage() {
               const principal = d.entries?.find((e) => e.kind === 'principal');
               const from = accountName(principal?.account_id ?? null);
               return (
-                <Card key={d.id} className={cn('flex flex-col gap-4 p-4', s.settled && 'opacity-70')} data-testid="debt-card">
+                <Card key={d.id} className={cn('flex flex-col p-4', s.settled ? 'gap-2 opacity-70' : 'gap-4')} data-testid="debt-card">
                   <div className="flex items-start gap-3">
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-display font-semibold">{d.person}</p>
@@ -176,6 +176,14 @@ export default function DebtsPage() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
+                        <DropdownMenuItem
+                          onClick={() => {
+                            setEditing(d);
+                            setFormOpen(true);
+                          }}
+                        >
+                          <Pencil className="mr-2 h-4 w-4" /> {t('Ubah', 'Edit')}
+                        </DropdownMenuItem>
                         <DropdownMenuItem className="text-destructive" onClick={() => setDeleting(d)}>
                           <Trash2 className="mr-2 h-4 w-4" /> {t('Hapus', 'Delete')}
                         </DropdownMenuItem>
@@ -183,34 +191,38 @@ export default function DebtsPage() {
                     </DropdownMenu>
                   </div>
 
-                  <div className="space-y-2">
-                    <div className="flex items-baseline justify-between gap-2">
-                      <span className="font-display text-xl font-bold tabular-nums" data-testid="debt-remaining">
-                        {formatMoney(s.remaining)}
-                      </span>
-                      <span className="text-sm text-muted-foreground tabular-nums">
-                        {t('dari', 'of')} {formatMoney(d.amount)}
-                      </span>
-                    </div>
-                    <Progress value={s.pct} className="h-2" />
-                  </div>
+                  {s.settled ? (
+                    <p className="flex items-center gap-2 text-sm font-medium text-green-700 dark:text-green-400" data-testid="debt-settled">
+                      <CheckCircle2 className="h-4 w-4" />
+                      {t('Lunas', 'Paid off')}
+                      <span className="ml-auto font-normal tabular-nums text-muted-foreground">{formatMoney(d.amount)}</span>
+                    </p>
+                  ) : (
+                    <>
+                      <div className="space-y-2">
+                        <div className="flex items-baseline justify-between gap-2">
+                          <span className="font-display text-xl font-bold tabular-nums" data-testid="debt-remaining">
+                            {formatMoney(s.remaining)}
+                          </span>
+                          <span className="text-sm text-muted-foreground tabular-nums">
+                            {t('dari', 'of')} {formatMoney(d.amount)}
+                          </span>
+                        </div>
+                        <Progress value={s.pct} className="h-2" />
+                      </div>
 
-                  <p
-                    className={cn(
-                      'rounded-md px-3 py-2 text-xs',
-                      s.settled
-                        ? 'bg-green-500/10 text-green-700 dark:text-green-400'
-                        : s.overdue
-                        ? 'bg-amber-500/10 text-amber-700 dark:text-amber-400'
-                        : 'bg-muted text-muted-foreground'
-                    )}
-                  >
-                    {s.settled
-                      ? t('Lunas', 'Paid off')
-                      : d.due_date
-                      ? `${s.overdue ? t('Lewat jatuh tempo', 'Overdue since') : t('Jatuh tempo', 'Due')} ${day(d.due_date)}`
-                      : t('Tanpa jatuh tempo', 'No due date')}
-                  </p>
+                      <p
+                        className={cn(
+                          'rounded-md px-3 py-2 text-xs',
+                          s.overdue ? 'bg-amber-500/10 text-amber-700 dark:text-amber-400' : 'bg-muted text-muted-foreground'
+                        )}
+                      >
+                        {d.due_date
+                          ? `${s.overdue ? t('Lewat jatuh tempo', 'Overdue since') : t('Jatuh tempo', 'Due')} ${day(d.due_date)}`
+                          : t('Tanpa jatuh tempo', 'No due date')}
+                      </p>
+                    </>
+                  )}
 
                   {payments.length > 0 && (
                     <ul className="space-y-1 text-sm" aria-label={t(`Pembayaran ${d.person}`, `Payments from ${d.person}`)}>
@@ -247,7 +259,17 @@ export default function DebtsPage() {
         </>
       )}
 
-      <DebtFormDialog open={formOpen} onOpenChange={setFormOpen} kind={tab} accounts={accounts} onSaved={changed} />
+      <DebtFormDialog
+        open={formOpen}
+        onOpenChange={(o) => {
+          setFormOpen(o);
+          if (!o) setEditing(null);
+        }}
+        kind={tab}
+        debt={editing}
+        accounts={accounts}
+        onSaved={changed}
+      />
       <PaymentDialog debt={paying} accounts={accounts} onOpenChange={(o) => !o && setPaying(null)} onSaved={changed} />
       <ConfirmDialog
         open={deleting !== null}
