@@ -1,9 +1,8 @@
-# robots.txt for Google Search indexing
 User-agent: *
 Allow: /
-# Allow authentication routes to be indexed
-# removing previous disallow rule
-Allow: /auth/
+# App pages sit behind sign-in; invite links and the API are not content.
+Disallow: /api/
+Disallow: /invite/
 Disallow: /zakat
 
 Sitemap: https://monli.fun/sitemap.xml
