@@ -86,6 +86,9 @@ test('a record-only debt leaves balances alone', async ({ page, user, admin }) =
   await expect(page.getByText('Lunas!')).toBeVisible();
   await expect(page.getByTestId('total-payable')).toHaveText('Rp 0');
   await expect(page.getByTestId('debt-settled')).toContainText('Lunas');
+  // Earlier names are suggested in the form.
+  await page.getByRole('button', { name: 'Tambah' }).click();
+  await expect(page.locator('#debt-people option[value="Ani"]')).toHaveCount(1);
   const { data } = await admin.from('accounts').select('current_balance').eq('id', user.accountId).single();
   expect(Number(data?.current_balance)).toBe(500000);
 });

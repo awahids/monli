@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { compareDebts, debtStatus, debtTotals } from './debts';
+import { compareDebts, debtStatus, debtTotals, knownPeople } from './debts';
 
 test('debtStatus: remaining, progress, overdue, settled', () => {
   assert.deepEqual(debtStatus({ amount: 200000, paid: 50000, due_date: '2026-10-01' }, '2026-10-07'), {
@@ -38,4 +38,11 @@ test('compareDebts: overdue, then nearest due, then no due date, then settled', 
     [...debts].sort(compareDebts).map((d) => d.id),
     ['overdue', 'next-week', 'january', 'no-due', 'settled']
   );
+});
+
+test('knownPeople: newest first, each name once ignoring case', () => {
+  assert.deepEqual(knownPeople([{ person: 'Budi Santoso' }, { person: 'ani' }, { person: 'Ani ' }, { person: 'budi santoso' }]), [
+    'Budi Santoso',
+    'ani',
+  ]);
 });

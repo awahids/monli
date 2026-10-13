@@ -74,11 +74,13 @@ interface DebtFormProps {
   /** The debt being edited; a new one when absent. */
   debt?: Debt | null;
   accounts: Account[];
+  /** Names from earlier debts, suggested while typing. */
+  people?: string[];
   /** `moved` is true when an account balance changed. */
   onSaved: (moved: boolean) => void;
 }
 
-export function DebtFormDialog({ open, onOpenChange, kind: initialKind, debt, accounts, onSaved }: DebtFormProps) {
+export function DebtFormDialog({ open, onOpenChange, kind: initialKind, debt, accounts, people = [], onSaved }: DebtFormProps) {
   const [kind, setKind] = useState<DebtKind>(initialKind);
   const { t } = useT();
   const [person, setPerson] = useState('');
@@ -185,9 +187,15 @@ export function DebtFormDialog({ open, onOpenChange, kind: initialKind, debt, ac
               value={person}
               onChange={(e) => setPerson(e.target.value)}
               placeholder={t('Mis. Budi', 'e.g. Alex')}
+              list="debt-people"
               maxLength={80}
               autoFocus
             />
+            <datalist id="debt-people">
+              {people.map((name) => (
+                <option key={name} value={name} />
+              ))}
+            </datalist>
           </div>
           <div className="space-y-2">
             <Label htmlFor="debt-amount">{t('Nominal', 'Amount')}</Label>

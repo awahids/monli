@@ -8,6 +8,7 @@ import { formatMoney } from '@/lib/currency';
 import { formatDate } from '@/lib/date';
 import { defaultBudgetMonth } from '@/lib/budget-period';
 import { splitEvenly } from '@/lib/split';
+import { knownPeople } from '@/lib/debts';
 import { refreshActiveAccounts, saveTransaction } from '@/lib/transactions-client';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -56,6 +57,7 @@ export function SplitBillDialog({ open, onOpenChange }: Props) {
   const [note, setNote] = useState('');
   const [parts, setParts] = useState<Part[]>([]);
   const [saving, setSaving] = useState(false);
+  const [people, setPeople] = useState<string[]>([]);
 
   useEffect(() => {
     if (!open) return;
@@ -66,6 +68,15 @@ export function SplitBillDialog({ open, onOpenChange }: Props) {
     setParts([part(false, lastCategory), part(true)]);
     // Reset only when the dialog opens.
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
+  // Names from earlier debts, so "Budi" is not recorded again as "Budi Santoso".
+  useEffect(() => {
+    if (!open) return;
+    fetch('/api/debts')
+      .then((r) => (r.ok ? r.json() : { data: [] }))
+      .then((r) => setPeople(knownPeople(r.data ?? [])))
+      .catch(() => {});
   }, [open]);
 
   // Accounts may arrive after the dialog opened.
@@ -229,6 +240,7 @@ export function SplitBillDialog({ open, onOpenChange }: Props) {
                       value={p.person}
                       onChange={(e) => update(p.key, { person: e.target.value })}
                       placeholder={t('Nama teman', "Friend's name")}
+                      list="split-people"
                       aria-label={t(`Nama teman ${i + 1}`, `Friend name ${i + 1}`)}
                       maxLength={80}
                     />
@@ -265,6 +277,11 @@ export function SplitBillDialog({ open, onOpenChange }: Props) {
               </Button>
             </div>
           </div>
+          <datalist id="split-people">
+            {people.map((name) => (
+              <option key={name} value={name} />
+            ))}
+          </datalist>
         </div>
         <DialogFooter className="flex-col">
           <p

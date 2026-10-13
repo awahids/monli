@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 import { useAppStore } from '@/lib/store';
 import { formatMoney } from '@/lib/currency';
 import { formatDate } from '@/lib/date';
-import { type Debt, type DebtKind, compareDebts, debtStatus, debtTotals } from '@/lib/debts';
+import { type Debt, type DebtKind, compareDebts, debtStatus, debtTotals, knownPeople } from '@/lib/debts';
 import { ensureFormOptions, refreshActiveAccounts } from '@/lib/transactions-client';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -268,6 +268,7 @@ export default function DebtsPage() {
         kind={tab}
         debt={editing}
         accounts={accounts}
+        people={knownPeople(debts)}
         onSaved={changed}
       />
       <PaymentDialog debt={paying} accounts={accounts} onOpenChange={(o) => !o && setPaying(null)} onSaved={changed} />

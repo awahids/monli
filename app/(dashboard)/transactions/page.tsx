@@ -498,31 +498,25 @@ export default function TransactionsPage() {
         onChange={handleOcrFile}
       />
 
-      <div className="flex items-center justify-between gap-3">
+      <div className="space-y-3">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">{t('Transaksi', 'Transactions')}</h1>
           <p className="text-sm text-muted-foreground">
             {t('Semua pemasukan, pengeluaran, dan transfer.', 'All income, expenses and transfers.')}
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="icon" onClick={() => setSplitOpen(true)} aria-label={t('Patungan', 'Split bill')}>
-            <Split className="h-4 w-4" />
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" size="sm" onClick={() => setSplitOpen(true)}>
+            <Split className="mr-1.5 h-4 w-4" /> {t('Patungan', 'Split bill')}
           </Button>
-          <Button variant="outline" size="icon" asChild aria-label={t('Transaksi rutin', 'Recurring transactions')}>
+          <Button variant="outline" size="sm" asChild>
             <Link href="/recurring">
-              <Repeat className="h-4 w-4" />
+              <Repeat className="mr-1.5 h-4 w-4" /> {t('Transaksi rutin', 'Recurring')}
             </Link>
           </Button>
           {user?.plan === 'PRO' && (
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={scanning}
-              aria-label={t('Scan struk', 'Scan receipt')}
-            >
-              <Camera className="h-4 w-4" />
+            <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} disabled={scanning}>
+              <Camera className="mr-1.5 h-4 w-4" /> {t('Scan struk', 'Scan receipt')}
             </Button>
           )}
         </div>

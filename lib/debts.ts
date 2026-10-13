@@ -52,3 +52,11 @@ export function compareDebts(a: Pick<Debt, 'amount' | 'paid' | 'due_date'>, b: P
   const rank = (d: typeof a) => (d.amount - d.paid <= 0 ? 2 : d.due_date ? 0 : 1);
   return rank(a) - rank(b) || (rank(a) === 0 ? a.due_date!.localeCompare(b.due_date!) : 0);
 }
+
+/** People from earlier debts, newest first, once each (ignoring case), for name suggestions. */
+export function knownPeople(debts: Pick<Debt, 'person'>[]) {
+  const seen = new Set<string>();
+  return debts
+    .map((d) => d.person.trim())
+    .filter((name) => name && !seen.has(name.toLowerCase()) && seen.add(name.toLowerCase()));
+}
