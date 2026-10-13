@@ -42,3 +42,13 @@ export function debtTotals(debts: Pick<Debt, 'kind' | 'amount' | 'paid'>[]) {
     { payable: 0, receivable: 0 }
   );
 }
+
+/**
+ * List order: open debts with a due date first, earliest due first (so the
+ * overdue ones lead), then open ones without a due date, then settled ones.
+ * Ties keep their incoming order.
+ */
+export function compareDebts(a: Pick<Debt, 'amount' | 'paid' | 'due_date'>, b: Pick<Debt, 'amount' | 'paid' | 'due_date'>) {
+  const rank = (d: typeof a) => (d.amount - d.paid <= 0 ? 2 : d.due_date ? 0 : 1);
+  return rank(a) - rank(b) || (rank(a) === 0 ? a.due_date!.localeCompare(b.due_date!) : 0);
+}

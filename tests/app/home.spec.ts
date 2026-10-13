@@ -28,7 +28,7 @@ test('Beranda: balance hero, hide amounts, quick actions', async ({ page, user, 
   await page.keyboard.press('Escape');
 
   await actions.getByRole('link', { name: 'Patungan' }).click();
-  await expect(page.getByRole('dialog', { name: 'Bagi tagihan' })).toBeVisible();
+  await expect(page.getByRole('dialog', { name: 'Patungan' })).toBeVisible();
   await expect(page).toHaveURL(/\/transactions$/);
   await page.keyboard.press('Escape');
 

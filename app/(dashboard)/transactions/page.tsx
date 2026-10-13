@@ -506,7 +506,7 @@ export default function TransactionsPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="icon" onClick={() => setSplitOpen(true)} aria-label={t('Bagi tagihan', 'Split bill')}>
+          <Button variant="outline" size="icon" onClick={() => setSplitOpen(true)} aria-label={t('Patungan', 'Split bill')}>
             <Split className="h-4 w-4" />
           </Button>
           <Button variant="outline" size="icon" asChild aria-label={t('Transaksi rutin', 'Recurring transactions')}>

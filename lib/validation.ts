@@ -208,6 +208,9 @@ export const debtSchema = z.object({
   note: z.string().trim().max(200).nullable().optional(),
 });
 
+/** Editing a debt; its kind and account stay as recorded. */
+export const debtUpdateSchema = debtSchema.pick({ person: true, amount: true, date: true, dueDate: true, note: true });
+
 export const debtPaymentSchema = z.object({
   amount: z.number().positive('Masukkan nominal'),
   accountId: z.string().uuid().nullable().optional(),
