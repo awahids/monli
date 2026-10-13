@@ -11,17 +11,29 @@ import { FAQ } from "@/components/marketing/faq";
 import { CTABand } from "@/components/marketing/cta-band";
 import { Footer } from "@/components/marketing/footer";
 import { BRAND } from "@/lib/brand";
+import { TRIAL_DAYS } from "@/lib/plans";
+import { FAQS } from "@/components/marketing/faq-data";
 import { cn } from "@/lib/utils";
 import { onest } from "./fonts";
 
+const title = `${BRAND.name} — Aplikasi Catat Keuangan & Budget Bulanan`;
+const description = `Catat pemasukan, pengeluaran, dan budget bulanan dari semua rekening dan e-wallet. Coba semua fitur PRO gratis ${TRIAL_DAYS} hari, tanpa kartu kredit.`;
+
 export const metadata: Metadata = {
-  title: `${BRAND.name} — Atur bulanan, catat harian`,
-  description: BRAND.description,
+  title,
+  description,
+  alternates: { canonical: "/" },
+  // A page's openGraph replaces the layout's whole object, so it repeats url, site name and locale.
   openGraph: {
-    title: `${BRAND.name} — Atur bulanan, catat harian`,
-    description: BRAND.description,
+    title,
+    description,
+    url: BRAND.url,
+    siteName: BRAND.name,
+    type: "website",
+    locale: "id_ID",
     images: [{ url: "/og-image.png", width: 1200, height: 630 }],
   },
+  twitter: { card: "summary_large_image", title, description, images: ["/og-image.png"] },
 };
 
 const jsonLd = [
@@ -41,6 +53,15 @@ const jsonLd = [
     operatingSystem: "Web",
     publisher: { "@type": "Organization", name: BRAND.family, url: BRAND.familyUrl },
     offers: { "@type": "Offer", price: "0", priceCurrency: "IDR" },
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: FAQS.map((f) => ({
+      "@type": "Question",
+      name: f.q,
+      acceptedAnswer: { "@type": "Answer", text: f.a },
+    })),
   },
 ];
 

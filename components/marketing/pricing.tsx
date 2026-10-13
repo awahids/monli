@@ -5,7 +5,7 @@ import { Check, Minus } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { formatIDR } from '@/lib/currency';
-import { PLAN_FEATURES, PRO_ORIGINAL_PRICE, PRO_PRICE } from '@/lib/plans';
+import { PLAN_FEATURES, PRO_ORIGINAL_PRICE, PRO_PRICE, TRIAL_DAYS } from '@/lib/plans';
 import { SectionHeading } from './section-heading';
 import { track } from '@/lib/analytics';
 
@@ -22,7 +22,7 @@ export function Pricing() {
           kicker="Harga"
           id="pricing-title"
           title="Mulai gratis. Upgrade kalau perlu."
-          description="Paket FREE gratis selamanya. PRO cukup sekali bayar, tanpa langganan."
+          description={`Akun baru langsung dapat semua fitur PRO gratis ${TRIAL_DAYS} hari. Setelah itu, FREE tetap gratis selamanya dan PRO cukup sekali bayar, tanpa langganan.`}
         />
 
         <div className="mt-14 grid gap-4 lg:grid-cols-2">
@@ -63,7 +63,9 @@ export function Pricing() {
               <p className="font-editorial text-5xl font-light tabular-nums">{formatIDR(PRO_PRICE)}</p>
               <p className="font-editorial text-base text-muted-foreground line-through">{formatIDR(PRO_ORIGINAL_PRICE)}</p>
             </div>
-            <p className="relative mt-1 font-editorial text-sm text-muted-foreground">Harga promo · sekali bayar</p>
+            <p className="relative mt-1 font-editorial text-sm text-muted-foreground">
+              Harga promo · sekali bayar · <span className="text-brand-gold">coba dulu gratis {TRIAL_DAYS} hari</span>
+            </p>
             <ul className="relative mt-8 flex-1 divide-y divide-white/5 border-t border-white/10">
               {PLAN_FEATURES.map((f) => (
                 <li key={f.label} className="flex items-start justify-between gap-4 py-2.5 font-editorial text-sm">
@@ -78,7 +80,7 @@ export function Pricing() {
             </ul>
             <Button asChild className="relative mt-8 rounded-full font-editorial">
               <Link href="/auth/sign-up" onClick={() => track('cta_pricing_click')}>
-                Mulai sekarang
+                Coba gratis {TRIAL_DAYS} hari
               </Link>
             </Button>
           </div>

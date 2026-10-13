@@ -10,6 +10,7 @@ import { ArrowRight, ArrowUpRight, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BRAND } from "@/lib/brand";
 import { track } from '@/lib/analytics';
+import { TRIAL_DAYS } from '@/lib/plans';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -95,7 +96,7 @@ export function Hero() {
             <div className="hero-rise mt-8 flex flex-wrap items-center gap-3">
               <Button asChild size="lg" className="rounded-full px-7 font-editorial text-base">
                 <Link href="/auth/sign-up" onClick={() => track("cta_hero_signup")}>
-                  Mulai gratis <ArrowRight className="ml-1 h-4 w-4" />
+                  Coba gratis {TRIAL_DAYS} hari <ArrowRight className="ml-1 h-4 w-4" />
                 </Link>
               </Button>
               <Button asChild size="lg" variant="ghost" className="rounded-full px-5 font-editorial text-base">
@@ -103,7 +104,7 @@ export function Hero() {
               </Button>
             </div>
             <p className="hero-rise mt-5 font-editorial text-xs text-muted-foreground">
-              Gratis selamanya · tanpa menyambungkan rekening bank
+              Semua fitur PRO gratis {TRIAL_DAYS} hari · tanpa kartu kredit
             </p>
           </div>
 

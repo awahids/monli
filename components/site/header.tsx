@@ -59,7 +59,7 @@ export function Header() {
           </Button>
           <Button asChild className="rounded-full font-editorial text-sm">
             <Link href="/auth/sign-up">
-              Mulai gratis <ArrowUpRight className="ml-1 h-4 w-4" />
+              Coba gratis <ArrowUpRight className="ml-1 h-4 w-4" />
             </Link>
           </Button>
         </div>
@@ -112,7 +112,7 @@ export function Header() {
               </Button>
               <Button asChild>
                 <Link href="/auth/sign-up" onClick={() => setOpen(false)}>
-                  Mulai gratis
+                  Coba gratis
                 </Link>
               </Button>
             </div>
