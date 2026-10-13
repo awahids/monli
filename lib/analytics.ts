@@ -1,8 +1,19 @@
+import { isAppUA } from '@/lib/native';
+
 /**
  * Google Analytics 4, on only when NEXT_PUBLIC_GA_ID is set. Sends page views
  * and nothing else: no amounts, notes or user ids. Paths are cleaned first.
  */
 export const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
+
+/**
+ * Where the visit comes from, sent as the GA user property `app_platform`:
+ * the iOS/Android app, the installed web app (PWA), or a plain browser.
+ */
+export function appPlatform(ua: string, standalone: boolean): 'ios' | 'android' | 'pwa' | 'web' {
+  if (isAppUA(ua)) return /android/i.test(ua) ? 'android' : 'ios';
+  return standalone ? 'pwa' : 'web';
+}
 
 declare global {
   interface Window {
