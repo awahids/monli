@@ -1,4 +1,5 @@
-import { TRIAL_DAYS } from "@/lib/plans";
+import { PRO_PLANS, TRIAL_DAYS } from "@/lib/plans";
+import { formatIDR } from "@/lib/currency";
 
 /** Landing FAQ, also sent to search engines as FAQPage structured data. */
 export const FAQS = [
@@ -32,6 +33,6 @@ export const FAQS = [
   },
   {
     q: "Berapa harga paket PRO?",
-    a: "Paket FREE gratis selamanya. PRO saat ini harga promo Rp 9.000 sekali bayar: akun & budget tanpa batas, laporan lengkap, scan struk, asisten AI, dan kelola bersama keluarga.",
+    a: `Paket FREE gratis selamanya. PRO ${formatIDR(PRO_PLANS.monthly.price)} per bulan atau ${formatIDR(PRO_PLANS.yearly.price)} per tahun, dibayar di muka tanpa tagihan otomatis: akun & budget tanpa batas, laporan lengkap, scan struk, asisten AI, dan kelola bersama keluarga.`,
   },
 ];

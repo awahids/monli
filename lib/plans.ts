@@ -1,9 +1,25 @@
 import { AI_MONTHLY_LIMITS } from '@/lib/ai-usage';
 import { SPACE_MEMBER_LIMIT } from '@/lib/space';
 
-/** PRO price in Rupiah (promo) and the price shown struck through. */
-export const PRO_PRICE = 9000;
-export const PRO_ORIGINAL_PRICE = 49000;
+/** PRO is prepaid per period, in Rupiah; nothing renews by itself. */
+export const PRO_PLANS = {
+  monthly: { months: 1, price: 9000 },
+  yearly: { months: 12, price: 89000 },
+} as const;
+export type ProPeriod = keyof typeof PRO_PLANS;
+
+/** How much the yearly plan saves against twelve monthly ones, in percent. */
+export const YEARLY_SAVING = Math.round((1 - PRO_PLANS.yearly.price / (PRO_PLANS.monthly.price * 12)) * 100);
+
+/**
+ * PRO end after paying for `months`: added on top of any PRO time left
+ * (a trial or an earlier period), else counted from now.
+ */
+export function extendProUntil(current: string | null | undefined, months: number, now = new Date()): string {
+  const end = new Date(Math.max(now.getTime(), current ? new Date(current).getTime() : 0));
+  end.setMonth(end.getMonth() + months);
+  return end.toISOString();
+}
 
 /** New accounts get PRO free for this long (also in the pro_trial migration). */
 export const TRIAL_DAYS = 14;
@@ -11,7 +27,7 @@ export const TRIAL_DAYS = 14;
 /** When a trial starting at `from` ends. */
 export const trialEnd = (from = new Date()) => new Date(from.getTime() + TRIAL_DAYS * 86_400_000);
 
-/** Whole days left of a PRO trial (rounded up), or null when not on a trial. */
+/** Whole days of PRO left (rounded up), or null when PRO has no end date. */
 export function trialDaysLeft(proUntil: string | null | undefined, now = new Date()): number | null {
   if (!proUntil) return null;
   return Math.max(0, Math.ceil((new Date(proUntil).getTime() - now.getTime()) / 86_400_000));

@@ -205,15 +205,15 @@ export function MobileNav() {
             </li>
           </ul>
           <InstallCard className="mt-4" />
-          {/* Trial users are on PRO but still see the card, with the days left. */}
-          {(user?.plan !== 'PRO' || trialLeft !== null) && (
+          {/* PRO ending within two weeks (a trial, or a period about to run out) still shows the card. */}
+          {(user?.plan !== 'PRO' || (trialLeft !== null && trialLeft <= 14)) && (
             <div className="web-only mt-4 flex items-center gap-3 rounded-xl bg-muted/60 p-4">
               <Sparkles className="h-5 w-5 shrink-0 text-brand-gold" />
               <div className="min-w-0 flex-1">
                 {trialLeft !== null ? (
                   <>
-                    <p className="text-sm font-medium">{t(`PRO gratis: sisa ${trialLeft} hari`, `Free PRO: ${trialLeft} days left`)}</p>
-                    <p className="text-xs text-muted-foreground">{t("Upgrade sebelum berakhir agar fitur PRO tetap aktif.", "Upgrade before it ends to keep PRO features.")}</p>
+                    <p className="text-sm font-medium">{t(`PRO: sisa ${trialLeft} hari`, `PRO: ${trialLeft} days left`)}</p>
+                    <p className="text-xs text-muted-foreground">{t("Perpanjang sebelum berakhir agar fitur PRO tetap aktif.", "Extend before it ends to keep PRO features.")}</p>
                   </>
                 ) : (
                   <>
