@@ -18,19 +18,6 @@ export function calcZakat(zakatable: number, nisab: number, rate = ZAKAT_RATE) {
   return { obligatory, amount };
 }
 
-/**
- * BAZNAS income nisab for 2026: 85 g of 14-karat gold a year, Rp 7.640.144 a
- * month (SK Ketua BAZNAS No. 15/2026, in force from 21 Feb 2026).
- * shortcut: a fixed yearly figure, update it when BAZNAS sets the next one.
- */
-export const INCOME_NISAB_MONTHLY = 7_640_144;
-export const INCOME_NISAB_YEAR = 2026;
-
-/** Zakat penghasilan as BAZNAS counts it: 2.5% of gross monthly income from the monthly nisab. */
-export function calcIncomeZakat(monthlyIncome: number, nisab = INCOME_NISAB_MONTHLY) {
-  return calcZakat(monthlyIncome, nisab);
-}
-
 export const toIDR = (n: number) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 })
     .format(Number.isFinite(n) ? n : 0);

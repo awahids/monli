@@ -12,6 +12,16 @@ const nextConfig = {
     unoptimized: true,
     remotePatterns: [{ protocol: 'https', hostname: 'placehold.co' }],
   },
+  // The income zakat guide was rewritten as the zakat maal guide.
+  async redirects() {
+    return [
+      {
+        source: '/panduan/cara-menghitung-zakat-penghasilan',
+        destination: '/panduan/cara-menghitung-zakat-maal',
+        permanent: true,
+      },
+    ];
+  },
   // Enable SWC minification so modern dependencies like midtrans-client build correctly
   swcMinify: true,
   webpack: (config, { isServer }) => {
