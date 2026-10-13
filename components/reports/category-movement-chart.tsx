@@ -1,24 +1,18 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import {
-  LineChart,
-  Line,
-  CartesianGrid,
-  XAxis,
-  YAxis,
-  Tooltip,
-  Legend,
-  ReferenceLine,
-  ResponsiveContainer,
-  Label,
-} from 'recharts';
 import { formatMoney } from '@/lib/currency';
 import type { ChartResponse } from '@/types';
+import { cn } from '@/lib/utils';
 import { useT } from '@/lib/i18n';
 
+/**
+ * Budget vs actual per category, as a list with a bar each: readable with
+ * any number of categories on a phone, unlike a chart with one label per
+ * category on its axis. Most used budgets first.
+ */
 export default function CategoryMovementChart({ month }: { month: string }) {
-  const [chartData, setChartData] = useState<ChartResponse['data']>([]);
+  const [rows, setRows] = useState<ChartResponse['data']>([]);
   const { t } = useT();
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -28,88 +22,56 @@ export default function CategoryMovementChart({ month }: { month: string }) {
     fetch(`/api/reports/budget-vs-actual?month=${month}&type=expense`)
       .then((res) => res.json())
       .then((res: ChartResponse) => {
-        const filtered = (res.data || []).filter((d) => d.planned > 0);
-        setChartData(filtered);
+        const planned = (res.data || [])
+          .map((d) => ({ ...d, planned: Number(d.planned), actual: Number(d.actual) }))
+          .filter((d) => d.planned > 0);
+        setRows(planned.sort((a, b) => b.actual / b.planned - a.actual / a.planned));
         setError(false);
       })
       .catch(() => {
-        setChartData([]);
+        setRows([]);
         setError(true);
       })
       .finally(() => setLoading(false));
   }, [month]);
 
-  const CustomizedAxisTick = ({ x, y, payload }: any) => (
-    <g transform={`translate(${x},${y})`}>
-      <text
-        x={0}
-        y={0}
-        dy={16}
-        textAnchor="end"
-        transform="rotate(-90)"
-        className="text-[10px]"
-      >
-        {payload.value}
-      </text>
-    </g>
-  );
-
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      const p = payload.find((p: any) => p.dataKey === 'planned')?.value ?? 0;
-      const a = payload.find((p: any) => p.dataKey === 'actual')?.value ?? 0;
-      const d = payload.find((p: any) => p.dataKey === 'diff')?.value ?? 0;
-      const diffPct = p > 0 ? (d / p) * 100 : 0;
-      return (
-        <div className="rounded border bg-background p-2 text-xs">
-          <div className="font-medium">{label}</div>
-          <div>{t('Rencana', 'Planned')}: {formatMoney(p)}</div>
-          <div>{t('Realisasi', 'Actual')}: {formatMoney(a)}</div>
-          <div>
-            {t('Selisih', 'Difference')}: {formatMoney(d)} {p > 0 && `(${diffPct.toFixed(0)}%)`}
-          </div>
-        </div>
-      );
-    }
-    return null;
-  };
-
   return (
     <div className="space-y-4">
-      {error && (
-        <div className="text-sm text-destructive">{t('Gagal memuat data', 'Could not load data')}</div>
-      )}
-      {loading && (
-        <div className="text-sm text-muted-foreground">{t('Memuat...', 'Loading...')}</div>
-      )}
-      {!loading && !error && chartData.length === 0 && (
+      {error && <div className="text-sm text-destructive">{t('Gagal memuat data', 'Could not load data')}</div>}
+      {loading && <div className="text-sm text-muted-foreground">{t('Memuat...', 'Loading...')}</div>}
+      {!loading && !error && rows.length === 0 && (
         <div className="text-sm text-muted-foreground">
           {t('Belum ada budget per kategori untuk bulan ini.', 'No category budgets for this month yet.')}
         </div>
       )}
-      {chartData.length > 0 && (
-        <div className="h-72">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData} margin={{ bottom: 80 }}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis
-                dataKey="category_name"
-                interval={0}
-                height={70}
-                tick={<CustomizedAxisTick />}
-              >
-                <Label value="Categories" position="right" angle={90} dx={10} />
-              </XAxis>
-              <YAxis tickFormatter={(v: number) => formatMoney(v)} />
-              <Tooltip content={<CustomTooltip />} />
-              <Legend />
-              <ReferenceLine y={0} stroke="#888" />
-              <Line type="monotone" dataKey="planned" stroke="hsl(var(--chart-1))" dot name={t('Rencana', 'Planned')} />
-              <Line type="monotone" dataKey="actual" stroke="#16a34a" dot name={t('Realisasi', 'Actual')} />
-              <Line type="monotone" dataKey="diff" stroke="#dc2626" dot name={t('Selisih', 'Difference')} />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
+      {rows.length > 0 && (
+        <ul className="divide-y rounded-xl border bg-card px-4" aria-label={t('Budget per kategori', 'Budget by category')}>
+          {rows.map((r) => {
+            const pct = Math.round((r.actual / r.planned) * 100);
+            const over = r.actual > r.planned;
+            return (
+              <li key={r.category_id} className="space-y-1.5 py-3">
+                <div className="flex items-baseline justify-between gap-3 text-sm">
+                  <span className="min-w-0 flex-1 truncate font-medium">{r.category_name}</span>
+                  <span className="shrink-0 tabular-nums text-muted-foreground">
+                    {formatMoney(r.actual)} / {formatMoney(r.planned)}
+                  </span>
+                </div>
+                <div className="h-2 overflow-hidden rounded-full bg-muted">
+                  <div
+                    className={cn('h-full rounded-full', over ? 'bg-red-500' : pct >= 80 ? 'bg-amber-500' : 'bg-primary')}
+                    style={{ width: `${Math.min(pct, 100)}%` }}
+                  />
+                </div>
+                <p className={cn('text-xs tabular-nums', over ? 'text-red-600 dark:text-red-400' : 'text-muted-foreground')}>
+                  {over
+                    ? t(`Lebih ${formatMoney(r.actual - r.planned)} (${pct}%)`, `${formatMoney(r.actual - r.planned)} over (${pct}%)`)
+                    : t(`Sisa ${formatMoney(r.planned - r.actual)} (${pct}% terpakai)`, `${formatMoney(r.planned - r.actual)} left (${pct}% used)`)}
+                </p>
+              </li>
+            );
+          })}
+        </ul>
       )}
     </div>
   );
