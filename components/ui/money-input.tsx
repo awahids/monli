@@ -53,7 +53,7 @@ export const MoneyInput = React.forwardRef<HTMLInputElement, MoneyInputProps>(
           onChange={(e) => onValueChange(parseMoney(e.target.value))}
           className={cn(
             'w-full min-w-0 bg-transparent outline-none placeholder:text-muted-foreground/60',
-            size === 'lg' ? 'font-display text-3xl font-bold tabular-nums' : 'text-sm'
+            size === 'lg' ? 'font-display text-3xl font-bold tabular-nums' : 'text-base'
           )}
           {...props}
         />

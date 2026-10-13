@@ -28,7 +28,7 @@ import { useT } from '@/lib/i18n';
 type Part = { key: number; friend: boolean; categoryId: string; person: string; amount: number };
 
 const selectClass =
-  'flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2';
+  'flex h-10 w-full rounded-md border border-input bg-background px-3 text-base ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2';
 
 let nextKey = 0;
 const part = (friend: boolean): Part => ({ key: nextKey++, friend, categoryId: '', person: '', amount: 0 });

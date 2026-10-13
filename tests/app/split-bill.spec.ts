@@ -14,6 +14,10 @@ test('split a bill: my share is spending, friends owe the rest', async ({ page, 
   await dialog.getByLabel('Kategori bagian 1').selectOption({ label: 'Makan' });
   await dialog.getByLabel('Nama teman 2').fill('Budi');
   await dialog.getByLabel('Nama teman 3').fill('Ani');
+  // iOS zooms the page into any field under 16px when it is focused.
+  const sizes = await dialog.locator('input:not([type=radio]):not([type=checkbox]), select, textarea')
+    .evaluateAll((els) => els.map((el) => parseFloat(getComputedStyle(el).fontSize)));
+  expect(Math.min(...sizes)).toBeGreaterThanOrEqual(16);
   await expect(dialog.getByRole('status')).toHaveText('Belum dibagi Rp 300.000');
   await dialog.getByRole('button', { name: 'Bagi rata' }).click();
   await expect(dialog.getByRole('status')).toHaveText('Pas dengan total.');
