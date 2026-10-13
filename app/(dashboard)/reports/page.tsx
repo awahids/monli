@@ -17,9 +17,6 @@ import {
   CartesianGrid,
   Line,
   LineChart,
-  Pie,
-  PieChart,
-  Cell,
   Tooltip,
   XAxis,
   YAxis,
@@ -30,6 +27,7 @@ import { formatMoney, formatMoneyCompact } from '@/lib/currency';
 import { ProLock } from '@/components/ui/pro-lock';
 import { Download, Filter } from 'lucide-react';
 import CategoryMovementChart from '@/components/reports/category-movement-chart';
+import { CategoryBreakdown } from '@/components/reports/category-breakdown';
 import { useAppStore } from '@/lib/store';
 import { currentBudgetMonth, periodRange } from '@/lib/date';
 import { spacePlan } from '@/lib/plans';
@@ -335,30 +333,7 @@ export default function ReportsPage() {
                 <CardTitle className="text-base">{t('Pengeluaran per kategori', 'Spending by category')}</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="h-56">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={summary.categories}
-                        dataKey="amount"
-                        nameKey="name"
-                        cx="50%"
-                        cy="50%"
-                        outerRadius={80}
-                        innerRadius={45}
-                        // Responsive radius
-                        // outerRadius={window.innerWidth < 640 ? 80 : 100}
-                        // innerRadius={window.innerWidth < 640 ? 45 : 60}
-                      >
-                        {summary.categories.map((entry) => (
-                          <Cell key={entry.categoryId} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip formatter={(v: number) => formatMoney(v)} />
-                      <Legend />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
+                <CategoryBreakdown rows={summary.categories} />
               </CardContent>
             </Card>
           </div>
@@ -413,27 +388,7 @@ export default function ReportsPage() {
               <CardTitle className="text-base">{t('Rincian kategori', 'Category breakdown')} ({month})</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={categoryData}
-                      dataKey="amount"
-                      nameKey="name"
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={90}
-                      innerRadius={50}
-                    >
-                      {categoryData.map((entry) => (
-                        <Cell key={entry.categoryId} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(v: number) => formatMoney(v)} />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
+              <CategoryBreakdown rows={categoryData} />
             </CardContent>
           </Card>
         </TabsContent>
