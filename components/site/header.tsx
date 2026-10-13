@@ -9,10 +9,10 @@ import { BRAND } from "@/lib/brand";
 import { cn } from "@/lib/utils";
 
 const NAV = [
-  { href: "#features", label: "Fitur" },
-  { href: "#how-it-works", label: "Cara kerja" },
-  { href: "#pricing", label: "Harga" },
-  { href: "#faq", label: "Tanya jawab" },
+  { href: "/#features", label: "Fitur" },
+  { href: "/#how-it-works", label: "Cara kerja" },
+  { href: "/#pricing", label: "Harga" },
+  { href: "/#faq", label: "Tanya jawab" },
 ];
 
 /** Landing header: transparent over the hero, solid once the page scrolls. */

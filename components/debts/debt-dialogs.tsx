@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useState } from 'react';
 import { toast } from 'sonner';
 import type { Account } from '@/types';
 import type { Debt, DebtKind } from '@/lib/debts';
@@ -94,7 +94,8 @@ export function DebtFormDialog({ open, onOpenChange, kind: initialKind, debt, ac
 
   const principal = debt?.entries?.find((e) => e.kind === 'principal');
 
-  useEffect(() => {
+  // Before paint, so a tap right after opening is not undone by the reset.
+  useLayoutEffect(() => {
     if (!open) return;
     setKind(debt?.kind ?? initialKind);
     setPerson(debt?.person ?? '');
