@@ -15,6 +15,10 @@ test('lending and repayments move the account balance, not income or expenses', 
   await form.getByLabel('Dipinjam oleh').fill('Budi');
   await form.getByLabel('Nominal').fill('200000');
   await form.getByLabel('Uang keluar dari akun').selectOption({ label: 'Dompet' });
+  // iOS zooms the page into any field under 16px when it is focused.
+  const sizes = await form.locator('input:not([type=radio]):not([type=checkbox]), select, textarea')
+    .evaluateAll((els) => els.map((el) => parseFloat(getComputedStyle(el).fontSize)));
+  expect(Math.min(...sizes)).toBeGreaterThanOrEqual(16);
   await form.getByRole('button', { name: 'Simpan' }).click();
   await expect(page.getByText('Piutang dicatat')).toBeVisible();
   await expect(page.getByTestId('total-receivable')).toHaveText('Rp 200.000');

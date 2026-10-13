@@ -18,6 +18,7 @@ export const CHANGELOG: ChangelogEntry[] = [
     date: '2026-10-13',
     title: 'Sisa masa coba PRO',
     items: [
+      { type: 'perbaikan', text: 'Layar tidak lagi membesar sendiri di iPhone saat mengisi form, termasuk patungan dan hutang piutang.' },
       { type: 'perbaikan', text: 'Menu Lainnya kini menampilkan sisa hari PRO gratis untuk akun baru.' },
     ],
   },
