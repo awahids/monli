@@ -16,8 +16,9 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '2026.10.13',
     date: '2026-10-13',
-    title: 'Sisa masa coba PRO',
+    title: 'Laporan lebih rapi',
     items: [
+      { type: 'peningkatan', text: 'Laporan lebih rapi saat kategorinya banyak: donut dengan total di tengah dan daftar semua kategori, serta budget per kategori sebagai bar sisa/lebih.' },
       { type: 'perbaikan', text: 'Menu Lainnya kini menampilkan sisa hari PRO gratis untuk akun baru.' },
     ],
   },
