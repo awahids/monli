@@ -18,6 +18,14 @@ export function calcZakat(zakatable: number, nisab: number, rate = ZAKAT_RATE) {
   return { obligatory, amount };
 }
 
+/**
+ * Zakat penghasilan as BAZNAS counts it: 2.5% of gross monthly income once
+ * that income reaches a twelfth of the yearly gold nisab (85 g).
+ */
+export function calcIncomeZakat(monthlyIncome: number, idrPerGram: number) {
+  return calcZakat(monthlyIncome, calcNisab(idrPerGram, GOLD_NISAB_GRAMS) / 12);
+}
+
 export const toIDR = (n: number) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 })
     .format(Number.isFinite(n) ? n : 0);

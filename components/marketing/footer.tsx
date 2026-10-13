@@ -4,10 +4,13 @@ import { QalaLogo } from '@/components/brand/qala-mark';
 import { QalaFamilyLink } from '@/components/brand/qala-family';
 
 const PRODUCT_LINKS = [
-  { href: '#features', label: 'Fitur' },
-  { href: '#how-it-works', label: 'Cara kerja' },
-  { href: '#pricing', label: 'Harga' },
-  { href: '#faq', label: 'Tanya jawab' },
+  { href: '/#features', label: 'Fitur' },
+  { href: '/#how-it-works', label: 'Cara kerja' },
+  { href: '/#pricing', label: 'Harga' },
+  { href: '/#faq', label: 'Tanya jawab' },
+  { href: '/fitur/patungan', label: 'Patungan' },
+  { href: '/fitur/hutang-piutang', label: 'Hutang & piutang' },
+  { href: '/kalkulator-zakat', label: 'Kalkulator zakat' },
 ];
 
 const ACCOUNT_LINKS = [

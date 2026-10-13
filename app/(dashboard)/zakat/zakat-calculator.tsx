@@ -23,9 +23,12 @@ type Plan = "FREE" | "PRO";
 export default function ZakatCalculator({
   plan,
   canUseLivePrice: initialCanUseLivePrice,
+  embedded = false,
 }: {
   plan: Plan;
   canUseLivePrice: boolean;
+  /** Inside another page (the public calculator): no page heading or app menu. */
+  embedded?: boolean;
 }) {
   const [idrPerGram, setIdrPerGram] = useState<number>(0);
   const { t } = useT();
@@ -86,8 +89,10 @@ export default function ZakatCalculator({
     setLiabs({ shortTerm: 0 });
   }
 
+  const Root = embedded ? "div" : "main";
   return (
-    <main className="mx-auto max-w-xl p-4 space-y-6">
+    <Root className={embedded ? "space-y-6" : "mx-auto max-w-xl p-4 space-y-6"}>
+      {!embedded && (
       <header className="flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-semibold">{t("Kalkulator Zakat Maal", "Zakat al-Maal calculator")}</h1>
@@ -107,6 +112,7 @@ export default function ZakatCalculator({
           </DropdownMenuContent>
         </DropdownMenu>
       </header>
+      )}
 
       {/* Price */}
       <section className="space-y-2">
@@ -136,7 +142,7 @@ export default function ZakatCalculator({
         <input
           type="number"
           inputMode="numeric"
-          className="w-full rounded-md border p-2"
+          className="w-full rounded-md border bg-background p-2 text-base"
           value={Number.isFinite(idrPerGram) ? idrPerGram : 0}
           onChange={(e) => setIdrPerGram(parseFloat(e.target.value) || 0)}
           placeholder={t("Isi manual, contoh: 1750000", "Enter manually, e.g. 1750000")}
@@ -171,7 +177,7 @@ export default function ZakatCalculator({
           <label className="text-sm">{t("Aset likuid (Kas/Bank/E-wallet)", "Liquid assets (cash/bank/e-wallet)")}</label>
           <input
             type="number"
-            className="rounded-md border p-2"
+            className="rounded-md border bg-background p-2 text-base"
             value={assets.cash}
             onChange={(e) =>
               setAssets((a) => ({
@@ -185,7 +191,7 @@ export default function ZakatCalculator({
           <label className="text-sm">{t("Emas/Perak (nilai IDR)", "Gold/silver (IDR value)")}</label>
           <input
             type="number"
-            className="rounded-md border p-2"
+            className="rounded-md border bg-background p-2 text-base"
             value={assets.metals}
             onChange={(e) =>
               setAssets((a) => ({
@@ -199,7 +205,7 @@ export default function ZakatCalculator({
           <label className="text-sm">{t("Piutang tertagih", "Collectible receivables")}</label>
           <input
             type="number"
-            className="rounded-md border p-2"
+            className="rounded-md border bg-background p-2 text-base"
             value={assets.receivables}
             onChange={(e) =>
               setAssets((a) => ({
@@ -213,7 +219,7 @@ export default function ZakatCalculator({
           <label className="text-sm">{t("Persediaan dagang", "Trade inventory")}</label>
           <input
             type="number"
-            className="rounded-md border p-2"
+            className="rounded-md border bg-background p-2 text-base"
             value={assets.inventory}
             onChange={(e) =>
               setAssets((a) => ({
@@ -227,7 +233,7 @@ export default function ZakatCalculator({
           <label className="text-sm">{t("Utang jangka pendek (≤ 1 tahun)", "Short-term debts (≤ 1 year)")}</label>
           <input
             type="number"
-            className="rounded-md border p-2"
+            className="rounded-md border bg-background p-2 text-base"
             value={liabs.shortTerm}
             onChange={(e) =>
               setLiabs({ shortTerm: parseFloat(e.target.value) || 0 })
@@ -263,6 +269,6 @@ export default function ZakatCalculator({
           "This calculator is a guide. For a final ruling, please consult your local religious authority.",
         )}
       </p>
-    </main>
+    </Root>
   );
 }

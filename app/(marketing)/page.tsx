@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Script from "next/script";
 
-import { Header } from "@/components/site/header";
 import { Hero } from "@/components/marketing/hero";
 import { ScrollVideo } from "@/components/marketing/scroll-video";
 import { TrustSignals } from "@/components/marketing/trust-signals";
@@ -9,12 +8,9 @@ import { HowItWorks } from "@/components/marketing/how-it-works";
 import { Pricing } from "@/components/marketing/pricing";
 import { FAQ } from "@/components/marketing/faq";
 import { CTABand } from "@/components/marketing/cta-band";
-import { Footer } from "@/components/marketing/footer";
 import { BRAND } from "@/lib/brand";
 import { TRIAL_DAYS } from "@/lib/plans";
 import { FAQS } from "@/components/marketing/faq-data";
-import { cn } from "@/lib/utils";
-import { onest } from "./fonts";
 
 const title = `${BRAND.name} — Aplikasi Catat Keuangan & Budget Bulanan`;
 const description = `Catat pemasukan, pengeluaran, dan budget bulanan dari semua rekening dan e-wallet. Coba semua fitur PRO gratis ${TRIAL_DAYS} hari, tanpa kartu kredit.`;
@@ -80,20 +76,15 @@ export default function LandingPage() {
       >
         {JSON.stringify(jsonLd)}
       </Script>
-      {/* Always-dark editorial scope: .dark switches component tokens, .landing deepens them to ink. */}
-      <div className={cn(onest.variable, "dark landing min-h-screen bg-background text-foreground")}>
-        <Header />
-        <main>
-          <Hero />
-          <ScrollVideo />
-          <TrustSignals />
-          <HowItWorks />
-          <Pricing />
-          <FAQ />
-          <CTABand />
-        </main>
-        <Footer />
-      </div>
+      <main>
+        <Hero />
+        <ScrollVideo />
+        <TrustSignals />
+        <HowItWorks />
+        <Pricing />
+        <FAQ />
+        <CTABand />
+      </main>
     </>
   );
 }
