@@ -1,6 +1,7 @@
 import { createHash } from 'crypto';
 import midtransClient from 'midtrans-client';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { extendProUntil } from '@/lib/plans';
 
 export type PaymentStatus = 'pending' | 'success' | 'failed';
 
@@ -83,20 +84,30 @@ export async function syncPaymentStatus(orderId: string) {
   }
 
   if (status !== payment.status) {
-    const { error: updateError } = await admin
+    // Conditional on the status we read, so when the webhook and the browser
+    // refresh race, only one of them moves it and only that one extends PRO.
+    const { data: moved, error: updateError } = await admin
       .from('payments')
       .update({ status })
-      .eq('id', payment.id);
+      .eq('id', payment.id)
+      .eq('status', payment.status)
+      .select('id');
     if (updateError) throw updateError;
     payment.status = status;
-  }
 
-  if (status === 'success') {
-    const { error: profileError } = await admin
-      .from('profiles')
-      .update({ plan: 'PRO', pro_until: null })
-      .eq('id', payment.user_id);
-    if (profileError) throw profileError;
+    if (status === 'success' && moved?.length) {
+      const { data: profile, error: readError } = await admin
+        .from('profiles')
+        .select('pro_until')
+        .eq('id', payment.user_id)
+        .single();
+      if (readError) throw readError;
+      const { error: profileError } = await admin
+        .from('profiles')
+        .update({ plan: 'PRO', pro_until: extendProUntil(profile.pro_until, payment.months) })
+        .eq('id', payment.user_id);
+      if (profileError) throw profileError;
+    }
   }
 
   return payment;

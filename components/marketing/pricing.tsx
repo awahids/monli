@@ -5,15 +5,13 @@ import { Check, Minus } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { formatIDR } from '@/lib/currency';
-import { PLAN_FEATURES, PRO_ORIGINAL_PRICE, PRO_PRICE, TRIAL_DAYS } from '@/lib/plans';
+import { PLAN_FEATURES, PRO_PLANS, TRIAL_DAYS, YEARLY_SAVING } from '@/lib/plans';
 import { SectionHeading } from './section-heading';
 import { track } from '@/lib/analytics';
 
 const valueText = (value: string | boolean) => (typeof value === 'string' ? value : value ? 'Termasuk' : '');
 
 export function Pricing() {
-  const discount = Math.round(((PRO_ORIGINAL_PRICE - PRO_PRICE) / PRO_ORIGINAL_PRICE) * 100);
-
   return (
     <section id="pricing" aria-labelledby="pricing-title" className="scroll-mt-16 py-24 sm:py-32">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
@@ -22,7 +20,7 @@ export function Pricing() {
           kicker="Harga"
           id="pricing-title"
           title="Mulai gratis. Upgrade kalau perlu."
-          description={`Akun baru langsung dapat semua fitur PRO gratis ${TRIAL_DAYS} hari. Setelah itu, FREE tetap gratis selamanya dan PRO cukup sekali bayar, tanpa langganan.`}
+          description={`Akun baru langsung dapat semua fitur PRO gratis ${TRIAL_DAYS} hari. Setelah itu, FREE tetap gratis selamanya dan PRO mulai ${formatIDR(PRO_PLANS.monthly.price)} per bulan, tanpa tagihan otomatis.`}
         />
 
         <div className="mt-14 grid gap-4 lg:grid-cols-2">
@@ -56,15 +54,16 @@ export function Pricing() {
             <div className="relative flex items-center justify-between">
               <p className="font-editorial text-[11px] uppercase tracking-[0.25em] text-primary">Pro</p>
               <span className="rounded-full bg-brand-gold/15 px-2.5 py-1 font-editorial text-[11px] font-medium text-brand-gold">
-                Hemat {discount}%
+                Hemat {YEARLY_SAVING}% tahunan
               </span>
             </div>
             <div className="relative mt-4 flex items-baseline gap-3">
-              <p className="font-editorial text-5xl font-light tabular-nums">{formatIDR(PRO_PRICE)}</p>
-              <p className="font-editorial text-base text-muted-foreground line-through">{formatIDR(PRO_ORIGINAL_PRICE)}</p>
+              <p className="font-editorial text-5xl font-light tabular-nums">{formatIDR(PRO_PLANS.monthly.price)}</p>
+              <p className="font-editorial text-base text-muted-foreground">/ bulan</p>
             </div>
             <p className="relative mt-1 font-editorial text-sm text-muted-foreground">
-              Harga promo · sekali bayar · <span className="text-brand-gold">coba dulu gratis {TRIAL_DAYS} hari</span>
+              atau {formatIDR(PRO_PLANS.yearly.price)} per tahun · tanpa tagihan otomatis ·{" "}
+              <span className="text-brand-gold">coba dulu gratis {TRIAL_DAYS} hari</span>
             </p>
             <ul className="relative mt-8 flex-1 divide-y divide-white/5 border-t border-white/10">
               {PLAN_FEATURES.map((f) => (

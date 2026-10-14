@@ -226,6 +226,7 @@ export interface Database {
           order_id: string;
           product_name: string;
           amount: number;
+          months: number;
           status: string;
           token: string;
           created_at: string;
@@ -236,6 +237,7 @@ export interface Database {
           order_id: string;
           product_name: string;
           amount: number;
+          months?: number;
           status?: string;
           token: string;
           created_at?: string;

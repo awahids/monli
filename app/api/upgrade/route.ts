@@ -3,9 +3,14 @@ import { getUser } from "@/lib/auth/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getSnap } from "@/lib/midtrans";
-import { PRO_PRICE } from "@/lib/plans";
+import { PRO_PLANS, type ProPeriod } from "@/lib/plans";
 
-export async function POST() {
+export async function POST(req: Request) {
+  const body = await req.json().catch(() => ({}));
+  const period: ProPeriod = body?.period === "yearly" ? "yearly" : "monthly";
+  const { months, price } = PRO_PLANS[period];
+  const productName = `Qala Saku Pro ${months} bulan`;
+
   const snap = getSnap();
   if (!snap) {
     return NextResponse.json(
@@ -20,33 +25,29 @@ export async function POST() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const supabase = createClient();
-    const { data: profile, error: profileError } = await supabase
+    // PRO without an end date (granted by hand) has nothing to buy.
+    const { data: profile, error: profileError } = await createClient()
       .from('profiles')
       .select('plan, pro_until')
       .eq('id', user.id)
       .single();
     if (profileError) throw profileError;
-    // Trial users can buy PRO to keep it; only paid PRO has nothing to buy.
     if (profile.plan === 'PRO' && !profile.pro_until) {
-      return NextResponse.json(
-        { error: 'Already upgraded' },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: 'Already upgraded' }, { status: 400 });
     }
 
     const orderId = `${user.id}-${Date.now()}`;
     const transaction = await snap.createTransaction({
       transaction_details: {
         order_id: orderId,
-        gross_amount: PRO_PRICE,
+        gross_amount: price,
       },
       item_details: [
         {
-          id: "pro-plan",
-          price: PRO_PRICE,
+          id: `pro-${period}`,
+          price,
           quantity: 1,
-          name: "Qala Saku Pro",
+          name: productName,
         },
       ],
       customer_details: {
@@ -58,8 +59,9 @@ export async function POST() {
     const { error } = await createAdminClient().from("payments").insert({
       user_id: user.id,
       order_id: orderId,
-      product_name: "Qala Saku Pro",
-      amount: PRO_PRICE,
+      product_name: productName,
+      amount: price,
+      months,
       status: "pending",
       token: transaction.token,
     });

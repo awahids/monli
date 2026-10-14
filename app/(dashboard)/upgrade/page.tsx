@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Check, Minus, Sparkles } from 'lucide-react';
 import { format } from 'date-fns';
-import { PLAN_FEATURES, PRO_ORIGINAL_PRICE, PRO_PRICE, trialDaysLeft } from '@/lib/plans';
+import { PLAN_FEATURES, PRO_PLANS, YEARLY_SAVING, type ProPeriod, trialDaysLeft } from '@/lib/plans';
+import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -22,6 +23,7 @@ export default function UpgradePage() {
   const { t, dateLocale } = useT();
   const clientKey = process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY || '';
   const [checkingOut, setCheckingOut] = useState(false);
+  const [period, setPeriod] = useState<ProPeriod>('yearly');
 
   useEffect(() => {
     const script = document.createElement('script');
@@ -40,7 +42,11 @@ export default function UpgradePage() {
   async function handleUpgrade() {
     setCheckingOut(true);
     try {
-      const res = await fetch('/api/upgrade', { method: 'POST' });
+      const res = await fetch('/api/upgrade', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ period }),
+      });
       if (!res.ok) {
         const { error } = await res.json();
         toast({ description: error || 'Gagal memulai pembayaran', variant: 'destructive' });
@@ -99,7 +105,6 @@ export default function UpgradePage() {
 
   if (!user) return null;
 
-  const discount = Math.round(((PRO_ORIGINAL_PRICE - PRO_PRICE) / PRO_ORIGINAL_PRICE) * 100);
   const renderValue = (value: [string, string] | boolean) =>
     value === true ? (
       <Check className="mx-auto h-4 w-4 text-primary" aria-label={t('Termasuk', 'Included')} />
@@ -109,7 +114,7 @@ export default function UpgradePage() {
       <span className="text-xs">{t(...value)}</span>
     );
 
-  // Trial users still get the offer: buying keeps PRO after the trial.
+  // PRO with an end date (trial or a paid period) can always buy more time.
   if (user.plan === 'PRO' && !user.proUntil) {
     return (
       <div className="mx-auto max-w-lg">
@@ -146,7 +151,9 @@ export default function UpgradePage() {
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <div className="text-center">
-        <h1 className="text-2xl font-bold tracking-tight">{t('Upgrade ke Qala Saku PRO', 'Upgrade to Qala Saku PRO')}</h1>
+        <h1 className="text-2xl font-bold tracking-tight">
+          {user.plan === 'PRO' ? t('Perpanjang Qala Saku PRO', 'Extend Qala Saku PRO') : t('Upgrade ke Qala Saku PRO', 'Upgrade to Qala Saku PRO')}
+        </h1>
         <p className="mt-2 text-muted-foreground">
           {t(
             'Scan struk, asisten AI, laporan lengkap, dan akun maupun budget tanpa batas.',
@@ -156,8 +163,8 @@ export default function UpgradePage() {
         {user.proUntil && (
           <p className="mt-3 inline-block rounded-full bg-accent px-3 py-1 text-sm font-medium text-accent-foreground">
             {t(
-              `Masa coba PRO: sisa ${trialDaysLeft(user.proUntil)} hari, sampai ${format(new Date(user.proUntil), 'd MMM', { locale: dateLocale })}`,
-              `PRO trial: ${trialDaysLeft(user.proUntil)} days left, until ${format(new Date(user.proUntil), 'd MMM', { locale: dateLocale })}`
+              `PRO aktif sampai ${format(new Date(user.proUntil), 'd MMM yyyy', { locale: dateLocale })} · sisa ${trialDaysLeft(user.proUntil)} hari`,
+              `PRO until ${format(new Date(user.proUntil), 'd MMM yyyy', { locale: dateLocale })} · ${trialDaysLeft(user.proUntil)} days left`
             )}
           </p>
         )}
@@ -186,18 +193,46 @@ export default function UpgradePage() {
 
       <Card>
         <CardContent className="flex flex-col gap-4 pt-6">
-          <div>
-            <p className="text-sm text-muted-foreground">{t('Harga promo · sekali bayar', 'Promo price · one-time payment')}</p>
-            <div className="flex items-baseline gap-2">
-              <span className="font-display text-3xl font-bold">{formatIDR(PRO_PRICE)}</span>
-              <span className="text-sm text-muted-foreground line-through">{formatIDR(PRO_ORIGINAL_PRICE)}</span>
-              <span className="rounded-full bg-green-500/15 px-2 py-0.5 text-xs font-medium text-green-700 dark:text-green-300">
-                -{discount}%
-              </span>
-            </div>
+          <div role="radiogroup" aria-label={t('Pilih periode', 'Choose a period')} className="grid grid-cols-2 gap-3">
+            {(['monthly', 'yearly'] as const).map((p) => (
+              <button
+                key={p}
+                type="button"
+                role="radio"
+                aria-checked={period === p}
+                onClick={() => setPeriod(p)}
+                className={cn(
+                  'rounded-xl border p-4 text-left transition-colors',
+                  period === p ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'hover:bg-muted/50'
+                )}
+              >
+                <span className="flex items-center justify-between gap-2 text-sm font-medium">
+                  {p === 'monthly' ? t('Bulanan', 'Monthly') : t('Tahunan', 'Yearly')}
+                  {p === 'yearly' && (
+                    <span className="rounded-full bg-green-500/15 px-2 py-0.5 text-xs font-medium text-green-700 dark:text-green-300">
+                      {t(`Hemat ${YEARLY_SAVING}%`, `Save ${YEARLY_SAVING}%`)}
+                    </span>
+                  )}
+                </span>
+                <span className="mt-1 block font-display text-2xl font-bold">{formatIDR(PRO_PLANS[p].price)}</span>
+                <span className="text-xs text-muted-foreground">
+                  {p === 'monthly' ? t('untuk 1 bulan', 'for 1 month') : t('untuk 12 bulan', 'for 12 months')}
+                </span>
+              </button>
+            ))}
           </div>
+          <p className="text-xs text-muted-foreground">
+            {t(
+              'Bayar sekali per periode, tanpa tagihan otomatis. Kalau PRO masih aktif, masa barunya ditambahkan setelah masa sekarang.',
+              'Pay once per period, nothing renews by itself. If PRO is still active, the new period starts after the current one.'
+            )}
+          </p>
           <Button size="lg" onClick={handleUpgrade} disabled={checkingOut}>
-            {checkingOut ? t('Memproses...', 'Processing...') : t('Upgrade sekarang', 'Upgrade now')}
+            {checkingOut
+              ? t('Memproses...', 'Processing...')
+              : user.plan === 'PRO'
+                ? t('Perpanjang sekarang', 'Extend now')
+                : t('Upgrade sekarang', 'Upgrade now')}
           </Button>
         </CardContent>
       </Card>

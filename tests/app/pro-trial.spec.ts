@@ -10,12 +10,15 @@ test('a trial shows its days left, can be bought, and ends back on FREE', async 
   await signIn(page, user);
 
   await page.getByRole('button', { name: 'Lainnya' }).click();
-  await expect(page.getByText('PRO gratis: sisa 10 hari')).toBeVisible();
+  await expect(page.getByText('PRO: sisa 10 hari')).toBeVisible();
   await page.keyboard.press('Escape');
 
   // Trial users still get the offer instead of "Kamu sudah PRO".
   await page.goto('/upgrade');
-  await expect(page.getByText(/Masa coba PRO: sisa 10 hari/)).toBeVisible();
+  await expect(page.getByText(/PRO aktif sampai .* · sisa 10 hari/)).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Perpanjang Qala Saku PRO' })).toBeVisible();
+  await expect(page.getByRole('radio', { name: /Tahunan/ })).toHaveAttribute('aria-checked', 'true');
+  await expect(page.getByRole('radio', { name: /Bulanan/ })).toContainText('Rp 9.000');
   await expect(page.getByText('Kamu sudah PRO')).toBeHidden();
 
   // The hourly job ends trials that are over, and leaves the others alone.
@@ -57,4 +60,13 @@ test('a profile made with the user own session (Google sign-in) starts the trial
   } finally {
     await admin.auth.admin.deleteUser(id);
   }
+});
+
+test('a paid period far from its end does not nag in the menu', async ({ page, user, admin }) => {
+  const inAYear = new Date(Date.now() + 300 * 86_400_000).toISOString();
+  await admin.from('profiles').update({ plan: 'PRO', pro_until: inAYear }).eq('id', user.id);
+  await signIn(page, user);
+  await page.getByRole('button', { name: 'Lainnya' }).click();
+  await expect(page.getByRole('link', { name: 'Hutang & piutang' })).toBeVisible();
+  await expect(page.getByText(/PRO: sisa/)).toBeHidden();
 });

@@ -16,8 +16,10 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '2026.10.13',
     date: '2026-10-13',
-    title: 'Laporan, patungan & hutang lebih rapi',
+    title: 'PRO berlangganan, laporan & patungan lebih rapi',
     items: [
+      { type: 'baru', text: 'PRO kini dibayar per periode: Rp 9.000 per bulan atau Rp 89.000 per tahun, tanpa tagihan otomatis. Masa baru ditambahkan setelah sisa masa PRO yang masih berjalan.' },
+      { type: 'peningkatan', text: 'Pembeli PRO sebelumnya mendapat PRO gratis 12 bulan; setelah itu bisa diperpanjang dari halaman Upgrade.' },
       { type: 'baru', text: 'Nama teman dari hutang/piutang sebelumnya muncul sebagai saran saat mengisi Patungan dan hutang baru.' },
       { type: 'peningkatan', text: 'Tombol Patungan, Transaksi rutin, dan Scan struk di halaman Transaksi kini ada tulisannya.' },
       { type: 'perbaikan', text: 'Tanggal hutang/piutang yang dicatat tanpa akun kini tersimpan, tidak lagi berubah jadi hari ini.' },
