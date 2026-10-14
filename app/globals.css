@@ -631,6 +631,9 @@
 html[data-app] .web-only {
   display: none !important;
 }
+html:not([data-app]) .app-only {
+  display: none !important;
+}
 html:not([data-app="ios"]) .ios-app-only {
   display: none !important;
 }

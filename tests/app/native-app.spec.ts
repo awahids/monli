@@ -26,6 +26,17 @@ test.describe('inside the iOS app', () => {
     await page.goto('/payments');
     await expect(page).toHaveURL(/\/settings$/);
   });
+
+  test('warns that PRO is ending without pointing to web payments', async ({ page, user, admin }) => {
+    const inFiveDays = new Date(Date.now() + 4.5 * 86_400_000).toISOString();
+    await admin.from('profiles').update({ plan: 'PRO', pro_until: inFiveDays }).eq('id', user.id);
+    await signIn(page, user);
+    await page.getByRole('button', { name: 'Lainnya' }).click();
+    await expect(page.getByText('PRO: sisa 5 hari')).toBeVisible();
+    await expect(page.getByText('Setelah itu akun kembali ke paket FREE.')).toBeVisible();
+    await expect(page.getByText(/Perpanjang/)).toBeHidden();
+    await expect(page.getByRole('link', { name: 'Lihat' })).toBeHidden();
+  });
 });
 
 test.describe('inside the Android app', () => {

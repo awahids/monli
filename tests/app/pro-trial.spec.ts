@@ -11,6 +11,7 @@ test('a trial shows its days left, can be bought, and ends back on FREE', async 
 
   await page.getByRole('button', { name: 'Lainnya' }).click();
   await expect(page.getByText('PRO: sisa 10 hari')).toBeVisible();
+  await expect(page.getByText('Setelah itu akun kembali ke paket FREE.')).toBeHidden();
   await page.keyboard.press('Escape');
 
   // Trial users still get the offer instead of "Kamu sudah PRO".
