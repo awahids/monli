@@ -14,6 +14,14 @@ export type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2026.10.14',
+    date: '2026-10-14',
+    title: 'Pengingat PRO di aplikasi',
+    items: [
+      { type: 'peningkatan', text: 'Di aplikasi iOS dan Android, menu Lainnya kini mengingatkan saat PRO tinggal 14 hari atau kurang.' },
+    ],
+  },
+  {
     version: '2026.10.13',
     date: '2026-10-13',
     title: 'PRO berlangganan, laporan & patungan lebih rapi',

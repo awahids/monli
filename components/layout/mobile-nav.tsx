@@ -205,15 +205,17 @@ export function MobileNav() {
             </li>
           </ul>
           <InstallCard className="mt-4" />
-          {/* PRO ending within two weeks (a trial, or a period about to run out) still shows the card. */}
+          {/* PRO ending within two weeks (a trial, or a period about to run out) still shows the card;
+              in the app it only warns, since the stores forbid pointing to web payments. */}
           {(user?.plan !== 'PRO' || (trialLeft !== null && trialLeft <= 14)) && (
-            <div className="web-only mt-4 flex items-center gap-3 rounded-xl bg-muted/60 p-4">
+            <div className={cn("mt-4 flex items-center gap-3 rounded-xl bg-muted/60 p-4", trialLeft === null && "web-only")}>
               <Sparkles className="h-5 w-5 shrink-0 text-brand-gold" />
               <div className="min-w-0 flex-1">
                 {trialLeft !== null ? (
                   <>
                     <p className="text-sm font-medium">{t(`PRO: sisa ${trialLeft} hari`, `PRO: ${trialLeft} days left`)}</p>
-                    <p className="text-xs text-muted-foreground">{t("Perpanjang sebelum berakhir agar fitur PRO tetap aktif.", "Extend before it ends to keep PRO features.")}</p>
+                    <p className="web-only text-xs text-muted-foreground">{t("Perpanjang sebelum berakhir agar fitur PRO tetap aktif.", "Extend before it ends to keep PRO features.")}</p>
+                    <p className="app-only text-xs text-muted-foreground">{t("Setelah itu akun kembali ke paket FREE.", "After that the account goes back to FREE.")}</p>
                   </>
                 ) : (
                   <>
@@ -222,7 +224,7 @@ export function MobileNav() {
                   </>
                 )}
               </div>
-              <Button asChild size="sm">
+              <Button asChild size="sm" className="web-only">
                 <Link href="/upgrade" onClick={() => setMoreOpen(false)}>{t("Lihat", "See")}</Link>
               </Button>
             </div>
