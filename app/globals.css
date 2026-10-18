@@ -637,3 +637,23 @@ html:not([data-app]) .app-only {
 html:not([data-app="ios"]) .ios-app-only {
   display: none !important;
 }
+
+/* Opening splash (components/layout/app-splash.tsx), same motion as public/launch.html.
+   It also leaves on its own after a few seconds, so it can never hold the app. */
+.app-splash {
+  animation: app-splash-out 0.25s ease-in 6s forwards;
+}
+.app-splash.app-splash-leaving {
+  animation: app-splash-out 0.25s ease-in forwards;
+}
+@keyframes app-splash-out {
+  to { opacity: 0; visibility: hidden; }
+}
+.splash-arc { animation: splash-breathe 1.6s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+.splash-arc-right { animation-delay: 0.2s; }
+.splash-gem { animation: splash-spin 1.6s cubic-bezier(0.65, 0, 0.35, 1) infinite; transform-box: fill-box; transform-origin: center; }
+@keyframes splash-breathe { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.55; transform: scale(0.94); } }
+@keyframes splash-spin { 0% { transform: rotate(0) scale(1); } 50% { transform: rotate(90deg) scale(1.25); } 100% { transform: rotate(180deg) scale(1); } }
+@media (prefers-reduced-motion: reduce) {
+  .splash-arc, .splash-gem { animation: none; }
+}

@@ -14,6 +14,14 @@ export type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2026.10.18',
+    date: '2026-10-18',
+    title: 'Animasi saat aplikasi dibuka',
+    items: [
+      { type: 'peningkatan', text: 'Logo Qala Saku beranimasi tampil saat aplikasi dibuka sampai akunmu siap, tidak langsung kerangka kosong.' },
+    ],
+  },
+  {
     version: '2026.10.14',
     date: '2026-10-14',
     title: 'Pengingat PRO di aplikasi',
