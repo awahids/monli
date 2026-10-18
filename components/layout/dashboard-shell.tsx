@@ -14,6 +14,7 @@ import { UpdateBanner } from "@/components/pwa/update-banner";
 import { OnboardingGate } from "@/components/onboarding/onboarding";
 import { warmOfflineCache } from "@/lib/pwa";
 import { AppLockGate } from "@/components/security/app-lock";
+import { AppSplash } from "@/components/layout/app-splash";
 
 export function DashboardShell({
   children,
@@ -57,6 +58,7 @@ export function DashboardShell({
       {user?.plan === 'PRO' && <ChatWidget />}
       <OnboardingGate />
       <AppLockGate />
+      <AppSplash ready={!!user} />
     </div>
   );
 }

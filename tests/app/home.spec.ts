@@ -37,3 +37,15 @@ test('Beranda: balance hero, hide amounts, quick actions', async ({ page, user, 
   await actions.getByRole('link', { name: 'Scan struk' }).click();
   await chooser;
 });
+
+test('opening the app shows the logo splash first, then gets out of the way', async ({ page, user }) => {
+  await signIn(page, user);
+  // In the server HTML, so it paints before anything else.
+  const html = await (await page.request.get('/dashboard')).text();
+  expect(html).toContain('data-testid="app-splash"');
+
+  await page.reload();
+  await expect(page.getByTestId('app-splash')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Lainnya' }).click();
+  await expect(page.getByRole('dialog')).toBeVisible();
+});
