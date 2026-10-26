@@ -1,6 +1,6 @@
 import "./globals.css";
 import type { Metadata } from "next";
-import { Inter, Poppins } from "next/font/google";
+import { Amiri, Fredoka, Inter, Poppins } from "next/font/google";
 import { Toaster } from "@/components/ui/toaster";
 import { APPEARANCE_BOOT_SCRIPT } from "@/lib/appearance";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -18,6 +18,9 @@ const poppins = Poppins({
   weight: ["500", "600", "700", "800"],
   variable: "--font-poppins",
 });
+// Heading fonts of the Islami and Kartun themes; only fetched when a theme uses them.
+const amiri = Amiri({ subsets: ["latin"], weight: ["400", "700"], variable: "--font-amiri", preload: false });
+const fredoka = Fredoka({ subsets: ["latin"], weight: ["500", "600", "700"], variable: "--font-fredoka", preload: false });
 
 const title = `${BRAND.name} - Atur, lacak, dan wujudkan tujuan finansialmu`;
 
@@ -112,7 +115,7 @@ export default function RootLayout({
     <html
       lang="id"
       suppressHydrationWarning
-      className={cn(inter.variable, poppins.variable)}
+      className={cn(inter.variable, poppins.variable, amiri.variable, fredoka.variable)}
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: APPEARANCE_BOOT_SCRIPT }} />
