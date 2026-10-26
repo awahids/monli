@@ -16,8 +16,9 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '2026.10.26',
     date: '2026-10-26',
-    title: 'Hapus item saat memeriksa transaksi',
+    title: 'Beranda baru & hapus item saat memeriksa transaksi',
     items: [
+      { type: 'baru', text: 'Beranda kini menampilkan pemasukan dan pengeluaran dibanding periode lalu, grafik pengeluaran harian, ke mana uangmu pergi, budget yang paling cepat habis, dan transaksi rutin 14 hari ke depan.' },
       { type: 'peningkatan', text: 'Saat memeriksa beberapa transaksi dari asisten AI atau scan struk, item yang salah atau berlebih kini bisa dihapus sebelum disimpan.' },
     ],
   },

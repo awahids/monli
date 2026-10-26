@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import { useAppStore } from '@/lib/store';
 import { runDueRecurring } from '@/lib/recurring-client';
 import { supabase } from '@/lib/supabase';
-import { Account, Budget, Category, Transaction } from '@/types';
+import { Account, Budget, Category, RecurringTransaction, Transaction } from '@/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { RecentTransactions } from '@/components/dashboard/recent-transactions';
 import { GettingStarted } from '@/components/dashboard/getting-started';
@@ -20,9 +20,17 @@ import {
   daysBetweenInclusive,
   formatDate,
   periodRange,
+  shiftMonth,
 } from '@/lib/date';
 import { keysToCamel } from '@/lib/case';
-import { greeting, monthTotals } from '@/lib/dashboard';
+import {
+  budgetUsage,
+  categoryExpenses,
+  dailyExpenses,
+  greeting,
+  monthTotals,
+  upcomingRecurring,
+} from '@/lib/dashboard';
 import {
   saveTransaction,
   toOfflineTransaction,
@@ -33,6 +41,7 @@ import { selectAll } from '@/lib/select-all';
 import { useT } from '@/lib/i18n';
 import { spacePlan } from '@/lib/plans';
 import { AccountStrip, BalanceHero, QuickActions, useHiddenBalance } from '@/components/dashboard/home-sections';
+import { BudgetWatch, CategoryDonut, SpendingChart, StatTiles, UpcomingRecurring } from '@/components/dashboard/insights';
 
 type BudgetSummary = { totalActual: number };
 
@@ -47,7 +56,11 @@ function DashboardSkeleton() {
           <Skeleton key={i} className="mx-auto h-12 w-12 rounded-2xl" />
         ))}
       </div>
-      <Skeleton className="h-28 rounded-2xl" />
+      <div className="grid grid-cols-2 gap-3">
+        <Skeleton className="h-28 rounded-2xl" />
+        <Skeleton className="h-28 rounded-2xl" />
+      </div>
+      <Skeleton className="h-56 rounded-2xl" />
       <Skeleton className="h-64 rounded-2xl" />
     </div>
   );
@@ -70,6 +83,8 @@ export default function DashboardPage() {
   } = useAppStore();
   const [loading, setLoading] = useState(true);
   const [budgetSummary, setBudgetSummary] = useState<BudgetSummary | null>(null);
+  const [prevTotals, setPrevTotals] = useState<{ income: number; expense: number } | null>(null);
+  const [recurring, setRecurring] = useState<RecurringTransaction[]>([]);
   const [formOpen, setFormOpen] = useState(false);
   const { isOnline, addOfflineChange } = useOffline();
   const { t, locale } = useT();
@@ -171,6 +186,50 @@ export default function DashboardPage() {
     };
   }, [user, isOnline, thisMonth, budgetMonth, transactions]);
 
+  // The previous period, for the change shown on the income and spending tiles.
+  useEffect(() => {
+    if (!user || !isOnline) return;
+    let cancelled = false;
+    const prevMonth = shiftMonth(thisMonth, -1);
+    selectAll((from, to) =>
+      supabase
+        .from('transactions')
+        .select('id, type, amount, budget_month')
+        .eq('user_id', space?.ownerId ?? user.id)
+        .eq('budget_month', prevMonth)
+        .in('type', ['income', 'expense'])
+        .order('id')
+        .range(from, to)
+    )
+      .then(({ data }) => {
+        if (cancelled || !data) return;
+        const rows = data.map((r) => ({ type: r.type, amount: r.amount, budgetMonth: r.budget_month }) as Transaction);
+        setPrevTotals(rows.length ? monthTotals(rows, prevMonth) : null);
+      })
+      .catch(() => {});
+    fetch('/api/recurring')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!cancelled && data?.data) setRecurring(keysToCamel<RecurringTransaction[]>(data.data));
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [user, space?.ownerId, isOnline, thisMonth, dataVersion]);
+
+  const insights = useMemo(() => {
+    const { start, end } = budgetPeriod(thisMonth, budgetStartDay);
+    const today = formatDate(new Date());
+    return {
+      today,
+      days: dailyExpenses(transactions, start, end),
+      categories: categoryExpenses(transactions, thisMonth),
+      usage: budgetUsage(budgets.find((b) => b.month === budgetMonth)?.items ?? [], transactions, budgetMonth),
+      upcoming: upcomingRecurring(recurring, today, 14),
+    };
+  }, [transactions, budgets, recurring, thisMonth, budgetMonth, budgetStartDay]);
+
   const kpis = useMemo(() => {
     const now = monthTotals(transactions, thisMonth);
     const totalBalance = accounts.reduce(
@@ -248,6 +307,22 @@ export default function DashboardPage() {
       />
 
       <QuickActions isPro={spacePlan(user, space) === 'PRO'} onAdd={() => setFormOpen(true)} />
+
+      <StatTiles
+        income={kpis.now.income}
+        expense={kpis.now.expense}
+        prevIncome={prevTotals?.income ?? null}
+        prevExpense={prevTotals?.expense ?? null}
+        hidden={hidden}
+      />
+
+      {transactions.length > 0 && <SpendingChart days={insights.days} today={insights.today} hidden={hidden} />}
+
+      <CategoryDonut rows={insights.categories} hidden={hidden} />
+
+      <BudgetWatch usage={insights.usage} categories={categories} hidden={hidden} />
+
+      <UpcomingRecurring rules={insights.upcoming} hidden={hidden} />
 
       {accounts.length > 0 && <AccountStrip accounts={accounts} hidden={hidden} />}
 
