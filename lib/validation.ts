@@ -14,6 +14,7 @@ export const categorySchema = z.object({
   type: z.enum(['expense', 'income']),
   color: z.string().optional(),
   icon: z.string().optional(),
+  dailyAllowance: z.boolean().optional(),
 });
 
 export const currencyCodes = ['IDR', 'USD', 'EUR'] as const;

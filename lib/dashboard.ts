@@ -106,3 +106,22 @@ export function upcomingRecurring<R extends { active: boolean; nextDate: string;
     .filter((r) => r.active && r.nextDate >= today && r.nextDate <= until && (!r.endDate || r.nextDate <= r.endDate))
     .sort((a, b) => a.nextDate.localeCompare(b.nextDate));
 }
+
+/**
+ * The part of a budget meant for day-to-day spending: the whole budget (with
+ * what was carried in) minus the categories left out of the daily allowance,
+ * such as savings, both planned and already spent.
+ */
+export function dailyPool(
+  budget: { totalAmount: number; carry?: number; items: { categoryId: string; amount: number }[] },
+  totalActual: number,
+  actualByCategory: { categoryId: string; actual: number }[],
+  isDaily: (categoryId: string) => boolean
+): { planned: number; actual: number } {
+  const outPlanned = budget.items.filter((i) => !isDaily(i.categoryId)).reduce((s, i) => s + i.amount, 0);
+  const outActual = actualByCategory.filter((c) => !isDaily(c.categoryId)).reduce((s, c) => s + c.actual, 0);
+  return {
+    planned: budget.totalAmount + (budget.carry ?? 0) - outPlanned,
+    actual: totalActual - outActual,
+  };
+}

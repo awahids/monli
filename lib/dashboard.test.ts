@@ -4,6 +4,7 @@ import {
   budgetUsage,
   categoryExpenses,
   dailyExpenses,
+  dailyPool,
   greeting,
   monthTotals,
   percentChange,
@@ -98,4 +99,22 @@ test('upcomingRecurring keeps active rules due within the window', () => {
     upcomingRecurring(rules, '2024-05-01', 14).map((r) => r.id),
     ['b', 'a']
   );
+});
+
+test('dailyPool leaves savings out of the daily allowance', () => {
+  const budget = {
+    totalAmount: 1000,
+    carry: 100,
+    items: [
+      { categoryId: 'food', amount: 600 },
+      { categoryId: 'savings', amount: 400 },
+    ],
+  };
+  const actual = [
+    { categoryId: 'food', actual: 200 },
+    { categoryId: 'savings', actual: 400 },
+    { categoryId: 'other', actual: 50 }, // spent outside the budgeted categories
+  ];
+  assert.deepEqual(dailyPool(budget, 650, actual, (id) => id !== 'savings'), { planned: 700, actual: 250 });
+  assert.deepEqual(dailyPool(budget, 650, actual, () => true), { planned: 1100, actual: 650 });
 });

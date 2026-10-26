@@ -92,6 +92,8 @@ export interface Database {
           type: 'expense' | 'income';
           color: string;
           icon: string;
+          /** Counts toward the daily allowance; off for savings and the like. */
+          daily_allowance: boolean;
           created_at: string;
           updated_at: string;
         };
@@ -102,6 +104,7 @@ export interface Database {
           type: 'expense' | 'income';
           color?: string;
           icon?: string;
+          daily_allowance?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -110,6 +113,7 @@ export interface Database {
           type?: 'expense' | 'income';
           color?: string;
           icon?: string;
+          daily_allowance?: boolean;
           updated_at?: string;
         };
       };

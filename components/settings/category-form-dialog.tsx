@@ -9,7 +9,8 @@ import { categorySchema } from '@/lib/validation';
 import { Category } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { IconPicker } from './icon-picker';
@@ -35,6 +36,7 @@ export function CategoryFormDialog({ open, onOpenChange, initialData, onSubmit }
       type: initialData?.type ?? 'expense',
       color: initialData?.color ?? COLORS[3],
       icon: initialData?.icon ?? 'ShoppingBag',
+      dailyAllowance: initialData?.dailyAllowance ?? true,
     },
   });
 
@@ -44,6 +46,7 @@ export function CategoryFormDialog({ open, onOpenChange, initialData, onSubmit }
       type: initialData?.type ?? 'expense',
       color: initialData?.color ?? COLORS[3],
       icon: initialData?.icon ?? 'ShoppingBag',
+      dailyAllowance: initialData?.dailyAllowance ?? true,
     });
   }, [initialData, form]);
   const { t } = useT();
@@ -99,6 +102,28 @@ export function CategoryFormDialog({ open, onOpenChange, initialData, onSubmit }
                 </FormItem>
               )}
             />
+            {form.watch('type') === 'expense' && (
+              <FormField
+                control={form.control}
+                name="dailyAllowance"
+                render={({ field }) => (
+                  <FormItem className="flex items-center justify-between gap-4 rounded-lg border p-3">
+                    <div className="space-y-0.5">
+                      <FormLabel>{t('Hitung di jatah harian', 'Count in daily allowance')}</FormLabel>
+                      <FormDescription>
+                        {t(
+                          'Matikan untuk tabungan, investasi, atau pos lain yang tidak dibelanjakan sehari-hari.',
+                          'Turn off for savings, investments or anything else you do not spend day to day.'
+                        )}
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch checked={field.value ?? true} onCheckedChange={field.onChange} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            )}
             <FormField
               control={form.control}
               name="color"

@@ -41,6 +41,9 @@
     --chart-4: 142 60% 40%;
     --chart-5: 0 64% 52%;
     --radius: 0.75rem;
+    /* Hue of the accent colour, used by themes that tint surfaces with it. */
+    --hue: 177;
+    --gradient-hero: linear-gradient(to bottom right, hsl(176 80% 28%), hsl(175 69% 22%));
     --gradient-primary: linear-gradient(135deg, hsl(177 79% 37%) 0%, hsl(176 80% 28%) 100%);
     --gradient-secondary: linear-gradient(135deg, hsl(177 79% 37%) 0%, hsl(37 95% 55%) 100%);
     /* Dark enough for white text (AA) across the whole button. */
@@ -87,6 +90,7 @@
     --chart-3: 220 30% 70%;
     --chart-4: 142 60% 45%;
     --chart-5: 0 64% 58%;
+    --gradient-hero: linear-gradient(to bottom right, hsl(177 79% 37%), hsl(175 69% 22%));
     --gradient-primary: linear-gradient(135deg, hsl(177 79% 42%) 0%, hsl(177 79% 32%) 100%);
     --gradient-secondary: linear-gradient(135deg, hsl(177 79% 42%) 0%, hsl(37 95% 55%) 100%);
     /* Light enough for navy text (primary-foreground) in dark mode. */
@@ -97,6 +101,222 @@
     --shadow-md: 0 8px 24px -12px rgb(0 0 0 / 0.7);
     --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.6), 0 4px 6px -4px rgb(0 0 0 / 0.6);
     --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.6), 0 8px 10px -6px rgb(0 0 0 / 0.6);
+  }
+}
+
+/* Accent colours (all plans) and themes (PRO), set on <html> by lib/appearance. */
+@layer base {
+  html:not(.dark)[data-accent="blue"] {
+    --hue: 217;
+    --primary: 217 80% 42%;
+    --accent: 214 80% 93%;
+    --accent-foreground: 217 80% 33%;
+    --ring: 217 80% 42%;
+    --chart-1: 217 80% 42%;
+    --brand-teal: 217 80% 42%;
+    --brand-deep-teal: 217 80% 42%;
+    --gradient-hero: linear-gradient(to bottom right, hsl(217 80% 42%), hsl(219 75% 26%));
+    --gradient-primary: linear-gradient(135deg, hsl(213 90% 62%) 0%, hsl(217 80% 42%) 100%);
+    --gradient-button: linear-gradient(135deg, hsl(217 80% 42%) 0%, hsl(219 75% 26%) 100%);
+    --gradient-button-hover: linear-gradient(135deg, hsl(219 75% 26%) 0%, hsl(217 80% 42%) 100%);
+  }
+  html.dark[data-accent="blue"] {
+    --hue: 217;
+    --primary: 213 90% 62%;
+    --accent: 217 45% 20%;
+    --accent-foreground: 214 80% 86%;
+    --ring: 213 90% 62%;
+    --chart-1: 213 90% 62%;
+    --brand-teal: 213 90% 62%;
+    --brand-deep-teal: 213 90% 62%;
+    --gradient-hero: linear-gradient(to bottom right, hsl(213 90% 62%), hsl(219 75% 26%));
+    --gradient-primary: linear-gradient(135deg, hsl(213 90% 62%) 0%, hsl(217 80% 42%) 100%);
+    --gradient-button: linear-gradient(135deg, hsl(213 90% 62%) 0%, hsl(217 80% 42%) 100%);
+    --gradient-button-hover: linear-gradient(135deg, hsl(217 80% 42%) 0%, hsl(213 90% 62%) 100%);
+  }
+
+  html:not(.dark)[data-accent="violet"] {
+    --hue: 262;
+    --primary: 262 55% 50%;
+    --accent: 262 70% 94%;
+    --accent-foreground: 262 55% 40%;
+    --ring: 262 55% 50%;
+    --chart-1: 262 55% 50%;
+    --brand-teal: 262 55% 50%;
+    --brand-deep-teal: 262 55% 50%;
+    --gradient-hero: linear-gradient(to bottom right, hsl(262 55% 50%), hsl(262 55% 30%));
+    --gradient-primary: linear-gradient(135deg, hsl(262 80% 72%) 0%, hsl(262 55% 50%) 100%);
+    --gradient-button: linear-gradient(135deg, hsl(262 55% 50%) 0%, hsl(262 55% 30%) 100%);
+    --gradient-button-hover: linear-gradient(135deg, hsl(262 55% 30%) 0%, hsl(262 55% 50%) 100%);
+  }
+  html.dark[data-accent="violet"] {
+    --hue: 262;
+    --primary: 262 80% 72%;
+    --accent: 262 35% 22%;
+    --accent-foreground: 262 80% 87%;
+    --ring: 262 80% 72%;
+    --chart-1: 262 80% 72%;
+    --brand-teal: 262 80% 72%;
+    --brand-deep-teal: 262 80% 72%;
+    --gradient-hero: linear-gradient(to bottom right, hsl(262 80% 72%), hsl(262 55% 30%));
+    --gradient-primary: linear-gradient(135deg, hsl(262 80% 72%) 0%, hsl(262 55% 50%) 100%);
+    --gradient-button: linear-gradient(135deg, hsl(262 80% 72%) 0%, hsl(262 55% 50%) 100%);
+    --gradient-button-hover: linear-gradient(135deg, hsl(262 55% 50%) 0%, hsl(262 80% 72%) 100%);
+  }
+
+  html:not(.dark)[data-accent="rose"] {
+    --hue: 340;
+    --primary: 340 70% 45%;
+    --accent: 340 80% 94%;
+    --accent-foreground: 340 70% 36%;
+    --ring: 340 70% 45%;
+    --chart-1: 340 70% 45%;
+    --brand-teal: 340 70% 45%;
+    --brand-deep-teal: 340 70% 45%;
+    --gradient-hero: linear-gradient(to bottom right, hsl(340 70% 45%), hsl(340 70% 28%));
+    --gradient-primary: linear-gradient(135deg, hsl(340 80% 66%) 0%, hsl(340 70% 45%) 100%);
+    --gradient-button: linear-gradient(135deg, hsl(340 70% 45%) 0%, hsl(340 70% 28%) 100%);
+    --gradient-button-hover: linear-gradient(135deg, hsl(340 70% 28%) 0%, hsl(340 70% 45%) 100%);
+  }
+  html.dark[data-accent="rose"] {
+    --hue: 340;
+    --primary: 340 80% 66%;
+    --accent: 340 35% 22%;
+    --accent-foreground: 340 80% 87%;
+    --ring: 340 80% 66%;
+    --chart-1: 340 80% 66%;
+    --brand-teal: 340 80% 66%;
+    --brand-deep-teal: 340 80% 66%;
+    --gradient-hero: linear-gradient(to bottom right, hsl(340 80% 66%), hsl(340 70% 28%));
+    --gradient-primary: linear-gradient(135deg, hsl(340 80% 66%) 0%, hsl(340 70% 45%) 100%);
+    --gradient-button: linear-gradient(135deg, hsl(340 80% 66%) 0%, hsl(340 70% 45%) 100%);
+    --gradient-button-hover: linear-gradient(135deg, hsl(340 70% 45%) 0%, hsl(340 80% 66%) 100%);
+  }
+
+  html:not(.dark)[data-accent="orange"] {
+    --hue: 24;
+    --primary: 24 85% 40%;
+    --accent: 30 90% 92%;
+    --accent-foreground: 24 85% 30%;
+    --ring: 24 85% 40%;
+    --chart-1: 24 85% 40%;
+    --brand-teal: 24 85% 40%;
+    --brand-deep-teal: 24 85% 40%;
+    --gradient-hero: linear-gradient(to bottom right, hsl(24 85% 40%), hsl(20 80% 26%));
+    --gradient-primary: linear-gradient(135deg, hsl(28 90% 58%) 0%, hsl(24 85% 40%) 100%);
+    --gradient-button: linear-gradient(135deg, hsl(24 85% 40%) 0%, hsl(20 80% 26%) 100%);
+    --gradient-button-hover: linear-gradient(135deg, hsl(20 80% 26%) 0%, hsl(24 85% 40%) 100%);
+  }
+  html.dark[data-accent="orange"] {
+    --hue: 24;
+    --primary: 28 90% 58%;
+    --accent: 24 40% 20%;
+    --accent-foreground: 30 90% 85%;
+    --ring: 28 90% 58%;
+    --chart-1: 28 90% 58%;
+    --brand-teal: 28 90% 58%;
+    --brand-deep-teal: 28 90% 58%;
+    --gradient-hero: linear-gradient(to bottom right, hsl(28 90% 58%), hsl(20 80% 26%));
+    --gradient-primary: linear-gradient(135deg, hsl(28 90% 58%) 0%, hsl(24 85% 40%) 100%);
+    --gradient-button: linear-gradient(135deg, hsl(28 90% 58%) 0%, hsl(24 85% 40%) 100%);
+    --gradient-button-hover: linear-gradient(135deg, hsl(24 85% 40%) 0%, hsl(28 90% 58%) 100%);
+  }
+
+  html:not(.dark)[data-accent="green"] {
+    --hue: 152;
+    --primary: 152 70% 29%;
+    --accent: 150 50% 92%;
+    --accent-foreground: 152 70% 23%;
+    --ring: 152 70% 29%;
+    --chart-1: 152 70% 29%;
+    --brand-teal: 152 70% 29%;
+    --brand-deep-teal: 152 70% 29%;
+    --gradient-hero: linear-gradient(to bottom right, hsl(152 70% 29%), hsl(154 70% 18%));
+    --gradient-primary: linear-gradient(135deg, hsl(152 60% 48%) 0%, hsl(152 70% 29%) 100%);
+    --gradient-button: linear-gradient(135deg, hsl(152 70% 29%) 0%, hsl(154 70% 18%) 100%);
+    --gradient-button-hover: linear-gradient(135deg, hsl(154 70% 18%) 0%, hsl(152 70% 29%) 100%);
+  }
+  html.dark[data-accent="green"] {
+    --hue: 152;
+    --primary: 152 60% 48%;
+    --accent: 152 35% 18%;
+    --accent-foreground: 150 50% 85%;
+    --ring: 152 60% 48%;
+    --chart-1: 152 60% 48%;
+    --brand-teal: 152 60% 48%;
+    --brand-deep-teal: 152 60% 48%;
+    --gradient-hero: linear-gradient(to bottom right, hsl(152 60% 48%), hsl(154 70% 18%));
+    --gradient-primary: linear-gradient(135deg, hsl(152 60% 48%) 0%, hsl(152 70% 29%) 100%);
+    --gradient-button: linear-gradient(135deg, hsl(152 60% 48%) 0%, hsl(152 70% 29%) 100%);
+    --gradient-button-hover: linear-gradient(135deg, hsl(152 70% 29%) 0%, hsl(152 60% 48%) 100%);
+  }
+
+  /* Themes (PRO): surfaces, corners and shadows. */
+  html:not(.dark)[data-style="minimal"] {
+    --background: 0 0% 98%;
+    --card: 0 0% 100%;
+    --popover: 0 0% 100%;
+    --secondary: 220 14% 96%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 38%;
+    --border: 220 13% 90%;
+    --input: 220 13% 86%;
+    --radius: 0.5rem;
+    --shadow-sm: none;
+    --shadow-md: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  }
+  html.dark[data-style="minimal"] {
+    --background: 0 0% 7%;
+    --card: 0 0% 10%;
+    --popover: 0 0% 10%;
+    --secondary: 0 0% 15%;
+    --muted: 0 0% 15%;
+    --border: 0 0% 18%;
+    --input: 0 0% 22%;
+    --radius: 0.5rem;
+  }
+  html:not(.dark)[data-style="soft"] {
+    --background: var(--hue) 45% 95%;
+    --card: 0 0% 100%;
+    --popover: 0 0% 100%;
+    --secondary: var(--hue) 35% 93%;
+    --muted: var(--hue) 35% 93%;
+    --border: var(--hue) 25% 87%;
+    --input: var(--hue) 20% 82%;
+    --radius: 1.25rem;
+  }
+  html.dark[data-style="soft"] {
+    --background: var(--hue) 25% 8%;
+    --card: var(--hue) 20% 12%;
+    --popover: var(--hue) 20% 12%;
+    --secondary: var(--hue) 15% 17%;
+    --muted: var(--hue) 15% 17%;
+    --border: var(--hue) 15% 20%;
+    --input: var(--hue) 15% 24%;
+    --radius: 1.25rem;
+  }
+  html:not(.dark)[data-style="bold"] {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 4%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 4%;
+    --muted: 0 0% 95%;
+    --muted-foreground: 0 0% 25%;
+    --border: 0 0% 15%;
+    --input: 0 0% 15%;
+    --radius: 0.375rem;
+  }
+  html.dark[data-style="bold"] {
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
+    --card: 0 0% 4%;
+    --card-foreground: 0 0% 100%;
+    --popover: 0 0% 4%;
+    --muted: 0 0% 10%;
+    --muted-foreground: 0 0% 72%;
+    --border: 0 0% 30%;
+    --input: 0 0% 35%;
+    --radius: 0.375rem;
   }
 }
 
