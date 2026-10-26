@@ -14,6 +14,14 @@ export type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2026.10.26',
+    date: '2026-10-26',
+    title: 'Hapus item saat memeriksa transaksi',
+    items: [
+      { type: 'peningkatan', text: 'Saat memeriksa beberapa transaksi dari asisten AI atau scan struk, item yang salah atau berlebih kini bisa dihapus sebelum disimpan.' },
+    ],
+  },
+  {
     version: '2026.10.18',
     date: '2026-10-18',
     title: 'Animasi saat aplikasi dibuka',
