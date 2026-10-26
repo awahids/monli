@@ -20,6 +20,7 @@ export const CHANGELOG: ChangelogEntry[] = [
     items: [
       { type: 'baru', text: 'Pilih warna aksen aplikasi di Pengaturan > Tampilan: teal, biru, ungu, merah muda, oranye, atau hijau.' },
       { type: 'baru', text: 'Pengguna PRO bisa memilih tema Minimal, Lembut, atau Kontras selain tema Klasik.' },
+      { type: 'baru', text: 'Tema Islami (hijau zamrud & emas, motif geometris, salam) dan tema Kartun (ceria, garis tebal, ditemani Tupi si tupai penabung yang bergerak) untuk pengguna PRO.' },
       { type: 'perbaikan', text: 'Sisa jatah hari ini tidak lagi menghitung budget tabungan. Kategori lain bisa dikeluarkan dari jatah harian lewat Pengaturan > Kategori.' },
       { type: 'baru', text: 'Beranda kini menampilkan pemasukan dan pengeluaran dibanding periode lalu, grafik pengeluaran harian, ke mana uangmu pergi, budget yang paling cepat habis, dan transaksi rutin 14 hari ke depan.' },
       { type: 'peningkatan', text: 'Saat memeriksa beberapa transaksi dari asisten AI atau scan struk, item yang salah atau berlebih kini bisa dihapus sebelum disimpan.' },

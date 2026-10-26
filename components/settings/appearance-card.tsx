@@ -9,6 +9,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { useAppStore } from '@/lib/store';
 import { useT } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
+import { SquirrelMascot, StarRosette } from '@/components/appearance/theme-art';
 import {
   ACCENTS,
   ACCENT_KEY,
@@ -16,6 +17,7 @@ import {
   THEME_KEY,
   applyAppearance,
   effectiveTheme,
+  hasOwnColors,
   parseAccent,
   readStored,
   store,
@@ -93,7 +95,16 @@ export function AppearanceCard() {
 
         <div className="space-y-2">
           <p id="accent-label" className="text-sm font-medium">{t('Warna aksen', 'Accent colour')}</p>
-          <div role="radiogroup" aria-labelledby="accent-label" className="flex flex-wrap gap-3">
+          {mounted && hasOwnColors(theme) && (
+            <p className="text-xs text-muted-foreground">
+              {t('Tema ini memakai warnanya sendiri. Warna aksen dipakai lagi di tema lain.', 'This theme has its own colours. The accent colour applies to the other themes.')}
+            </p>
+          )}
+          <div
+            role="radiogroup"
+            aria-labelledby="accent-label"
+            className={cn('flex flex-wrap gap-3', mounted && hasOwnColors(theme) && 'opacity-50')}
+          >
             {ACCENTS.map((a) => {
               const selected = mounted && accent === a.id;
               return (
@@ -168,19 +179,26 @@ export function AppearanceCard() {
 
 /** A tiny mock screen in the theme's own surfaces, tinted with the current accent. */
 function ThemePreview({ theme }: { theme: Theme }) {
-  const looks: Record<Theme, { bg: string; card: string; radius: string; border?: string }> = {
+  const looks: Record<Theme, { bg: string; card: string; radius: string; border?: string; bar?: string; shadow?: string }> = {
     classic: { bg: '#F2EFE9', card: '#FFFFFF', radius: '6px' },
     minimal: { bg: '#FAFAFA', card: '#FFFFFF', radius: '3px', border: '#E5E7EB' },
     soft: { bg: 'hsl(var(--hue) 45% 93%)', card: '#FFFFFF', radius: '10px' },
     bold: { bg: '#FFFFFF', card: '#FFFFFF', radius: '2px', border: '#111111' },
+    islamic: { bg: '#F7F2E6', card: '#FFFFFF', radius: '8px', border: '#E2D3AC', bar: 'linear-gradient(135deg, #16694F, #0B3F33)' },
+    cartoon: { bg: '#EAF6FF', card: '#FFFFFF', radius: '10px', border: '#1E293B', bar: '#0B6FD0', shadow: '2px 2px 0 #1E293B' },
   };
   const look = looks[theme];
   return (
-    <span aria-hidden className="block h-16 overflow-hidden rounded-lg p-2" style={{ backgroundColor: look.bg }}>
-      <span className="block h-5 bg-primary" style={{ borderRadius: look.radius }} />
+    <span aria-hidden className="relative block h-16 overflow-hidden rounded-lg p-2" style={{ backgroundColor: look.bg }}>
+      {theme === 'islamic' && <StarRosette className="absolute -right-3 -top-3 h-14 w-14 text-amber-600/30" />}
+      {theme === 'cartoon' && <SquirrelMascot className="absolute -bottom-1 right-0 z-10 h-9 w-9" />}
       <span
-        className="mt-1.5 block h-6"
-        style={{ backgroundColor: look.card, borderRadius: look.radius, border: `1px solid ${look.border ?? 'transparent'}` }}
+        className={cn('relative block h-5', !look.bar && 'bg-primary')}
+        style={{ borderRadius: look.radius, background: look.bar, boxShadow: look.shadow }}
+      />
+      <span
+        className="relative mt-1.5 block h-6"
+        style={{ backgroundColor: look.card, borderRadius: look.radius, border: `1px solid ${look.border ?? 'transparent'}`, boxShadow: look.shadow }}
       />
     </span>
   );
