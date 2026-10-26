@@ -6,7 +6,8 @@ import { getUser } from '@/lib/auth/server';
 const patchSchema = z.object({ role: z.enum(['editor', 'viewer']) });
 
 /** Owner changes a member's role. */
-export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+export async function PATCH(req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const parsed = patchSchema.safeParse(await req.json().catch(() => ({})));
   if (!parsed.success) return NextResponse.json({ error: 'Peran tidak valid' }, { status: 400 });
   const supabase = createClient();
@@ -28,7 +29,8 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 }
 
 /** Owner removes someone (or cancels an invite); a member leaves. RLS allows exactly those two. */
-export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(_req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const supabase = createClient();
   try {
     await getUser();

@@ -5,7 +5,8 @@ import { getSpace, readOnlyResponse } from '@/lib/auth/server';
 export const dynamic = 'force-dynamic';
 
 /** Undoes a payment; the trigger reverses its balance change and `paid`. */
-export async function DELETE(_req: Request, { params }: { params: { id: string; entryId: string } }) {
+export async function DELETE(_req: Request, props: { params: Promise<{ id: string; entryId: string }> }) {
+  const params = await props.params;
   const supabase = createClient();
   try {
     const space = await getSpace();

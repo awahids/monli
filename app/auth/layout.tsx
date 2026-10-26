@@ -5,9 +5,9 @@ import { LOCALE_COOKIE, asLocale } from '@/lib/locale';
 
 // The auth pages report errors with sonner toasts; the root layout only
 // mounts the older shadcn toaster, so they need their own.
-export default function AuthLayout({ children }: { children: React.ReactNode }) {
+export default async function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
-    <LocaleProvider locale={asLocale(cookies().get(LOCALE_COOKIE)?.value)}>
+    <LocaleProvider locale={asLocale((await cookies()).get(LOCALE_COOKIE)?.value)}>
       {children}
       <Toaster />
     </LocaleProvider>

@@ -66,7 +66,7 @@ export const getCurrentMonth = () =>
 export const formSchema = z
   .object({
     budgetMonth: z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/, 'Pilih bulan budget'),
-    actualDate: z.date({ required_error: 'Pilih tanggal' }),
+    actualDate: z.date({ error: 'Pilih tanggal' }),
     type: z.enum(['expense', 'income', 'transfer']),
     accountId: z.string().optional(),
     fromAccountId: z.string().optional(),

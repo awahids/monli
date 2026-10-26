@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, use } from 'react';
 import Link from 'next/link';
 import { Loader2, Users } from 'lucide-react';
 
@@ -18,7 +18,8 @@ type State =
   | { kind: 'ready'; invite: Invite; myEmail: string }
   | { kind: 'error'; message: string };
 
-export default function InvitePage({ params }: { params: { token: string } }) {
+export default function InvitePage(props: { params: Promise<{ token: string }> }) {
+  const params = use(props.params);
   const [state, setState] = useState<State>({ kind: 'loading' });
   const [accepting, setAccepting] = useState(false);
   const [acceptError, setAcceptError] = useState<string | null>(null);

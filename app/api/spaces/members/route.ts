@@ -50,7 +50,7 @@ export async function POST(req: Request) {
       .single();
     if (error) {
       const message =
-        error.code === '23505' ? serverT()('Email ini sudah diundang.', 'This email has already been invited.') : error.message.includes('member_limit') ? inviteErrorMessage(error.message, serverT()) : error.message;
+        error.code === '23505' ? (await serverT())('Email ini sudah diundang.', 'This email has already been invited.') : error.message.includes('member_limit') ? inviteErrorMessage(error.message, (await serverT())) : error.message;
       return NextResponse.json({ error: message }, { status: 400 });
     }
     return NextResponse.json(data, { status: 201 });

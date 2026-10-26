@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { syncPaymentStatus } from "@/lib/midtrans";
 
 interface Params {
-  params: { orderId: string };
+  params: Promise<{ orderId: string }>;
 }
 
 async function loadPayment(orderId: string) {
@@ -33,7 +33,8 @@ async function loadPayment(orderId: string) {
   });
 }
 
-export async function GET(_req: Request, { params }: Params) {
+export async function GET(_req: Request, props: Params) {
+  const params = await props.params;
   try {
     return await loadPayment(params.orderId);
   } catch (e) {
@@ -46,7 +47,8 @@ export async function GET(_req: Request, { params }: Params) {
 
 // Kept for older clients: the request body is ignored and the status is
 // re-checked with Midtrans instead of being trusted.
-export async function PATCH(_req: Request, { params }: Params) {
+export async function PATCH(_req: Request, props: Params) {
+  const params = await props.params;
   try {
     return await loadPayment(params.orderId);
   } catch (e) {

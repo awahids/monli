@@ -6,10 +6,8 @@ import { z } from 'zod';
 
 export const dynamic = 'force-dynamic';
 
-export async function PATCH(
-  req: Request,
-  { params }: { params: { id: string } },
-) {
+export async function PATCH(req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const supabase = createServerClient();
   let body: z.infer<typeof transactionPatchSchema>;
   try {
@@ -138,10 +136,8 @@ export async function PATCH(
   }
 }
 
-export async function DELETE(
-  req: Request,
-  { params }: { params: { id: string } },
-) {
+export async function DELETE(req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const supabase = createServerClient();
   try {
     const space = await getSpace();

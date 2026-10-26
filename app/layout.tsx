@@ -1,5 +1,5 @@
 import "./globals.css";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, Poppins } from "next/font/google";
 import { Toaster } from "@/components/ui/toaster";
 import { APPEARANCE_BOOT_SCRIPT } from "@/lib/appearance";
@@ -87,20 +87,20 @@ export const metadata: Metadata = {
   verification: {
     google: "gs8ipaSQ05xaS9r1ScKArsPcBLNQGIDw8OONjrt0eBM",
   },
-  // Next 13.5 still reads viewport and themeColor from metadata.
-  viewport: {
-    width: "device-width",
-    initialScale: 1,
-    maximumScale: 5,
-    userScalable: true,
-    viewportFit: "cover",
-  },
+  robots: "index, follow",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || BRAND.url),
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
+  viewportFit: "cover",
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: BRAND.themeColor },
     { media: "(prefers-color-scheme: dark)", color: "#1A1A17" },
   ],
-  robots: "index, follow",
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || BRAND.url),
 };
 
 export default function RootLayout({

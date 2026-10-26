@@ -4,7 +4,8 @@ import { getSpace, readOnlyResponse } from '@/lib/auth/server';
 import { categorySchema } from '@/lib/validation';
 import { z } from 'zod';
 
-export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+export async function PATCH(req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const supabase = createServerClient();
   let body: Partial<z.infer<typeof categorySchema>>;
   try {
@@ -50,7 +51,8 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   }
 }
 
-export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(_req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const supabase = createServerClient();
   try {
     const space = await getSpace();

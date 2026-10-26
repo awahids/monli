@@ -4,8 +4,6 @@ import type { Database } from "@/types/database";
 import { DB_SCHEMA } from "./schema";
 
 export function createClient() {
-  const cookieStore = cookies();
-
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
@@ -15,9 +13,10 @@ export function createClient() {
 
   return createSupabaseServerClient<Database>(supabaseUrl, supabaseAnonKey, {
     db: { schema: DB_SCHEMA },
+    // Read-only: the session is refreshed and its cookies written by middleware.
     cookies: {
-      get(name: string) {
-        return cookieStore.get(name)?.value;
+      async getAll() {
+        return (await cookies()).getAll();
       },
     },
   });

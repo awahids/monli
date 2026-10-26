@@ -7,7 +7,8 @@ import { z } from 'zod';
 
 export const dynamic = 'force-dynamic';
 
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const supabase = createClient();
   let body: z.infer<typeof debtPaymentSchema>;
   try {

@@ -6,10 +6,8 @@ import { z } from "zod";
 
 export const dynamic = "force-dynamic";
 
-export async function PATCH(
-  req: Request,
-  { params }: { params: { id: string } },
-) {
+export async function PATCH(req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const supabase = createClient();
   let body: Partial<z.infer<typeof accountSchema>>;
   try {
@@ -62,10 +60,8 @@ export async function PATCH(
 
 // Default: archive (soft delete). With ?permanent=true the account is removed,
 // which only succeeds when no transactions reference it.
-export async function DELETE(
-  req: Request,
-  { params }: { params: { id: string } },
-) {
+export async function DELETE(req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const supabase = createClient();
   const permanent = new URL(req.url).searchParams.get("permanent") === "true";
   try {
