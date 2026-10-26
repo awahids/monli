@@ -14,6 +14,7 @@ import { UpdateBanner } from "@/components/pwa/update-banner";
 import { OnboardingGate } from "@/components/onboarding/onboarding";
 import { warmOfflineCache } from "@/lib/pwa";
 import { AppLockGate } from "@/components/security/app-lock";
+import { AppearanceSync } from "@/components/settings/appearance-card";
 import { AppSplash } from "@/components/layout/app-splash";
 
 export function DashboardShell({
@@ -58,6 +59,7 @@ export function DashboardShell({
       {user?.plan === 'PRO' && <ChatWidget />}
       <OnboardingGate />
       <AppLockGate />
+      <AppearanceSync />
       <AppSplash ready={!!user} />
     </div>
   );

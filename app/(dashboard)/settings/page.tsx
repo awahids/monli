@@ -36,6 +36,7 @@ import { Button } from '@/components/ui/button';
 import { CategoryFormDialog, CategoryFormValues } from '@/components/settings/category-form-dialog';
 import { SharedSpaceCard } from '@/components/settings/shared-space-card';
 import { AboutAppCard } from '@/components/settings/about-app-card';
+import { AppearanceCard } from '@/components/settings/appearance-card';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import {
   AlertDialog,
@@ -84,7 +85,7 @@ export default function SettingsPage() {
       });
     fetch('/api/settings/categories')
       .then((res) => res.json())
-      .then(setCategories);
+      .then((data) => setCategories(Array.isArray(data) ? data : []));
   }, [profileForm]);
 
   async function onProfileSubmit(values: ProfileFormValues) {
@@ -275,6 +276,8 @@ export default function SettingsPage() {
           </Form>
         </Card>
 
+        <AppearanceCard />
+
         <Card className="flex flex-col">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>{t('Kategori', 'Categories')}</CardTitle>
@@ -320,7 +323,10 @@ export default function SettingsPage() {
                           <CategoryIcon name={c.icon} className="h-5 w-5" />
                           <div>
                             <p className="font-medium leading-none">{c.name}</p>
-                            <p className="text-sm text-muted-foreground">{c.type === 'income' ? t('Pemasukan', 'Income') : t('Pengeluaran', 'Expense')}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {c.type === 'income' ? t('Pemasukan', 'Income') : t('Pengeluaran', 'Expense')}
+                              {c.type === 'expense' && c.dailyAllowance === false && ` · ${t('Di luar jatah harian', 'Not in daily allowance')}`}
+                            </p>
                           </div>
                         </div>
                         <div className="flex items-center gap-2">

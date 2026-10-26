@@ -2,6 +2,7 @@ import "./globals.css";
 import type { Metadata } from "next";
 import { Inter, Poppins } from "next/font/google";
 import { Toaster } from "@/components/ui/toaster";
+import { APPEARANCE_BOOT_SCRIPT } from "@/lib/appearance";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ServiceWorkerRegister } from "@/components/service-worker-register";
 import { Analytics } from "@/components/analytics";
@@ -114,6 +115,7 @@ export default function RootLayout({
       className={cn(inter.variable, poppins.variable)}
     >
       <head>
+        <script dangerouslySetInnerHTML={{ __html: APPEARANCE_BOOT_SCRIPT }} />
         {/* Inside the iOS/Android app: mark <html> before the first paint so
             web-only bits (install prompts, upgrade links) never flash. */}
         <script

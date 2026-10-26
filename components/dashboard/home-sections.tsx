@@ -57,7 +57,7 @@ export function BalanceHero({
   const { t } = useT();
   const money = (n: number) => (hidden ? HIDDEN : formatMoney(n));
   return (
-    <section className="space-y-4 rounded-3xl bg-gradient-to-br from-primary to-teal-800 p-5 text-primary-foreground shadow-lg shadow-primary/20">
+    <section className="space-y-4 rounded-3xl bg-[image:var(--gradient-hero)] p-5 text-primary-foreground shadow-lg shadow-primary/20">
       <div>
         <div className="flex items-center gap-1.5 text-sm text-primary-foreground/80">
           {t('Saldo total', 'Total balance')}
@@ -110,8 +110,8 @@ export function BalanceHero({
             {!budget.over && (
               <p className="mt-1.5 text-xs text-primary-foreground/80">
                 {t(
-                  `Sisa budget ${money(budget.remaining)} untuk ${budget.daysLeft} hari lagi`,
-                  `${money(budget.remaining)} budget left for ${budget.daysLeft} more days`
+                  `Sisa belanja ${money(budget.remaining)} untuk ${budget.daysLeft} hari lagi`,
+                  `${money(budget.remaining)} left to spend for ${budget.daysLeft} more days`
                 )}
               </p>
             )}

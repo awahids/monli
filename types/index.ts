@@ -52,6 +52,8 @@ export interface Category {
   type: 'expense' | 'income';
   color: string;
   icon: string;
+  /** Counts toward the daily allowance; off for savings and the like. */
+  dailyAllowance?: boolean;
 }
 
 export interface Budget {

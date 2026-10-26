@@ -27,6 +27,7 @@ import {
   budgetUsage,
   categoryExpenses,
   dailyExpenses,
+  dailyPool,
   greeting,
   monthTotals,
   upcomingRecurring,
@@ -43,7 +44,7 @@ import { spacePlan } from '@/lib/plans';
 import { AccountStrip, BalanceHero, QuickActions, useHiddenBalance } from '@/components/dashboard/home-sections';
 import { BudgetWatch, CategoryDonut, SpendingChart, StatTiles, UpcomingRecurring } from '@/components/dashboard/insights';
 
-type BudgetSummary = { totalActual: number };
+type BudgetSummary = { totalActual: number; perCategory: { categoryId: string; actual: number }[] };
 
 function DashboardSkeleton() {
   const { t } = useT();
@@ -178,7 +179,7 @@ export default function DashboardPage() {
       .then((res) => (res.ok ? res.json() : Promise.reject(res)))
       .then((data) => {
         if (cancelled) return;
-        setBudgetSummary({ totalActual: data.budget?.totalActual ?? 0 });
+        setBudgetSummary({ totalActual: data.budget?.totalActual ?? 0, perCategory: data.budget?.perCategory ?? [] });
       })
       .catch(() => {});
     return () => {
@@ -242,8 +243,14 @@ export default function DashboardPage() {
   const budget = budgets.find((b) => b.month === budgetMonth);
   const budgetCard = useMemo(() => {
     if (!budget) return null;
-    const planned = budget.totalAmount + (budget.carry ?? 0);
-    const actual = budgetSummary?.totalActual ?? 0;
+    // Savings and other categories left out of the daily allowance don't count here.
+    const notDaily = new Set(categories.filter((c) => c.dailyAllowance === false).map((c) => c.id));
+    const { planned, actual } = dailyPool(
+      budget,
+      budgetSummary?.totalActual ?? 0,
+      budgetSummary?.perCategory ?? [],
+      (id) => !notDaily.has(id)
+    );
     const remaining = planned - actual;
     const { end } = budgetPeriod(budgetMonth, budgetStartDay);
     const daysLeft = Math.max(daysBetweenInclusive(formatDate(new Date()), end), 1);
@@ -254,7 +261,7 @@ export default function DashboardPage() {
       pct: planned > 0 ? Math.min((actual / planned) * 100, 100) : 0,
       over: remaining < 0,
     };
-  }, [budget, budgetSummary, budgetMonth, budgetStartDay]);
+  }, [budget, budgetSummary, budgetMonth, budgetStartDay, categories]);
 
   const showOnboarding = Boolean(user && !user.onboardingCompleted);
   const completeOnboarding = async () => {

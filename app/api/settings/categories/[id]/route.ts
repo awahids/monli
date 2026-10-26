@@ -33,9 +33,10 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
         type: body.type,
         color: body.color,
         icon: body.icon,
+        daily_allowance: body.dailyAllowance,
       })
       .eq('id', params.id)
-      .select('id, name, type, color, icon')
+      .select('id, name, type, color, icon, dailyAllowance:daily_allowance')
       .single();
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
