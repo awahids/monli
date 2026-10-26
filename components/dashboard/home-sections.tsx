@@ -8,6 +8,7 @@ import { formatMoney } from '@/lib/currency';
 import { cn } from '@/lib/utils';
 import { useT } from '@/lib/i18n';
 import { CategoryIcon } from '@/components/transactions/category-icon';
+import { HeroArt } from '@/components/appearance/theme-art';
 
 const HIDE_KEY = 'saku_hide_balance';
 const HIDDEN = 'Rp •••••';
@@ -57,7 +58,7 @@ export function BalanceHero({
   const { t } = useT();
   const money = (n: number) => (hidden ? HIDDEN : formatMoney(n));
   return (
-    <section className="space-y-4 rounded-3xl bg-[image:var(--gradient-hero)] p-5 text-primary-foreground shadow-lg shadow-primary/20">
+    <section className="relative isolate space-y-4 overflow-hidden rounded-3xl bg-[image:var(--gradient-hero)] p-5 text-primary-foreground shadow-lg shadow-primary/20">
       <div>
         <div className="flex items-center gap-1.5 text-sm text-primary-foreground/80">
           {t('Saldo total', 'Total balance')}
@@ -123,6 +124,7 @@ export function BalanceHero({
           </Link>
         )}
       </div>
+      <HeroArt />
     </section>
   );
 }

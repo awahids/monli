@@ -12,11 +12,17 @@ export const ACCENTS = [
   { id: 'green', name: ['Hijau', 'Green'], swatch: '#178052' },
 ] as const;
 
+/**
+ * `ownColors` themes bring their own palette, pattern and artwork
+ * (components/appearance/theme-art.tsx), so the accent colour does not apply.
+ */
 export const THEMES = [
-  { id: 'classic', name: ['Klasik', 'Classic'], description: ['Krem hangat, bawaan Qala Saku', 'Warm cream, the Qala Saku default'], pro: false },
-  { id: 'minimal', name: ['Minimal', 'Minimal'], description: ['Putih bersih, sudut tegas, tanpa bayangan', 'Clean white, crisp corners, no shadows'], pro: true },
-  { id: 'soft', name: ['Lembut', 'Soft'], description: ['Latar diwarnai aksenmu, sudut membulat', 'Background tinted with your accent, rounded corners'], pro: true },
-  { id: 'bold', name: ['Kontras', 'Bold'], description: ['Hitam-putih tajam, hitam pekat di mode gelap', 'Sharp black and white, true black in dark mode'], pro: true },
+  { id: 'classic', name: ['Klasik', 'Classic'], description: ['Krem hangat, bawaan Qala Saku', 'Warm cream, the Qala Saku default'], pro: false, ownColors: false },
+  { id: 'minimal', name: ['Minimal', 'Minimal'], description: ['Putih bersih, sudut tegas, tanpa bayangan', 'Clean white, crisp corners, no shadows'], pro: true, ownColors: false },
+  { id: 'soft', name: ['Lembut', 'Soft'], description: ['Latar diwarnai aksenmu, sudut membulat', 'Background tinted with your accent, rounded corners'], pro: true, ownColors: false },
+  { id: 'bold', name: ['Kontras', 'Bold'], description: ['Hitam-putih tajam, hitam pekat di mode gelap', 'Sharp black and white, true black in dark mode'], pro: true, ownColors: false },
+  { id: 'islamic', name: ['Islami', 'Islamic'], description: ['Hijau zamrud & emas, motif geometris, salam', 'Emerald & gold, geometric pattern, salam greeting'], pro: true, ownColors: true },
+  { id: 'cartoon', name: ['Kartun', 'Cartoon'], description: ['Ceria, garis tebal, ditemani Tupi si tupai penabung', 'Playful, bold outlines, with Tupi the saving squirrel'], pro: true, ownColors: true },
 ] as const;
 
 export type Accent = (typeof ACCENTS)[number]['id'];
@@ -36,6 +42,11 @@ export function effectiveTheme(value: string | null | undefined, isPro: boolean)
   const theme = THEMES.find((t) => t.id === value);
   if (!theme || (theme.pro && !isPro)) return DEFAULT_THEME;
   return theme.id;
+}
+
+/** Whether the theme ignores the accent colour because it has its own. */
+export function hasOwnColors(theme: Theme): boolean {
+  return THEMES.find((t) => t.id === theme)?.ownColors ?? false;
 }
 
 /** Sets the attributes on <html>; the defaults remove them so :root applies. */

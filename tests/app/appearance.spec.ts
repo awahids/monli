@@ -30,6 +30,23 @@ test('every plan picks an accent colour; themes are PRO only', async ({ page, us
   await expect(html).toHaveAttribute('data-accent', 'violet');
 });
 
+test('the Islami and Kartun themes change more than colours', async ({ page, user, admin }) => {
+  await admin.from('profiles').update({ plan: 'PRO' }).eq('id', user.id);
+  await signIn(page, user);
+  await page.goto('/settings');
+  await page.getByRole('radio', { name: /^Islami/ }).click();
+  await expect(page.locator('html')).toHaveAttribute('data-style', 'islamic');
+  await expect(page.getByText('Tema ini memakai warnanya sendiri.', { exact: false })).toBeVisible();
+
+  await page.goto('/dashboard');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText("Assalamu'alaikum, Uji");
+
+  await page.goto('/settings');
+  await page.getByRole('radio', { name: /^Kartun/ }).click();
+  await page.goto('/dashboard');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Halo, Uji');
+});
+
 test("savings left out of the daily allowance don't count as spending money", async ({ page, user, admin }) => {
   const month = formatDate(new Date()).slice(0, 7);
   const { data: savings } = await admin

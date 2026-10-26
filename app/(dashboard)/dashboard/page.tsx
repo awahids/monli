@@ -43,6 +43,7 @@ import { useT } from '@/lib/i18n';
 import { spacePlan } from '@/lib/plans';
 import { AccountStrip, BalanceHero, QuickActions, useHiddenBalance } from '@/components/dashboard/home-sections';
 import { BudgetWatch, CategoryDonut, SpendingChart, StatTiles, UpcomingRecurring } from '@/components/dashboard/insights';
+import { themedGreeting, useActiveTheme } from '@/components/appearance/theme-art';
 
 type BudgetSummary = { totalActual: number; perCategory: { categoryId: string; actual: number }[] };
 
@@ -90,6 +91,7 @@ export default function DashboardPage() {
   const { isOnline, addOfflineChange } = useOffline();
   const { t, locale } = useT();
   const [hidden, toggleHidden] = useHiddenBalance();
+  const theme = useActiveTheme();
 
   // Everything here follows the budget period, which may start on payday
   // (e.g. 26 Sep – 25 Oct is "October"), so KPIs, charts and the budget card agree.
@@ -283,7 +285,7 @@ export default function DashboardPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-lg font-semibold">
-          {greeting(new Date(), t)}
+          {themedGreeting(theme, greeting(new Date(), t))}
           {firstName ? `, ${firstName}` : ''}
         </h1>
         <p className="text-xs text-muted-foreground">
