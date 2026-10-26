@@ -9,7 +9,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { useAppStore } from '@/lib/store';
 import { useT } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
-import { PiggyMascot, StarRosette } from '@/components/appearance/theme-art';
+import { SquirrelMascot, StarRosette } from '@/components/appearance/theme-art';
 import {
   ACCENTS,
   ACCENT_KEY,
@@ -191,7 +191,7 @@ function ThemePreview({ theme }: { theme: Theme }) {
   return (
     <span aria-hidden className="relative block h-16 overflow-hidden rounded-lg p-2" style={{ backgroundColor: look.bg }}>
       {theme === 'islamic' && <StarRosette className="absolute -right-3 -top-3 h-14 w-14 text-amber-600/30" />}
-      {theme === 'cartoon' && <PiggyMascot className="absolute -bottom-1 right-0 z-10 h-9 w-9" />}
+      {theme === 'cartoon' && <SquirrelMascot className="absolute -bottom-1 right-0 z-10 h-9 w-9" />}
       <span
         className={cn('relative block h-5', !look.bar && 'bg-primary')}
         style={{ borderRadius: look.radius, background: look.bar, boxShadow: look.shadow }}

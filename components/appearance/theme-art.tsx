@@ -44,7 +44,7 @@ export function HeroArt() {
         <span className="absolute -right-8 top-14 h-20 w-20 rounded-full bg-yellow-300/25" />
         <span className="absolute right-24 top-3 h-3 w-3 rounded-full bg-white/50" />
         <span className="absolute right-32 top-10 h-2 w-2 rounded-full bg-white/40" />
-        <PiggyMascot className="absolute right-2 top-2 h-16 w-16 -rotate-6" />
+        <SquirrelMascot className="absolute right-2 top-2 h-16 w-16 -rotate-6" />
       </span>
     );
   }
@@ -65,40 +65,47 @@ export function StarRosette({ className }: { className?: string }) {
   );
 }
 
-/** "Celengan", Qala Saku's own piggy-bank mascot for the Kartun theme (original artwork). */
-export function PiggyMascot({ className }: { className?: string }) {
+/** "Tupi", Qala Saku's own squirrel mascot for the Kartun theme: a saver hugging a coin (original artwork). */
+export function SquirrelMascot({ className }: { className?: string }) {
   const ink = '#1E293B';
   return (
     <svg viewBox="0 0 120 120" className={cn('drop-shadow-[2px_2px_0_rgba(30,41,59,0.6)]', className)}>
-      {/* coin dropping in */}
-      <g>
-        <circle cx="62" cy="14" r="11" fill="#FACC15" stroke={ink} strokeWidth="3" />
-        <path d="M62 8 V20" stroke={ink} strokeWidth="3" strokeLinecap="round" />
-      </g>
-      {/* legs */}
-      <rect x="32" y="88" width="13" height="18" rx="5" fill="#F9A8D4" stroke={ink} strokeWidth="3" />
-      <rect x="72" y="88" width="13" height="18" rx="5" fill="#F9A8D4" stroke={ink} strokeWidth="3" />
-      {/* ears */}
-      <path d="M34 40 L30 22 L48 32 Z" fill="#F472B6" stroke={ink} strokeWidth="3" strokeLinejoin="round" />
-      <path d="M84 40 L90 22 L72 32 Z" fill="#F472B6" stroke={ink} strokeWidth="3" strokeLinejoin="round" />
+      {/* bushy tail */}
+      <path
+        d="M78 96 C104 96 116 70 106 46 C98 26 74 22 70 40 C68 50 80 52 84 60 C90 72 80 84 70 86 Z"
+        fill="#F59E0B"
+        stroke={ink}
+        strokeWidth="3"
+        strokeLinejoin="round"
+      />
+      <path d="M96 44 C100 54 98 66 90 74" fill="none" stroke="#FCD34D" strokeWidth="4" strokeLinecap="round" />
       {/* body */}
-      <ellipse cx="60" cy="64" rx="44" ry="34" fill="#F9A8D4" stroke={ink} strokeWidth="3" />
-      {/* coin slot */}
-      <rect x="50" y="32" width="22" height="5" rx="2.5" fill={ink} />
-      {/* tail */}
-      <path d="M104 62 c8 -4 8 6 2 6 c-5 0 -3 -8 4 -9" fill="none" stroke={ink} strokeWidth="3" strokeLinecap="round" />
+      <ellipse cx="54" cy="80" rx="26" ry="24" fill="#D97706" stroke={ink} strokeWidth="3" />
+      <ellipse cx="54" cy="86" rx="15" ry="14" fill="#FDE68A" />
+      {/* feet */}
+      <ellipse cx="42" cy="104" rx="9" ry="5" fill="#D97706" stroke={ink} strokeWidth="3" />
+      <ellipse cx="66" cy="104" rx="9" ry="5" fill="#D97706" stroke={ink} strokeWidth="3" />
+      {/* ears */}
+      <path d="M32 30 L30 12 L44 24 Z" fill="#D97706" stroke={ink} strokeWidth="3" strokeLinejoin="round" />
+      <path d="M68 24 L80 12 L78 30 Z" fill="#D97706" stroke={ink} strokeWidth="3" strokeLinejoin="round" />
+      {/* head */}
+      <circle cx="55" cy="44" r="25" fill="#F59E0B" stroke={ink} strokeWidth="3" />
+      <ellipse cx="55" cy="54" rx="13" ry="9" fill="#FDE68A" />
       {/* eyes */}
-      <circle cx="44" cy="56" r="5" fill={ink} />
-      <circle cx="76" cy="56" r="5" fill={ink} />
-      <circle cx="45.5" cy="54.5" r="1.6" fill="#fff" />
-      <circle cx="77.5" cy="54.5" r="1.6" fill="#fff" />
-      {/* cheeks */}
-      <ellipse cx="36" cy="68" rx="5" ry="3" fill="#FB7185" opacity="0.7" />
-      <ellipse cx="84" cy="68" rx="5" ry="3" fill="#FB7185" opacity="0.7" />
-      {/* snout */}
-      <ellipse cx="60" cy="72" rx="13" ry="9" fill="#F472B6" stroke={ink} strokeWidth="3" />
-      <circle cx="55" cy="72" r="2.4" fill={ink} />
-      <circle cx="65" cy="72" r="2.4" fill={ink} />
+      <circle cx="45" cy="41" r="4.5" fill={ink} />
+      <circle cx="65" cy="41" r="4.5" fill={ink} />
+      <circle cx="46.3" cy="39.6" r="1.5" fill="#fff" />
+      <circle cx="66.3" cy="39.6" r="1.5" fill="#fff" />
+      {/* cheeks, nose and smile */}
+      <ellipse cx="38" cy="51" rx="4.5" ry="3" fill="#FB7185" opacity="0.6" />
+      <ellipse cx="72" cy="51" rx="4.5" ry="3" fill="#FB7185" opacity="0.6" />
+      <ellipse cx="55" cy="50" rx="3" ry="2.2" fill={ink} />
+      <path d="M50 55 Q55 59 60 55" fill="none" stroke={ink} strokeWidth="2.5" strokeLinecap="round" />
+      {/* coin hugged in both paws */}
+      <circle cx="54" cy="80" r="12" fill="#FACC15" stroke={ink} strokeWidth="3" />
+      <path d="M54 74 V86" stroke={ink} strokeWidth="3" strokeLinecap="round" />
+      <ellipse cx="41" cy="80" rx="6" ry="4.5" fill="#F59E0B" stroke={ink} strokeWidth="3" />
+      <ellipse cx="67" cy="80" rx="6" ry="4.5" fill="#F59E0B" stroke={ink} strokeWidth="3" />
     </svg>
   );
 }

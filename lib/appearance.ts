@@ -13,7 +13,7 @@ export const ACCENTS = [
 ] as const;
 
 /**
- * `ownColors` themes bring their own palette, pattern, font and artwork
+ * `ownColors` themes bring their own palette, pattern and artwork
  * (components/appearance/theme-art.tsx), so the accent colour does not apply.
  */
 export const THEMES = [
@@ -22,7 +22,7 @@ export const THEMES = [
   { id: 'soft', name: ['Lembut', 'Soft'], description: ['Latar diwarnai aksenmu, sudut membulat', 'Background tinted with your accent, rounded corners'], pro: true, ownColors: false },
   { id: 'bold', name: ['Kontras', 'Bold'], description: ['Hitam-putih tajam, hitam pekat di mode gelap', 'Sharp black and white, true black in dark mode'], pro: true, ownColors: false },
   { id: 'islamic', name: ['Islami', 'Islamic'], description: ['Hijau zamrud & emas, motif geometris, salam', 'Emerald & gold, geometric pattern, salam greeting'], pro: true, ownColors: true },
-  { id: 'cartoon', name: ['Kartun', 'Cartoon'], description: ['Ceria, garis tebal, ditemani maskot Celengan', 'Playful, bold outlines, with the Piggy mascot'], pro: true, ownColors: true },
+  { id: 'cartoon', name: ['Kartun', 'Cartoon'], description: ['Ceria, garis tebal, ditemani Tupi si tupai penabung', 'Playful, bold outlines, with Tupi the saving squirrel'], pro: true, ownColors: true },
 ] as const;
 
 export type Accent = (typeof ACCENTS)[number]['id'];

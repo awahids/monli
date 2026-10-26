@@ -319,7 +319,8 @@
     --radius: 0.375rem;
   }
 
-  /* Islami (PRO): emerald and gold, an eight-pointed star pattern, Amiri headings. */
+  /* Islami (PRO): emerald and gold with an eight-pointed star pattern. Themes
+     keep the brand fonts (Poppins and Inter). */
   html:not(.dark)[data-style="islamic"] {
     --hue: 158;
     --background: 45 40% 95%;
@@ -376,9 +377,6 @@
     --gradient-button: linear-gradient(135deg, hsl(152 50% 46%) 0%, hsl(158 58% 36%) 100%);
     --gradient-button-hover: linear-gradient(135deg, hsl(158 58% 36%) 0%, hsl(152 50% 46%) 100%);
   }
-  html[data-style="islamic"] {
-    --font-poppins: var(--font-amiri);
-  }
   html:not(.dark)[data-style="islamic"] body {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56' viewBox='0 0 56 56'%3E%3Cg fill='none' stroke='%23B8892B' stroke-opacity='0.16' stroke-width='1'%3E%3Crect x='16' y='16' width='24' height='24'/%3E%3Crect x='16' y='16' width='24' height='24' transform='rotate%2845 28 28%29'/%3E%3Ccircle cx='28' cy='28' r='5'/%3E%3Cpath d='M0 0 L8 8 M56 0 L48 8 M0 56 L8 48 M56 56 L48 48'/%3E%3C/g%3E%3C/svg%3E");
   }
@@ -387,7 +385,7 @@
   }
 
   /* Kartun (PRO): bright blue, yellow and red, thick outlines, hard offset
-     shadows, polka dots and Fredoka headings. */
+     shadows and polka dots. */
   html:not(.dark)[data-style="cartoon"] {
     --hue: 205;
     --background: 200 100% 96%;
@@ -453,9 +451,6 @@
     --gradient-primary: linear-gradient(135deg, hsl(205 95% 64%) 0%, hsl(205 95% 54%) 100%);
     --gradient-button: linear-gradient(135deg, hsl(205 95% 62%) 0%, hsl(215 85% 52%) 100%);
     --gradient-button-hover: linear-gradient(135deg, hsl(215 85% 52%) 0%, hsl(205 95% 62%) 100%);
-  }
-  html[data-style="cartoon"] {
-    --font-poppins: var(--font-fredoka);
   }
   html:not(.dark)[data-style="cartoon"] body {
     background-image: radial-gradient(hsl(205 90% 70% / 0.25) 2px, transparent 2.5px);
