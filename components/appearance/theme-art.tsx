@@ -31,7 +31,7 @@ export function HeroArt() {
   if (theme === 'islamic') {
     return (
       <span aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-        <StarRosette className="absolute -right-10 -top-10 h-44 w-44 text-amber-300/30" />
+        <StarRosette className="theme-anim-spin absolute -right-10 -top-10 h-44 w-44 text-amber-300/30" />
         <svg viewBox="0 0 100 40" preserveAspectRatio="none" className="absolute inset-x-0 top-0 h-6 w-full text-amber-300/40">
           <path d="M0 0 H100 V8 C80 8 70 30 50 30 C30 30 20 8 0 8 Z" fill="none" stroke="currentColor" strokeWidth="0.6" />
         </svg>
@@ -42,8 +42,8 @@ export function HeroArt() {
     return (
       <span aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
         <span className="absolute -right-8 top-14 h-20 w-20 rounded-full bg-yellow-300/25" />
-        <span className="absolute right-24 top-3 h-3 w-3 rounded-full bg-white/50" />
-        <span className="absolute right-32 top-10 h-2 w-2 rounded-full bg-white/40" />
+        <span className="theme-anim-twinkle absolute right-24 top-3 h-3 w-3 rounded-full bg-white/50" />
+        <span className="theme-anim-twinkle absolute right-32 top-10 h-2 w-2 rounded-full bg-white/40 [animation-delay:1.2s]" />
         <SquirrelMascot className="absolute right-2 top-2 h-16 w-16 -rotate-6" />
       </span>
     );
@@ -70,7 +70,10 @@ export function SquirrelMascot({ className }: { className?: string }) {
   const ink = '#1E293B';
   return (
     <svg viewBox="0 0 120 120" className={cn('drop-shadow-[2px_2px_0_rgba(30,41,59,0.6)]', className)}>
+      {/* Gentle loop (app/globals.css, off with reduced motion): bob, tail sway, blink, coin sparkle. */}
+      <g className="tupi-bob">
       {/* bushy tail */}
+      <g className="tupi-tail">
       <path
         d="M78 96 C104 96 116 70 106 46 C98 26 74 22 70 40 C68 50 80 52 84 60 C90 72 80 84 70 86 Z"
         fill="#F59E0B"
@@ -79,6 +82,7 @@ export function SquirrelMascot({ className }: { className?: string }) {
         strokeLinejoin="round"
       />
       <path d="M96 44 C100 54 98 66 90 74" fill="none" stroke="#FCD34D" strokeWidth="4" strokeLinecap="round" />
+      </g>
       {/* body */}
       <ellipse cx="54" cy="80" rx="26" ry="24" fill="#D97706" stroke={ink} strokeWidth="3" />
       <ellipse cx="54" cy="86" rx="15" ry="14" fill="#FDE68A" />
@@ -92,10 +96,12 @@ export function SquirrelMascot({ className }: { className?: string }) {
       <circle cx="55" cy="44" r="25" fill="#F59E0B" stroke={ink} strokeWidth="3" />
       <ellipse cx="55" cy="54" rx="13" ry="9" fill="#FDE68A" />
       {/* eyes */}
-      <circle cx="45" cy="41" r="4.5" fill={ink} />
-      <circle cx="65" cy="41" r="4.5" fill={ink} />
-      <circle cx="46.3" cy="39.6" r="1.5" fill="#fff" />
-      <circle cx="66.3" cy="39.6" r="1.5" fill="#fff" />
+      <g className="tupi-blink">
+        <circle cx="45" cy="41" r="4.5" fill={ink} />
+        <circle cx="65" cy="41" r="4.5" fill={ink} />
+        <circle cx="46.3" cy="39.6" r="1.5" fill="#fff" />
+        <circle cx="66.3" cy="39.6" r="1.5" fill="#fff" />
+      </g>
       {/* cheeks, nose and smile */}
       <ellipse cx="38" cy="51" rx="4.5" ry="3" fill="#FB7185" opacity="0.6" />
       <ellipse cx="72" cy="51" rx="4.5" ry="3" fill="#FB7185" opacity="0.6" />
@@ -106,6 +112,8 @@ export function SquirrelMascot({ className }: { className?: string }) {
       <path d="M54 74 V86" stroke={ink} strokeWidth="3" strokeLinecap="round" />
       <ellipse cx="41" cy="80" rx="6" ry="4.5" fill="#F59E0B" stroke={ink} strokeWidth="3" />
       <ellipse cx="67" cy="80" rx="6" ry="4.5" fill="#F59E0B" stroke={ink} strokeWidth="3" />
+      <path className="tupi-sparkle" d="M63 64 L64.5 68.5 L69 70 L64.5 71.5 L63 76 L61.5 71.5 L57 70 L61.5 68.5 Z" fill="#fff" stroke={ink} strokeWidth="1.2" strokeLinejoin="round" />
+      </g>
     </svg>
   );
 }

@@ -1019,3 +1019,57 @@ html:not([data-app="ios"]) .ios-app-only {
 @media (prefers-reduced-motion: reduce) {
   .splash-arc, .splash-gem { animation: none; }
 }
+
+/* Theme artwork motion (components/appearance/theme-art.tsx), only for people
+   who have not asked their device to reduce motion. */
+@media (prefers-reduced-motion: no-preference) {
+  .tupi-bob {
+    transform-box: fill-box;
+    animation: tupi-bob 2.6s ease-in-out infinite;
+  }
+  .tupi-tail {
+    transform-box: fill-box;
+    transform-origin: 10% 95%;
+    animation: tupi-tail 1.9s ease-in-out infinite;
+  }
+  .tupi-blink {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: tupi-blink 4.5s ease-in-out infinite;
+  }
+  .tupi-sparkle {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: tupi-sparkle 2.6s ease-in-out infinite;
+  }
+  .theme-anim-spin {
+    animation: theme-spin 90s linear infinite;
+  }
+  .theme-anim-twinkle {
+    animation: theme-twinkle 3s ease-in-out infinite;
+  }
+}
+
+@keyframes tupi-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+@keyframes tupi-tail {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(-8deg); }
+}
+@keyframes tupi-blink {
+  0%, 92%, 100% { transform: scaleY(1); }
+  95% { transform: scaleY(0.1); }
+}
+@keyframes tupi-sparkle {
+  0%, 60%, 100% { opacity: 0; transform: scale(0.4) rotate(0deg); }
+  75% { opacity: 1; transform: scale(1) rotate(45deg); }
+}
+@keyframes theme-spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes theme-twinkle {
+  0%, 100% { opacity: 0.35; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.15); }
+}
