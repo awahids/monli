@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, forwardRef, useImperativeHandle } from 'react';
 import { toast } from 'sonner';
+import { Trash2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
@@ -107,16 +108,26 @@ export default function OcrReviewDialog({
 }: Props) {
   const contentRef = useRef<HTMLDivElement | null>(null);
   const { t } = useT();
-  const itemRefs = useRef<ItemFormHandle[]>([]);
+  const itemRefs = useRef<Map<number, ItemFormHandle>>(new Map());
+  // Items the user removed (a wrong or duplicate entry), by index in `items`.
+  const [removed, setRemoved] = useState<Set<number>>(new Set());
 
   useEffect(() => {
-    itemRefs.current = itemRefs.current.slice(0, items.length);
-  }, [items]);
+    itemRefs.current.clear();
+    setRemoved(new Set());
+  }, [items, open]);
+
+  const kept = items.map((item, idx) => ({ item, idx })).filter(({ idx }) => !removed.has(idx));
+
+  const removeItem = (idx: number) => {
+    itemRefs.current.delete(idx);
+    setRemoved((prev) => new Set(prev).add(idx));
+  };
 
   const [saving, setSaving] = useState(false);
 
   const handleSave = async () => {
-    const results = await Promise.all(itemRefs.current.map((ref) => ref.validate()));
+    const results = await Promise.all(kept.map(({ idx }) => itemRefs.current.get(idx)!.validate()));
     if (results.some((r) => r === null)) {
       toast.error(t('Lengkapi dulu item yang ditandai merah', 'Complete the items marked in red first'));
       return;
@@ -134,15 +145,30 @@ export default function OcrReviewDialog({
       <DialogContent ref={contentRef}>
         <DialogHeader>
           <DialogTitle>
-            {title ?? t('Periksa hasil scan struk', 'Review scanned receipt')} ({t(`${items.length} item`, `${items.length} items`)})
+            {title ?? t('Periksa hasil scan struk', 'Review scanned receipt')} ({t(`${kept.length} item`, `${kept.length} items`)})
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-6 max-h-[60vh] overflow-y-auto">
-          {items.map((item, idx) => (
+          {kept.map(({ item, idx }, pos) => (
             <div key={idx} className="p-4 border rounded">
+              <div className="mb-2 flex items-center justify-between">
+                <span className="text-sm font-medium text-muted-foreground">
+                  {t(`Item ${pos + 1}`, `Item ${pos + 1}`)}
+                </span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                  onClick={() => removeItem(idx)}
+                  aria-label={t(`Hapus item ${pos + 1}`, `Remove item ${pos + 1}`)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
               <OcrItemForm
                 ref={(el) => {
-                  if (el) itemRefs.current[idx] = el;
+                  if (el) itemRefs.current.set(idx, el);
                 }}
                 item={item}
                 accounts={accounts}
@@ -152,9 +178,14 @@ export default function OcrReviewDialog({
               />
             </div>
           ))}
+          {kept.length === 0 && (
+            <p className="py-6 text-center text-sm text-muted-foreground">
+              {t('Semua item dihapus, tidak ada yang disimpan.', 'All items removed, nothing to save.')}
+            </p>
+          )}
         </div>
         <DialogFooter>
-          <Button onClick={handleSave} disabled={saving}>
+          <Button onClick={handleSave} disabled={saving || kept.length === 0}>
             {saving ? t('Menyimpan...', 'Saving...') : t('Simpan semua', 'Save all')}
           </Button>
         </DialogFooter>

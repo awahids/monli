@@ -30,3 +30,79 @@ export function greeting(now: Date = new Date(), t: Translate = indonesian): str
   if (hour >= 15 && hour < 18) return t('Selamat sore', 'Good afternoon');
   return t('Selamat malam', 'Good evening');
 }
+
+const DAY_MS = 86_400_000;
+const addDays = (date: string, days: number) =>
+  new Date(Date.parse(`${date}T00:00:00Z`) + days * DAY_MS).toISOString().slice(0, 10);
+
+/** Spending of every day from `start` to `end` (inclusive), zero-filled, by actual date. */
+export function dailyExpenses(
+  transactions: Transaction[],
+  start: string,
+  end: string
+): { date: string; amount: number }[] {
+  const byDay = new Map<string, number>();
+  for (const t of transactions) {
+    if (t.type !== 'expense' || t.actualDate < start || t.actualDate > end) continue;
+    byDay.set(t.actualDate, (byDay.get(t.actualDate) ?? 0) + t.amount);
+  }
+  const days: { date: string; amount: number }[] = [];
+  for (let d = start; d <= end; d = addDays(d, 1)) days.push({ date: d, amount: byDay.get(d) ?? 0 });
+  return days;
+}
+
+export type CategorySpend = { categoryId: string; name: string; color: string; amount: number };
+
+/** Spending per category in a budget month, largest first. */
+export function categoryExpenses(transactions: Transaction[], month: string): CategorySpend[] {
+  const map = new Map<string, CategorySpend>();
+  for (const t of transactions) {
+    if (t.type !== 'expense' || t.budgetMonth !== month || !t.categoryId) continue;
+    const row = map.get(t.categoryId);
+    if (row) row.amount += t.amount;
+    else
+      map.set(t.categoryId, {
+        categoryId: t.categoryId,
+        name: t.category?.name ?? '',
+        color: t.category?.color || '#94a3b8',
+        amount: t.amount,
+      });
+  }
+  return Array.from(map.values()).sort((a, b) => b.amount - a.amount);
+}
+
+export type BudgetUsage = { categoryId: string; planned: number; actual: number; pct: number };
+
+/** How much of each budgeted category is used in a budget month, the fullest first. */
+export function budgetUsage(
+  items: { categoryId: string; amount: number }[],
+  transactions: Transaction[],
+  month: string
+): BudgetUsage[] {
+  const spent = new Map(categoryExpenses(transactions, month).map((c) => [c.categoryId, c.amount]));
+  return items
+    .filter((i) => i.amount > 0)
+    .map((i) => {
+      const actual = spent.get(i.categoryId) ?? 0;
+      return { categoryId: i.categoryId, planned: i.amount, actual, pct: (actual / i.amount) * 100 };
+    })
+    .sort((a, b) => b.pct - a.pct);
+}
+
+/** Change from `previous` to `current` in percent; null when there is nothing to compare with. */
+export function percentChange(current: number, previous: number): number | null {
+  if (previous <= 0) return null;
+  return ((current - previous) / previous) * 100;
+}
+
+/** Active recurring rules due from `today` up to `days` days ahead, soonest first. */
+export function upcomingRecurring<R extends { active: boolean; nextDate: string; endDate?: string | null }>(
+  rules: R[],
+  today: string,
+  days: number
+): R[] {
+  const until = addDays(today, days);
+  return rules
+    .filter((r) => r.active && r.nextDate >= today && r.nextDate <= until && (!r.endDate || r.nextDate <= r.endDate))
+    .sort((a, b) => a.nextDate.localeCompare(b.nextDate));
+}

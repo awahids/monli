@@ -1,6 +1,14 @@
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { greeting, monthTotals } from './dashboard';
+import {
+  budgetUsage,
+  categoryExpenses,
+  dailyExpenses,
+  greeting,
+  monthTotals,
+  percentChange,
+  upcomingRecurring,
+} from './dashboard';
 import type { Transaction } from '@/types';
 
 const tx = (actualDate: string, type: Transaction['type'], amount: number, budgetMonth = actualDate.slice(0, 7)) =>
@@ -22,4 +30,72 @@ test('greeting follows the Jakarta clock', () => {
   assert.equal(greeting(new Date('2024-05-01T05:00:00Z')), 'Selamat siang'); // 12:00 WIB
   assert.equal(greeting(new Date('2024-05-01T09:00:00Z')), 'Selamat sore'); // 16:00 WIB
   assert.equal(greeting(new Date('2024-05-01T14:00:00Z')), 'Selamat malam'); // 21:00 WIB
+});
+
+test('dailyExpenses fills every day of the period, counting only expenses', () => {
+  const txs = [
+    tx('2024-05-02', 'expense', 30),
+    tx('2024-05-02', 'expense', 20),
+    tx('2024-05-02', 'income', 500),
+    tx('2024-05-04', 'expense', 10),
+    tx('2024-05-09', 'expense', 99), // outside the range
+  ];
+  assert.deepEqual(dailyExpenses(txs, '2024-05-01', '2024-05-04'), [
+    { date: '2024-05-01', amount: 0 },
+    { date: '2024-05-02', amount: 50 },
+    { date: '2024-05-03', amount: 0 },
+    { date: '2024-05-04', amount: 10 },
+  ]);
+});
+
+test('categoryExpenses groups a budget month by category, largest first', () => {
+  const withCat = (t: Transaction, categoryId: string, name: string) =>
+    ({ ...t, categoryId, category: { name, color: '#123456' } }) as Transaction;
+  const txs = [
+    withCat(tx('2024-05-02', 'expense', 30), 'food', 'Makan'),
+    withCat(tx('2024-05-03', 'expense', 80), 'rent', 'Kos'),
+    withCat(tx('2024-05-04', 'expense', 20), 'food', 'Makan'),
+    withCat(tx('2024-05-05', 'income', 900), 'food', 'Makan'),
+    withCat(tx('2024-06-01', 'expense', 70), 'food', 'Makan'),
+  ];
+  assert.deepEqual(categoryExpenses(txs, '2024-05'), [
+    { categoryId: 'rent', name: 'Kos', color: '#123456', amount: 80 },
+    { categoryId: 'food', name: 'Makan', color: '#123456', amount: 50 },
+  ]);
+});
+
+test('budgetUsage puts the fullest budget first and skips empty ones', () => {
+  const txs = [
+    { ...tx('2024-05-02', 'expense', 90), categoryId: 'food' },
+    { ...tx('2024-05-02', 'expense', 10), categoryId: 'fun' },
+  ] as Transaction[];
+  const items = [
+    { categoryId: 'fun', amount: 100 },
+    { categoryId: 'food', amount: 100 },
+    { categoryId: 'none', amount: 0 },
+  ];
+  assert.deepEqual(budgetUsage(items, txs, '2024-05'), [
+    { categoryId: 'food', planned: 100, actual: 90, pct: 90 },
+    { categoryId: 'fun', planned: 100, actual: 10, pct: 10 },
+  ]);
+});
+
+test('percentChange compares with the previous period', () => {
+  assert.equal(percentChange(150, 100), 50);
+  assert.equal(percentChange(50, 100), -50);
+  assert.equal(percentChange(50, 0), null);
+});
+
+test('upcomingRecurring keeps active rules due within the window', () => {
+  const rules = [
+    { id: 'a', active: true, nextDate: '2024-05-10' },
+    { id: 'b', active: true, nextDate: '2024-05-03' },
+    { id: 'c', active: false, nextDate: '2024-05-04' },
+    { id: 'd', active: true, nextDate: '2024-05-20' },
+    { id: 'e', active: true, nextDate: '2024-05-05', endDate: '2024-05-01' },
+  ];
+  assert.deepEqual(
+    upcomingRecurring(rules, '2024-05-01', 14).map((r) => r.id),
+    ['b', 'a']
+  );
 });

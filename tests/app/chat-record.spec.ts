@@ -61,3 +61,35 @@ test('record a transaction by voice through the assistant', async ({ page, user,
     { note: 'Makan siang', amount: 25000, type: 'expense', actual_date: '2026-10-05', category_id: user.categoryId, account_id: user.accountId },
   ]);
 });
+
+test('remove a wrong draft before saving the rest', async ({ page, user, admin }) => {
+  await admin.from('profiles').update({ plan: 'PRO' }).eq('id', user.id);
+  await page.route('**/api/chat', (route) =>
+    route.fulfill({
+      json: {
+        answer: 'Siap, 2 transaksi siap dicatat. Periksa dulu sebelum disimpan.',
+        drafts: [
+          { description: 'Makan siang', amount: 25000, date: '2026-10-05', type: 'expense', categoryId: user.categoryId, accountId: user.accountId },
+          { description: 'Makan siang dobel', amount: 25000, date: '2026-10-05', type: 'expense', categoryId: user.categoryId, accountId: user.accountId },
+        ],
+        usage: { used: 1, limit: 100, unlimited: false },
+      },
+    })
+  );
+
+  await signIn(page, user);
+  await page.getByRole('button', { name: 'Buka asisten AI' }).click();
+  await page.getByPlaceholder(/catat/i).fill('catat makan siang 25 ribu dua kali');
+  await page.keyboard.press('Enter');
+  await expect(page.getByText('Siap, 2 transaksi siap dicatat.')).toBeVisible();
+
+  await page.getByRole('button', { name: 'Periksa & simpan' }).click();
+  const review = page.getByRole('dialog', { name: /Periksa transaksi \(2 item\)/ });
+  await review.getByRole('button', { name: 'Hapus item 2' }).click();
+  await expect(page.getByRole('dialog', { name: /Periksa transaksi \(1 item\)/ })).toBeVisible();
+  await page.getByRole('dialog').getByRole('button', { name: 'Simpan semua' }).click();
+  await expect(page.getByText('1 transaksi tersimpan')).toBeVisible({ timeout: 15_000 });
+
+  const { data } = await admin.from('transactions').select('note').eq('user_id', user.id);
+  expect(data).toEqual([{ note: 'Makan siang' }]);
+});
