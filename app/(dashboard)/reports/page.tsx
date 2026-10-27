@@ -25,7 +25,7 @@ import {
 } from 'recharts';
 import { formatMoney, formatMoneyCompact } from '@/lib/currency';
 import { ProLock } from '@/components/ui/pro-lock';
-import { Download, Filter } from 'lucide-react';
+import { ChevronRight, Download, FileBarChart, Filter } from 'lucide-react';
 import CategoryMovementChart from '@/components/reports/category-movement-chart';
 import { CategoryBreakdown } from '@/components/reports/category-breakdown';
 import { useAppStore } from '@/lib/store';
@@ -239,6 +239,20 @@ export default function ReportsPage() {
           </div>
         </CollapsibleContent>
       </Collapsible>
+
+      <Link
+        href="/reports/monthly"
+        className="flex items-center gap-3 rounded-2xl bg-card p-4 shadow-sm ring-1 ring-border transition-colors hover:bg-muted/50"
+      >
+        <FileBarChart className="h-5 w-5 shrink-0 text-primary" />
+        <span className="min-w-0 flex-1">
+          <span className="block text-sm font-semibold">{t('Laporan bulanan', 'Monthly report')}</span>
+          <span className="block text-xs text-muted-foreground">
+            {t('Ringkasan tiap periode: yang tersisihkan, kategori terbesar, budget yang lewat.', 'Each period at a glance: what you put aside, top categories, budgets that ran over.')}
+          </span>
+        </span>
+        <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+      </Link>
 
       <ProLock
         locked={!isPro}
