@@ -62,7 +62,7 @@ export async function GET(req: Request) {
       const amount = parseAmountText(parsedQuery.data.search ?? '');
       searchFilter = [
         `note.ilike.%${search}%`,
-        `tags.cs.{"${search}"}`,
+        `tags_text.ilike.%${search}%`,
         amount && `amount.eq.${amount}`,
         cats?.length && `category_id.in.(${cats.map((c) => c.id).join(',')})`,
       ]
@@ -152,6 +152,9 @@ export async function POST(req: Request) {
     if (body.receiptPath && !body.receiptPath.startsWith(`${space.ownerId}/`)) {
       return NextResponse.json({ error: 'Foto struk tidak valid' }, { status: 400 });
     }
+    if (body.attachments?.some((p) => !p.startsWith(`${space.ownerId}/`))) {
+      return NextResponse.json({ error: 'Lampiran tidak valid' }, { status: 400 });
+    }
     if (
       process.env.DISALLOW_NEGATIVE_BALANCE === 'true' &&
       body.type === 'transfer' &&
@@ -189,6 +192,7 @@ export async function POST(req: Request) {
         note: body.note,
         tags: body.tags,
         receipt_path: body.receiptPath ?? null,
+        ...(body.attachments?.length && { attachments: body.attachments }),
       })
       .select(
         `*,
