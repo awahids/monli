@@ -44,6 +44,8 @@ import { spacePlan } from '@/lib/plans';
 import { AccountStrip, BalanceHero, QuickActions, useHiddenBalance } from '@/components/dashboard/home-sections';
 import { BudgetWatch, CategoryDonut, SpendingChart, StatTiles, UpcomingRecurring } from '@/components/dashboard/insights';
 import { themedGreeting, useActiveTheme } from '@/components/appearance/theme-art';
+import { useNotificationSync } from '@/components/notifications/notification-sync';
+import { format } from 'date-fns';
 
 type BudgetSummary = { totalActual: number; perCategory: { categoryId: string; actual: number }[] };
 
@@ -89,7 +91,7 @@ export default function DashboardPage() {
   const [recurring, setRecurring] = useState<RecurringTransaction[]>([]);
   const [formOpen, setFormOpen] = useState(false);
   const { isOnline, addOfflineChange } = useOffline();
-  const { t, locale } = useT();
+  const { t, locale, dateLocale } = useT();
   const [hidden, toggleHidden] = useHiddenBalance();
   const theme = useActiveTheme();
 
@@ -232,6 +234,20 @@ export default function DashboardPage() {
       upcoming: upcomingRecurring(recurring, today, 14),
     };
   }, [transactions, budgets, recurring, thisMonth, budgetMonth, budgetStartDay]);
+
+  // Phone notifications (bills, evening nudge, report) and budget alerts follow this data.
+  useNotificationSync({
+    ready: !loading && !!user && isOnline,
+    recurring,
+    recordedToday: transactions.some((tx) => tx.actualDate === insights.today),
+    today: insights.today,
+    nextPeriodStart: budgetPeriod(shiftMonth(thisMonth, 1), budgetStartDay).start,
+    reportMonth: thisMonth,
+    reportLabel: format(new Date(`${thisMonth}-01T00:00:00`), 'MMMM', { locale: dateLocale }),
+    budgetMonth,
+    usage: insights.usage,
+    categories,
+  });
 
   const kpis = useMemo(() => {
     const now = monthTotals(transactions, thisMonth);

@@ -14,6 +14,15 @@ export type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2026.10.27',
+    date: '2026-10-27',
+    title: 'Notifikasi pengingat',
+    items: [
+      { type: 'baru', text: 'Di aplikasi iOS dan Android, Qala Saku bisa mengingatkan tagihan yang jatuh tempo besok, mengingatkan mencatat jam 20.00 kalau hari itu belum ada transaksi, dan memberi tahu saat laporan bulanan siap. Atur di Pengaturan > Notifikasi.' },
+      { type: 'baru', text: 'Peringatan saat budget kategori mencapai 80% dan 100%, sebagai notifikasi di aplikasi HP atau pesan di dalam aplikasi web.' },
+    ],
+  },
+  {
     version: '2026.10.26',
     date: '2026-10-26',
     title: 'Beranda baru, warna & tema, hapus item saat memeriksa transaksi',
