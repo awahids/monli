@@ -14,6 +14,15 @@ export type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2026.10.27',
+    date: '2026-10-27',
+    title: 'Prediksi akhir periode & laporan bulanan',
+    items: [
+      { type: 'baru', text: 'Laporan bulanan: ringkasan tiap periode budget, berisi yang berhasil disisihkan, pemasukan dan pengeluaran dibanding periode sebelumnya, kategori terbesar, budget yang terlewati, dan transaksi terbesar. Di minggu pertama periode baru, beranda memberi tahu saat laporannya siap.' },
+      { type: 'baru', text: 'Pengguna PRO melihat prediksi pengeluaran sampai akhir periode, apakah budget akan cukup, dan budget kategori mana yang akan habis duluan.' },
+    ],
+  },
+  {
     version: '2026.10.26',
     date: '2026-10-26',
     title: 'Beranda baru, warna & tema, hapus item saat memeriksa transaksi',
