@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { budgetAlerts, DEFAULT_NOTIFY, notificationId, parseNotifySettings, planNotifications, type PlanInput } from './notifications';
+import { budgetAlertText, budgetAlerts, DEFAULT_NOTIFY, notificationId, parseNotifySettings, planNotifications, type PlanInput } from './notifications';
 
 const t = (id: string) => id;
 const base: PlanInput = {
@@ -65,6 +65,19 @@ test('budget alerts fire once per level per period', () => {
   assert.deepEqual(over.alerts, [{ categoryId: 'food', level: 100 }]);
   const nextPeriod = budgetAlerts('2026-04', [{ categoryId: 'food', pct: 81 }], over.state);
   assert.deepEqual(nextPeriod.alerts, [{ categoryId: 'food', level: 80 }]);
+});
+
+test('each reminder says its kind, so the server can skip a nudge once something is recorded', () => {
+  const plan = planNotifications({
+    ...base,
+    recurring: [{ id: 'net', type: 'expense', active: true, amount: 1, note: 'Internet', nextDate: '2026-03-15' }],
+  });
+  assert.deepEqual(Array.from(new Set(plan.map((n) => n.kind))).sort(), ['bill', 'daily', 'report']);
+});
+
+test('budget alert text names the category and the level', () => {
+  assert.equal(budgetAlertText('Makan', 80, t).title, 'Budget Makan tinggal 20%');
+  assert.equal(budgetAlertText('Makan', 100, t).title, 'Budget Makan habis');
 });
 
 test('settings fall back to everything on', () => {

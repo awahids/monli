@@ -23,7 +23,13 @@ export async function POST(req: Request) {
     const user = await getUser();
     const { error } = await createAdminClient()
       .from('push_subscriptions')
-      .upsert({ endpoint: body.endpoint, user_id: user.id, p256dh: body.keys.p256dh, auth: body.keys.auth });
+      .upsert({
+        endpoint: body.endpoint,
+        user_id: user.id,
+        p256dh: body.keys.p256dh,
+        auth: body.keys.auth,
+        ...(body.budgetAlerts === undefined ? {} : { budget_alerts: body.budgetAlerts }),
+      });
     if (error) return NextResponse.json({ error: error.message }, { status: 400 });
     return NextResponse.json({ ok: true });
   } catch (e) {

@@ -27,6 +27,9 @@ export const CHANGELOG: ChangelogEntry[] = [
       { type: 'baru', text: 'Peringatan saat budget kategori mencapai 80% dan 100%, sebagai notifikasi di aplikasi HP atau pesan di dalam aplikasi web.' },
       { type: 'baru', text: 'Widget Qala Saku untuk layar utama iOS dan Android: sisa jatah hari ini sekilas, dan tombol + Catat untuk langsung mencatat transaksi.' },
       { type: 'baru', text: 'Pengingat yang sama kini bisa sampai lewat browser dan aplikasi web yang dipasang, juga saat Qala Saku ditutup. Nyalakan di Pengaturan > Notifikasi. Di iPhone, tambahkan Qala Saku ke Layar Utama dulu.' },
+      { type: 'baru', text: 'Tombol "Kirim notifikasi uji" di Pengaturan > Notifikasi untuk memastikan notifikasi sampai ke perangkatmu.' },
+      { type: 'peningkatan', text: 'Pengingat mencatat jam 20.00 di browser tidak dikirim lagi kalau hari itu sudah ada transaksi, dari perangkat mana pun.' },
+      { type: 'peningkatan', text: 'Peringatan budget 80% dan 100% kini juga sampai lewat notifikasi browser begitu pengeluaran dicatat, termasuk dari perangkat lain atau asisten AI.' },
     ],
   },
   {

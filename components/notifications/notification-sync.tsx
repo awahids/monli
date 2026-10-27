@@ -9,6 +9,7 @@ import { isNativeApp } from '@/lib/native';
 import {
   ALERTS_KEY,
   NOTIFY_KEY,
+  budgetAlertText,
   budgetAlerts,
   notificationId,
   parseNotifySettings,
@@ -106,12 +107,12 @@ export function useNotificationSync({
             })),
           });
         }
-      } else if (!plugin && !cancelled) {
-        // Installed web app with push on: the server sends the same plan.
-        await syncPushSchedule(plan).catch(() => undefined);
       }
+      // Installed web app with push on: the server sends the same plan, and
+      // the budget alerts as expenses are saved (app/api/cron/budget-alerts).
+      const pushOn = !plugin && !cancelled && (await syncPushSchedule(plan, settings.budget).catch(() => false));
 
-      if (!settings.budget || cancelled) return;
+      if (!settings.budget || pushOn || cancelled) return;
       let state: AlertState | null = null;
       try {
         state = JSON.parse(read(ALERTS_KEY) ?? 'null');
@@ -123,11 +124,7 @@ export function useNotificationSync({
       const names = new Map(categories.map((c) => [c.id, c.name]));
       for (const a of alerts) {
         const name = names.get(a.categoryId) ?? '';
-        const title = a.level === 100 ? t(`Budget ${name} habis`, `${name} budget used up`) : t(`Budget ${name} tinggal 20%`, `${name} budget 80% used`);
-        const body =
-          a.level === 100
-            ? t('Pengeluaran kategori ini sudah melewati budget periode ini.', 'Spending in this category has gone over this period’s budget.')
-            : t('Pengeluaran kategori ini sudah 80% dari budget.', 'Spending in this category has reached 80% of its budget.');
+        const { title, body } = budgetAlertText(name, a.level, t);
         if (granted) {
           await plugin.schedule({
             notifications: [
