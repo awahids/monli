@@ -45,6 +45,8 @@ test('search finds notes, tags, categories and amounts across all time', async (
   // Last year's coffee is found although the default view is this period.
   await expectOnly('kopi', 'Kopi kenangan', 'Isi bensin');
   await expectOnly('ngopi', 'Kopi kenangan', 'Isi bensin');
+  // Part of a tag is enough.
+  await expectOnly('ngop', 'Kopi kenangan', 'Isi bensin');
   await expectOnly('transport', 'Isi bensin', 'Kopi kenangan');
   await expectOnly('50rb', 'Isi bensin', 'Kopi kenangan');
   await expectOnly('Rp 18.000', 'Kopi kenangan', 'Isi bensin');

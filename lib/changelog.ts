@@ -14,6 +14,15 @@ export type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2026.10.27',
+    date: '2026-10-27',
+    title: 'Lampiran tambahan & pencarian tag',
+    items: [
+      { type: 'baru', text: 'Pengguna PRO bisa menyimpan sampai 5 lampiran lain di tiap transaksi, misalnya kartu garansi atau invoice PDF, selain foto struk.' },
+      { type: 'peningkatan', text: 'Pencarian transaksi kini menemukan tag dari sebagian katanya, misalnya "kant" untuk tag "kantor".' },
+    ],
+  },
+  {
     version: '2026.10.26',
     date: '2026-10-26',
     title: 'Beranda baru, warna & tema, hapus item saat memeriksa transaksi',
