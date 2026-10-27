@@ -31,7 +31,7 @@ const MAX_TRANSACTIONS = 500;
 const HISTORY_TURNS = 6;
 
 export async function POST(req: Request) {
-  const t = serverT();
+  const t = await serverT();
   try {
     const parsed = bodySchema.safeParse(await req.json().catch(() => null));
     if (!parsed.success) {

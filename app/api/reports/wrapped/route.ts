@@ -28,7 +28,7 @@ export async function GET(req: Request) {
         .returns<WrappedTx[]>()
     );
     if (error) return NextResponse.json({ error: error.message }, { status: 400 });
-    return NextResponse.json(buildWrapped(year, data ?? [], serverT()));
+    return NextResponse.json(buildWrapped(year, data ?? [], (await serverT())));
   } catch (e) {
     return NextResponse.json({ error: (e as Error).message }, { status: 401 });
   }

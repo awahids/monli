@@ -24,6 +24,7 @@ export const CHANGELOG: ChangelogEntry[] = [
       { type: 'perbaikan', text: 'Sisa jatah hari ini tidak lagi menghitung budget tabungan. Kategori lain bisa dikeluarkan dari jatah harian lewat Pengaturan > Kategori.' },
       { type: 'baru', text: 'Beranda kini menampilkan pemasukan dan pengeluaran dibanding periode lalu, grafik pengeluaran harian, ke mana uangmu pergi, budget yang paling cepat habis, dan transaksi rutin 14 hari ke depan.' },
       { type: 'peningkatan', text: 'Saat memeriksa beberapa transaksi dari asisten AI atau scan struk, item yang salah atau berlebih kini bisa dihapus sebelum disimpan.' },
+      { type: 'perbaikan', text: 'Pembaruan keamanan: Next.js dan pustaka pendukung lainnya diperbarui untuk menutup celah keamanan yang dilaporkan.' },
     ],
   },
   {

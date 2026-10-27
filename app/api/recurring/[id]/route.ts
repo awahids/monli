@@ -16,7 +16,8 @@ const toggleSchema = z.object({ active: z.boolean() });
  * Both restart the schedule from today, so a pause or an edit never
  * backfills occurrences that were skipped.
  */
-export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+export async function PATCH(req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const supabase = createClient();
   const raw = await req.json().catch(() => null);
   const today = formatDate(new Date());
@@ -73,7 +74,8 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 }
 
 /** Deletes the rule. Transactions it already created stay (recurring_id → null). */
-export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(_req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const supabase = createClient();
   try {
     const space = await getSpace();

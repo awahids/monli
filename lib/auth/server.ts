@@ -29,7 +29,7 @@ export interface Space {
  */
 export async function getSpace(): Promise<Space> {
   const user = await getUser();
-  const requested = cookies().get(SPACE_COOKIE)?.value;
+  const requested = (await cookies()).get(SPACE_COOKIE)?.value;
 
   if (isUuid(requested) && requested !== user.id) {
     const supabase = createClient();
@@ -52,6 +52,6 @@ export async function getSpace(): Promise<Space> {
   return { user, ownerId: user.id, role: 'owner', canWrite: true };
 }
 
-export function readOnlyResponse() {
-  return NextResponse.json({ error: serverT()(...READ_ONLY_MESSAGE) }, { status: 403 });
+export async function readOnlyResponse() {
+  return NextResponse.json({ error: (await serverT())(...READ_ONLY_MESSAGE) }, { status: 403 });
 }

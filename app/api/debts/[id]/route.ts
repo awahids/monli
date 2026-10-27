@@ -7,7 +7,8 @@ import { z } from 'zod';
 export const dynamic = 'force-dynamic';
 
 /** Deleting a debt reverses every balance change it made (see the migration). */
-export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(_req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const supabase = createClient();
   try {
     const space = await getSpace();
@@ -25,7 +26,8 @@ export async function DELETE(_req: Request, { params }: { params: { id: string }
  * recorded. A new amount or date replaces the principal entry, so the
  * entry triggers move the account balance by the difference.
  */
-export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+export async function PATCH(req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const supabase = createClient();
   let body: z.infer<typeof debtUpdateSchema>;
   try {

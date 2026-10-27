@@ -17,7 +17,8 @@ export function generateStaticParams() {
   return FEATURE_PAGES.map((p) => ({ slug: p.slug }));
 }
 
-export function generateMetadata({ params }: { params: { slug: string } }): Metadata {
+export async function generateMetadata(props: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const params = await props.params;
   const page = featurePage(params.slug);
   if (!page) return {};
   const title = `${page.title} — ${BRAND.name}`;
@@ -37,7 +38,8 @@ export function generateMetadata({ params }: { params: { slug: string } }): Meta
   };
 }
 
-export default function FeaturePageRoute({ params }: { params: { slug: string } }) {
+export default async function FeaturePageRoute(props: { params: Promise<{ slug: string }> }) {
+  const params = await props.params;
   const page = featurePage(params.slug);
   if (!page) notFound();
   const others = FEATURE_PAGES.filter((p) => p.slug !== page.slug);
