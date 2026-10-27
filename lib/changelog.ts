@@ -16,13 +16,15 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '2026.10.27',
     date: '2026-10-27',
-    title: 'Laporan bulanan, prediksi akhir periode, lampiran & tema Islami baru',
+    title: 'Laporan bulanan, prediksi, notifikasi, lampiran & tema Islami baru',
     items: [
       { type: 'baru', text: 'Pengguna PRO bisa menyimpan sampai 5 lampiran lain di tiap transaksi, misalnya kartu garansi atau invoice PDF, selain foto struk.' },
       { type: 'peningkatan', text: 'Pencarian transaksi kini menemukan tag dari sebagian katanya, misalnya "kant" untuk tag "kantor".' },
       { type: 'peningkatan', text: 'Tema Islami kini dihiasi lentera yang berayun pelan, bintang berkelip, dan motif geometris yang tidak menutupi saldo. Di mode gelap, kartu saldo tetap hijau zamrud dengan tulisan terang.' },
       { type: 'baru', text: 'Laporan bulanan: ringkasan tiap periode budget, berisi yang berhasil disisihkan, pemasukan dan pengeluaran dibanding periode sebelumnya, kategori terbesar, budget yang terlewati, dan transaksi terbesar. Di minggu pertama periode baru, beranda memberi tahu saat laporannya siap.' },
       { type: 'baru', text: 'Pengguna PRO melihat prediksi pengeluaran sampai akhir periode, apakah budget akan cukup, dan budget kategori mana yang akan habis duluan.' },
+      { type: 'baru', text: 'Di aplikasi iOS dan Android, Qala Saku bisa mengingatkan tagihan yang jatuh tempo besok, mengingatkan mencatat jam 20.00 kalau hari itu belum ada transaksi, dan memberi tahu saat laporan bulanan siap. Atur di Pengaturan > Notifikasi.' },
+      { type: 'baru', text: 'Peringatan saat budget kategori mencapai 80% dan 100%, sebagai notifikasi di aplikasi HP atau pesan di dalam aplikasi web.' },
     ],
   },
   {

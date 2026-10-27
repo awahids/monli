@@ -37,6 +37,7 @@ import { CategoryFormDialog, CategoryFormValues } from '@/components/settings/ca
 import { SharedSpaceCard } from '@/components/settings/shared-space-card';
 import { AboutAppCard } from '@/components/settings/about-app-card';
 import { AppearanceCard } from '@/components/settings/appearance-card';
+import { NotificationsCard } from '@/components/settings/notifications-card';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import {
   AlertDialog,
@@ -277,6 +278,8 @@ export default function SettingsPage() {
         </Card>
 
         <AppearanceCard />
+
+        <NotificationsCard />
 
         <Card className="flex flex-col">
           <CardHeader className="flex flex-row items-center justify-between">

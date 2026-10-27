@@ -31,6 +31,11 @@ const config: CapacitorConfig = {
       backgroundColor: '#F2EFE9',
       showSpinner: false,
     },
+    // Reminders scheduled by the site (components/notifications in the web repo).
+    LocalNotifications: {
+      smallIcon: 'ic_stat_notify',
+      iconColor: '#0E8079',
+    },
   },
 };
 
