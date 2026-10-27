@@ -14,6 +14,14 @@ export type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2026.10.27',
+    date: '2026-10-27',
+    title: 'Tema Islami lebih rapi',
+    items: [
+      { type: 'peningkatan', text: 'Tema Islami kini dihiasi lentera yang berayun pelan, bintang berkelip, dan motif geometris yang tidak menutupi saldo. Di mode gelap, kartu saldo tetap hijau zamrud dengan tulisan terang.' },
+    ],
+  },
+  {
     version: '2026.10.26',
     date: '2026-10-26',
     title: 'Beranda baru, warna & tema, hapus item saat memeriksa transaksi',
