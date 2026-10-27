@@ -21,6 +21,9 @@ export async function PATCH(req: Request, props: { params: Promise<{ id: string 
     if (body.receiptPath && !body.receiptPath.startsWith(`${space.ownerId}/`)) {
       return NextResponse.json({ error: 'Foto struk tidak valid' }, { status: 400 });
     }
+    if (body.attachments?.some((p) => !p.startsWith(`${space.ownerId}/`))) {
+      return NextResponse.json({ error: 'Lampiran tidak valid' }, { status: 400 });
+    }
     const { data: existing, error: exErr } = await supabase
       .from('transactions')
       .select(
@@ -113,6 +116,7 @@ export async function PATCH(req: Request, props: { params: Promise<{ id: string 
         note: body.note,
         tags: body.tags,
         receipt_path: body.receiptPath,
+        attachments: body.attachments,
       })
       .eq('id', params.id)
       .eq('user_id', space.ownerId)

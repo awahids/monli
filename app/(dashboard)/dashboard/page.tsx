@@ -46,6 +46,8 @@ import { BudgetWatch, CategoryDonut, SpendingChart, StatTiles, UpcomingRecurring
 import { themedGreeting, useActiveTheme } from '@/components/appearance/theme-art';
 import { useNotificationSync } from '@/components/notifications/notification-sync';
 import { format } from 'date-fns';
+import { ForecastCard, ReportReadyCard } from '@/components/dashboard/forecast-cards';
+import { budgetRunOuts, forecastSpending } from '@/lib/forecast';
 
 type BudgetSummary = { totalActual: number; perCategory: { categoryId: string; actual: number }[] };
 
@@ -224,16 +226,28 @@ export default function DashboardPage() {
   }, [user, space?.ownerId, isOnline, thisMonth, dataVersion]);
 
   const insights = useMemo(() => {
-    const { start, end } = budgetPeriod(thisMonth, budgetStartDay);
+    const period = budgetPeriod(thisMonth, budgetStartDay);
     const today = formatDate(new Date());
+    const usage = budgetUsage(budgets.find((b) => b.month === budgetMonth)?.items ?? [], transactions, budgetMonth);
+    // Savings and the like fill up by plan, not by daily pace: no run-out warning for them.
+    const notDaily = new Set(categories.filter((c) => c.dailyAllowance === false).map((c) => c.id));
     return {
       today,
-      days: dailyExpenses(transactions, start, end),
+      daysIntoPeriod: daysBetweenInclusive(period.start, today),
+      days: dailyExpenses(transactions, period.start, period.end),
       categories: categoryExpenses(transactions, thisMonth),
-      usage: budgetUsage(budgets.find((b) => b.month === budgetMonth)?.items ?? [], transactions, budgetMonth),
+      usage,
       upcoming: upcomingRecurring(recurring, today, 14),
+      forecast: forecastSpending(
+        transactions,
+        thisMonth,
+        period,
+        today,
+        recurring.filter((r) => r.active && r.type === 'expense')
+      ),
+      runOuts: budgetRunOuts(usage.filter((u) => !notDaily.has(u.categoryId)), period, today),
     };
-  }, [transactions, budgets, recurring, thisMonth, budgetMonth, budgetStartDay]);
+  }, [transactions, budgets, recurring, categories, thisMonth, budgetMonth, budgetStartDay]);
 
   // Phone notifications (bills, evening nudge, report) and budget alerts follow this data.
   useNotificationSync({
@@ -333,11 +347,23 @@ export default function DashboardPage() {
 
       <QuickActions isPro={spacePlan(user, space) === 'PRO'} onAdd={() => setFormOpen(true)} />
 
+      {prevTotals && <ReportReadyCard month={shiftMonth(thisMonth, -1)} daysIntoPeriod={insights.daysIntoPeriod} />}
+
       <StatTiles
         income={kpis.now.income}
         expense={kpis.now.expense}
         prevIncome={prevTotals?.income ?? null}
         prevExpense={prevTotals?.expense ?? null}
+        hidden={hidden}
+      />
+
+      <ForecastCard
+        forecast={insights.forecast}
+        planned={budget ? budget.totalAmount + (budget.carry ?? 0) : null}
+        income={kpis.now.income}
+        runOuts={insights.runOuts}
+        categories={categories}
+        isPro={spacePlan(user, space) === 'PRO'}
         hidden={hidden}
       />
 

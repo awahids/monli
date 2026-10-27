@@ -31,10 +31,12 @@ export function HeroArt() {
   if (theme === 'islamic') {
     return (
       <span aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-        <StarRosette className="theme-anim-spin absolute -right-10 -top-10 h-44 w-44 text-amber-300/30" />
-        <svg viewBox="0 0 100 40" preserveAspectRatio="none" className="absolute inset-x-0 top-0 h-6 w-full text-amber-300/40">
-          <path d="M0 0 H100 V8 C80 8 70 30 50 30 C30 30 20 8 0 8 Z" fill="none" stroke="currentColor" strokeWidth="0.6" />
-        </svg>
+        {/* Still geometric pattern, fading out towards the text on the left. */}
+        <span className="islamic-hero-pattern absolute inset-0" />
+        <TwinkleStar className="theme-anim-twinkle absolute right-24 top-4 h-3 w-3 text-amber-200" />
+        <TwinkleStar className="theme-anim-twinkle absolute right-[7.5rem] top-11 h-2 w-2 text-amber-100 [animation-delay:1s]" />
+        <TwinkleStar className="theme-anim-twinkle absolute right-[4.5rem] top-14 h-2 w-2 text-amber-200 [animation-delay:2s]" />
+        <IslamicLantern swing className="absolute right-5 top-0 h-20 w-10" />
       </span>
     );
   }
@@ -51,16 +53,49 @@ export function HeroArt() {
   return null;
 }
 
-/** An eight-pointed star (two squares) inside rings, the classic Islamic geometric motif. */
-export function StarRosette({ className }: { className?: string }) {
+/** A small four-pointed sparkle. */
+function TwinkleStar({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 100 100" className={className} fill="none" stroke="currentColor" strokeWidth="1.5">
-      <circle cx="50" cy="50" r="46" />
-      <circle cx="50" cy="50" r="40" strokeDasharray="2 3" />
-      <rect x="22" y="22" width="56" height="56" />
-      <rect x="22" y="22" width="56" height="56" transform="rotate(45 50 50)" />
-      <circle cx="50" cy="50" r="14" />
-      <rect x="38" y="38" width="24" height="24" transform="rotate(45 50 50)" />
+    <svg viewBox="0 0 10 10" className={className}>
+      <path d="M5 0 L6 4 L10 5 L6 6 L5 10 L4 6 L0 5 L4 4 Z" fill="currentColor" />
+    </svg>
+  );
+}
+
+/**
+ * A hanging lantern (fanous) for the Islami theme. With `swing` it sways on its
+ * chain and its light flickers softly (app/globals.css, off with reduced motion).
+ */
+export function IslamicLantern({ className, swing = false }: { className?: string; swing?: boolean }) {
+  const gold = '#E9C46A';
+  const dark = '#7A5A16';
+  return (
+    <svg viewBox="0 0 48 96" className={className}>
+      <defs>
+        <radialGradient id="lantern-light" cx="50%" cy="55%" r="55%">
+          <stop offset="0%" stopColor="#FFF7D6" />
+          <stop offset="55%" stopColor="#FCD34D" />
+          <stop offset="100%" stopColor="#D97706" />
+        </radialGradient>
+      </defs>
+      <g className={swing ? 'islamic-lantern' : undefined}>
+        {/* chain */}
+        <path d="M24 0 V18" stroke={gold} strokeWidth="1.5" strokeDasharray="3 2" />
+        <circle cx="24" cy="20" r="2.5" fill="none" stroke={gold} strokeWidth="1.5" />
+        {/* dome with finial */}
+        <path d="M24 22 C30 28 36 31 36 36 H12 C12 31 18 28 24 22 Z" fill={gold} stroke={dark} strokeWidth="1" />
+        <rect x="10" y="36" width="28" height="3" rx="1" fill={gold} stroke={dark} strokeWidth="1" />
+        {/* glass body: light inside, gold frame with a pointed-arch window */}
+        <path d="M12 39 H36 L34 70 H14 Z" fill="url(#lantern-light)" className={swing ? 'islamic-glow' : undefined} />
+        <path d="M12 39 H36 L34 70 H14 Z" fill="none" stroke={gold} strokeWidth="1.6" strokeLinejoin="round" />
+        <path d="M24 39 V70" stroke={gold} strokeWidth="1" opacity="0.8" />
+        <path d="M19 66 V52 C19 47 24 44 24 44 C24 44 29 47 29 52 V66" fill="none" stroke={dark} strokeWidth="1.1" opacity="0.7" />
+        {/* base and drop */}
+        <rect x="12" y="70" width="24" height="3" rx="1" fill={gold} stroke={dark} strokeWidth="1" />
+        <path d="M16 73 H32 L26 82 H22 Z" fill={gold} stroke={dark} strokeWidth="1" strokeLinejoin="round" />
+        <path d="M24 82 V90" stroke={gold} strokeWidth="1.5" />
+        <circle cx="24" cy="92" r="2.2" fill={gold} />
+      </g>
     </svg>
   );
 }
