@@ -16,10 +16,11 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '2026.10.27',
     date: '2026-10-27',
-    title: 'Lampiran tambahan & pencarian tag',
+    title: 'Lampiran tambahan & pencarian tag, tema Islami lebih rapi',
     items: [
       { type: 'baru', text: 'Pengguna PRO bisa menyimpan sampai 5 lampiran lain di tiap transaksi, misalnya kartu garansi atau invoice PDF, selain foto struk.' },
       { type: 'peningkatan', text: 'Pencarian transaksi kini menemukan tag dari sebagian katanya, misalnya "kant" untuk tag "kantor".' },
+      { type: 'peningkatan', text: 'Tema Islami kini dihiasi lentera yang berayun pelan, bintang berkelip, dan motif geometris yang tidak menutupi saldo. Di mode gelap, kartu saldo tetap hijau zamrud dengan tulisan terang.' },
     ],
   },
   {

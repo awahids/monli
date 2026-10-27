@@ -357,8 +357,9 @@
     --card-foreground: 45 40% 92%;
     --popover: 162 30% 10%;
     --popover-foreground: 45 40% 92%;
-    --primary: 152 50% 44%;
-    --primary-foreground: 165 50% 6%;
+    /* Deep emerald with cream text, like the light mode, rather than a pale green. */
+    --primary: 154 55% 32%;
+    --primary-foreground: 45 60% 96%;
     --secondary: 162 20% 14%;
     --muted: 162 20% 14%;
     --muted-foreground: 45 15% 65%;
@@ -372,16 +373,22 @@
     --chart-1: 152 50% 44%;
     --chart-2: 42 80% 55%;
     --radius: 1rem;
-    --gradient-hero: linear-gradient(135deg, hsl(152 50% 42%), hsl(158 58% 30%));
-    --gradient-primary: linear-gradient(135deg, hsl(152 50% 48%) 0%, hsl(158 58% 34%) 100%);
-    --gradient-button: linear-gradient(135deg, hsl(152 50% 46%) 0%, hsl(158 58% 36%) 100%);
-    --gradient-button-hover: linear-gradient(135deg, hsl(158 58% 36%) 0%, hsl(152 50% 46%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(156 58% 24%), hsl(166 70% 10%));
+    --gradient-primary: linear-gradient(135deg, hsl(152 50% 40%) 0%, hsl(156 58% 28%) 100%);
+    --gradient-button: linear-gradient(135deg, hsl(154 55% 32%) 0%, hsl(160 62% 22%) 100%);
+    --gradient-button-hover: linear-gradient(135deg, hsl(160 62% 22%) 0%, hsl(154 55% 32%) 100%);
   }
   html:not(.dark)[data-style="islamic"] body {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56' viewBox='0 0 56 56'%3E%3Cg fill='none' stroke='%23B8892B' stroke-opacity='0.16' stroke-width='1'%3E%3Crect x='16' y='16' width='24' height='24'/%3E%3Crect x='16' y='16' width='24' height='24' transform='rotate%2845 28 28%29'/%3E%3Ccircle cx='28' cy='28' r='5'/%3E%3Cpath d='M0 0 L8 8 M56 0 L48 8 M0 56 L8 48 M56 56 L48 48'/%3E%3C/g%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56' viewBox='0 0 56 56'%3E%3Cg fill='none' stroke='%23B8892B' stroke-opacity='0.22' stroke-width='1'%3E%3Crect x='16' y='16' width='24' height='24'/%3E%3Crect x='16' y='16' width='24' height='24' transform='rotate%2845 28 28%29'/%3E%3Ccircle cx='28' cy='28' r='5'/%3E%3Cpath d='M0 0 L8 8 M56 0 L48 8 M0 56 L8 48 M56 56 L48 48'/%3E%3C/g%3E%3C/svg%3E");
   }
   html.dark[data-style="islamic"] body {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56' viewBox='0 0 56 56'%3E%3Cg fill='none' stroke='%23E2B85A' stroke-opacity='0.14' stroke-width='1'%3E%3Crect x='16' y='16' width='24' height='24'/%3E%3Crect x='16' y='16' width='24' height='24' transform='rotate%2845 28 28%29'/%3E%3Ccircle cx='28' cy='28' r='5'/%3E%3Cpath d='M0 0 L8 8 M56 0 L48 8 M0 56 L8 48 M56 56 L48 48'/%3E%3C/g%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56' viewBox='0 0 56 56'%3E%3Cg fill='none' stroke='%23E2B85A' stroke-opacity='0.1' stroke-width='1'%3E%3Crect x='16' y='16' width='24' height='24'/%3E%3Crect x='16' y='16' width='24' height='24' transform='rotate%2845 28 28%29'/%3E%3Ccircle cx='28' cy='28' r='5'/%3E%3Cpath d='M0 0 L8 8 M56 0 L48 8 M0 56 L8 48 M56 56 L48 48'/%3E%3C/g%3E%3C/svg%3E");
+  }
+
+  html[data-style="islamic"] .islamic-hero-pattern {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'%3E%3Cg fill='none' stroke='%23F3D58A' stroke-opacity='0.22' stroke-width='0.8'%3E%3Crect x='13' y='13' width='18' height='18'/%3E%3Crect x='13' y='13' width='18' height='18' transform='rotate%2845 22 22%29'/%3E%3Ccircle cx='22' cy='22' r='4'/%3E%3Cpath d='M0 0 L6 6 M44 0 L38 6 M0 44 L6 38 M44 44 L38 38'/%3E%3C/g%3E%3C/svg%3E");
+    -webkit-mask-image: linear-gradient(to left, black 10%, transparent 75%);
+    mask-image: linear-gradient(to left, black 10%, transparent 75%);
   }
 
   /* Kartun (PRO): bright blue, yellow and red, thick outlines, hard offset
@@ -1042,8 +1049,13 @@ html:not([data-app="ios"]) .ios-app-only {
     transform-origin: center;
     animation: tupi-sparkle 2.6s ease-in-out infinite;
   }
-  .theme-anim-spin {
-    animation: theme-spin 90s linear infinite;
+  .islamic-lantern {
+    transform-box: view-box;
+    transform-origin: 50% 0;
+    animation: islamic-swing 3.6s ease-in-out infinite alternate;
+  }
+  .islamic-glow {
+    animation: islamic-glow 2.8s ease-in-out infinite;
   }
   .theme-anim-twinkle {
     animation: theme-twinkle 3s ease-in-out infinite;
@@ -1066,8 +1078,14 @@ html:not([data-app="ios"]) .ios-app-only {
   0%, 60%, 100% { opacity: 0; transform: scale(0.4) rotate(0deg); }
   75% { opacity: 1; transform: scale(1) rotate(45deg); }
 }
-@keyframes theme-spin {
-  to { transform: rotate(360deg); }
+@keyframes islamic-swing {
+  from { transform: rotate(-5deg); }
+  to { transform: rotate(5deg); }
+}
+@keyframes islamic-glow {
+  0%, 100% { opacity: 1; }
+  40% { opacity: 0.78; }
+  60% { opacity: 0.92; }
 }
 @keyframes theme-twinkle {
   0%, 100% { opacity: 0.35; transform: scale(0.8); }
