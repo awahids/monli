@@ -3,6 +3,9 @@ import { test, expect, signIn } from '../fixtures';
 // CI sets the VAPID keys and CRON_SECRET for each run (.github/workflows/ci.yml).
 const secret = process.env.CRON_SECRET;
 test.skip(!secret || !process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY, 'Web Push is not configured for this run');
+// Full Chromium in its new headless mode: the default headless shell always
+// reports notifications as denied. Allowed here, as a user would.
+test.use({ channel: 'chromium', permissions: ['notifications'] });
 
 test('the web app offers push and stores the planned reminders', async ({ page, user, admin }) => {
   await signIn(page, user);
