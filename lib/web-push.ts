@@ -51,12 +51,12 @@ export async function enableWebPush(): Promise<WebPushState> {
   return 'on';
 }
 
-/** Ties this browser's subscription to whoever is signed in now. */
-async function saveSubscription(sub: PushSubscription) {
+/** Ties this browser's subscription to whoever is signed in now, with its budget alert choice. */
+async function saveSubscription(sub: PushSubscription, budgetAlerts?: boolean) {
   const res = await fetch('/api/push', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(sub.toJSON()),
+    body: JSON.stringify({ ...sub.toJSON(), budgetAlerts }),
   });
   return res.ok;
 }
@@ -82,22 +82,38 @@ function forgetUploadedPlan() {
 }
 
 /**
- * Uploads the plan when push is on here and it changed since the last upload.
- * The subscription is saved again first, so after another account signs in
- * on this browser its reminders come here instead of the previous account's.
+ * Uploads the plan (and whether budget alerts are wanted) when push is on
+ * here and either changed since the last upload. The subscription is saved
+ * again first, so after another account signs in on this browser its
+ * reminders come here instead of the previous account's. True when push is on.
  */
-export async function syncPushSchedule(plan: PlannedNotification[]) {
-  if ((await webPushState()) !== 'on') return;
+export async function syncPushSchedule(plan: PlannedNotification[], budgetAlerts: boolean): Promise<boolean> {
+  if ((await webPushState()) !== 'on') return false;
   const sub = await (await registration())?.pushManager.getSubscription();
+  if (!sub) return false;
   const body = JSON.stringify(schedulePayload(plan));
+  const stamp = `${budgetAlerts}:${body}`;
   let last: string | null = null;
   try {
     last = localStorage.getItem(PLAN_KEY);
   } catch {}
-  if (last === body || !sub || !(await saveSubscription(sub))) return;
+  if (last === stamp || !(await saveSubscription(sub, budgetAlerts))) return true;
   const res = await fetch('/api/push/schedule', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body });
-  if (!res.ok) return;
+  if (!res.ok) return true;
   try {
-    localStorage.setItem(PLAN_KEY, body);
+    localStorage.setItem(PLAN_KEY, stamp);
   } catch {}
+  return true;
+}
+
+/** "Kirim notifikasi uji" for this browser; false when it did not arrive at the push service. */
+export async function sendTestPush(): Promise<boolean> {
+  const sub = await (await registration())?.pushManager.getSubscription();
+  if (!sub) return false;
+  const res = await fetch('/api/push/test', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ endpoint: sub.endpoint }),
+  });
+  return res.ok;
 }

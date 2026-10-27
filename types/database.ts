@@ -309,6 +309,7 @@ export interface Database {
           user_id: string;
           p256dh: string;
           auth: string;
+          budget_alerts: boolean;
           created_at: string;
         };
         Insert: {
@@ -316,17 +317,20 @@ export interface Database {
           user_id: string;
           p256dh: string;
           auth: string;
+          budget_alerts?: boolean;
         };
         Update: {
           user_id?: string;
           p256dh?: string;
           auth?: string;
+          budget_alerts?: boolean;
         };
       };
       push_schedule: {
         Row: {
           user_id: string;
           id: number;
+          kind: 'bill' | 'daily' | 'report' | 'other';
           title: string;
           body: string;
           url: string;
@@ -335,6 +339,7 @@ export interface Database {
         Insert: {
           user_id: string;
           id: number;
+          kind?: 'bill' | 'daily' | 'report' | 'other';
           title: string;
           body: string;
           url: string;
@@ -342,6 +347,26 @@ export interface Database {
         };
         Update: {
           send_at?: string;
+        };
+      };
+      push_budget_alerts: {
+        Row: {
+          user_id: string;
+          month: string;
+          category_id: string;
+          level: 80 | 100;
+          sent_at: string;
+        };
+        Insert: {
+          user_id: string;
+          month: string;
+          category_id: string;
+          level: 80 | 100;
+          sent_at?: string;
+        };
+        Update: {
+          level?: 80 | 100;
+          sent_at?: string;
         };
       };
     };

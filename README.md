@@ -51,6 +51,8 @@ Aplikasi web yang dipasang (PWA) dan browser menerima pengingat yang sama dengan
    select vault.create_secret('<CRON_SECRET yang sama>', 'saku_cron_secret');
    ```
 
+Peringatan budget dikirim dari server: setelah pengeluaran disimpan, trigger `saku.request_budget_alerts` memanggil `/api/cron/budget-alerts` (dengan secret yang sama) untuk pemilik yang punya browser berlangganan. Tiap level (80%, 100%) dikirim sekali per bulan budget (`saku.push_budget_alerts`). Pengingat harian jam 20.00 dilewati kalau hari itu sudah ada transaksi.
+
 Tanpa kunci VAPID, Pengaturan > Notifikasi di web tetap seperti sebelumnya (hanya peringatan budget di dalam aplikasi). Tanpa secret di Vault, cron tidak memanggil apa pun. Di iPhone, Web Push hanya jalan di iOS 16.4+ setelah Qala Saku ditambahkan ke Layar Utama.
 
 ## Konfigurasi OCR SumoPod

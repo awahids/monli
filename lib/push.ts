@@ -16,7 +16,7 @@ export function pushPayload(n: { title: string; body: string; url: string }): st
 export function schedulePayload(plan: PlannedNotification[]) {
   return {
     notifications: plan
-      .map((n) => ({ id: n.id, title: n.title, body: n.body, url: n.url, at: n.at.toISOString() }))
+      .map((n) => ({ id: n.id, kind: n.kind, title: n.title, body: n.body, url: n.url, at: n.at.toISOString() }))
       .sort((a, b) => a.at.localeCompare(b.at) || a.id - b.id),
   };
 }

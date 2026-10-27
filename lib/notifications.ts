@@ -28,6 +28,8 @@ export function parseNotifySettings(raw: string | null): NotifySettings {
 export interface PlannedNotification {
   /** Stable for the same event, so rescheduling replaces rather than doubles. */
   id: number;
+  /** The server skips a `daily` nudge once that day has a transaction (Web Push). */
+  kind: 'bill' | 'daily' | 'report';
   title: string;
   body: string;
   at: Date;
@@ -86,6 +88,7 @@ export function planNotifications(input: PlanInput): PlannedNotification[] {
       const name = r.note || r.category?.name || t('Tagihan', 'Bill');
       out.push({
         id: notificationId(`bill:${r.id}:${r.nextDate}`),
+        kind: 'bill',
         title: t('Tagihan besok', 'Bill due tomorrow'),
         body: t(`${name} ${input.formatMoney(r.amount)} jatuh tempo besok.`, `${name} ${input.formatMoney(r.amount)} is due tomorrow.`),
         at: at(addDays(r.nextDate, -1), 9),
@@ -99,6 +102,7 @@ export function planNotifications(input: PlanInput): PlannedNotification[] {
       const day = addDays(today, i);
       out.push({
         id: notificationId(`daily:${day}`),
+        kind: 'daily',
         title: t('Sudah catat hari ini?', 'Recorded today?'),
         body: t('Catat pengeluaran hari ini selagi masih ingat.', 'Note down today’s spending while you still remember.'),
         at: at(day, 20),
@@ -110,6 +114,7 @@ export function planNotifications(input: PlanInput): PlannedNotification[] {
   if (settings.report) {
     out.push({
       id: notificationId(`report:${input.reportMonth}`),
+      kind: 'report',
       title: t(`Laporan ${input.reportLabel} sudah siap`, `Your ${input.reportLabel} report is ready`),
       body: t('Lihat berapa yang tersisihkan dan ke mana uangmu pergi.', 'See what you put aside and where your money went.'),
       at: at(input.nextPeriodStart, 8),
@@ -141,4 +146,17 @@ export function budgetAlerts(
     alerts.push({ categoryId: u.categoryId, level });
   }
   return { alerts, state: { month, sent } };
+}
+
+/** The title and text of a budget alert, the same on the phone, the web and Web Push. */
+export function budgetAlertText(name: string, level: 80 | 100, t: T): { title: string; body: string } {
+  return level === 100
+    ? {
+        title: t(`Budget ${name} habis`, `${name} budget used up`),
+        body: t('Pengeluaran kategori ini sudah melewati budget periode ini.', 'Spending in this category has gone over this period’s budget.'),
+      }
+    : {
+        title: t(`Budget ${name} tinggal 20%`, `${name} budget 80% used`),
+        body: t('Pengeluaran kategori ini sudah 80% dari budget.', 'Spending in this category has reached 80% of its budget.'),
+      };
 }

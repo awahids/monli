@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Bell, BellOff } from 'lucide-react';
+import { Bell, BellOff, Send } from 'lucide-react';
 import { toast } from 'sonner';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,7 +11,7 @@ import { isNativeApp } from '@/lib/native';
 import { NOTIFY_KEY, parseNotifySettings, type NotifySettings } from '@/lib/notifications';
 import { notificationsPlugin } from '@/components/notifications/notification-sync';
 import { useAppStore } from '@/lib/store';
-import { disableWebPush, enableWebPush, webPushState, type WebPushState } from '@/lib/web-push';
+import { disableWebPush, enableWebPush, sendTestPush, webPushState, type WebPushState } from '@/lib/web-push';
 import { useT } from '@/lib/i18n';
 
 type Status = 'loading' | 'web' | 'outdated' | 'granted' | 'denied' | 'prompt';
@@ -70,6 +70,37 @@ export function NotificationsCard() {
     }
     // The home screen uploads the reminders once push is on.
     useAppStore.getState().bumpData();
+  };
+
+  const [testing, setTesting] = useState(false);
+  const sendTest = async () => {
+    setTesting(true);
+    try {
+      let ok = false;
+      if (status === 'granted') {
+        const plugin = await notificationsPlugin();
+        await plugin?.schedule({
+          notifications: [
+            {
+              id: 1,
+              title: t('Tes notifikasi Qala Saku', 'Qala Saku test notification'),
+              body: t('Notifikasi sudah sampai. Pengingatmu akan muncul seperti ini.', 'Notifications work. Your reminders will show up like this.'),
+              schedule: { at: new Date(Date.now() + 1000) },
+              extra: { source: 'saku-test', url: '/settings' },
+            },
+          ],
+        });
+        ok = !!plugin;
+      } else {
+        ok = await sendTestPush();
+      }
+      if (ok) toast.success(t('Notifikasi uji dikirim. Cek sebentar lagi.', 'Test notification sent. Check in a moment.'));
+      else toast.error(t('Notifikasi uji tidak terkirim. Coba matikan lalu nyalakan lagi.', 'The test notification was not sent. Try turning notifications off and on again.'));
+    } catch {
+      toast.error(t('Notifikasi uji tidak terkirim. Coba matikan lalu nyalakan lagi.', 'The test notification was not sent. Try turning notifications off and on again.'));
+    } finally {
+      setTesting(false);
+    }
   };
 
   const rows: { key: keyof NotifySettings; label: string; hint: string; phoneOnly: boolean }[] = [
@@ -148,6 +179,12 @@ export function NotificationsCard() {
               <Switch id={`notify-${r.key}`} checked={settings[r.key]} onCheckedChange={(on) => toggle(r.key, on)} />
             </div>
           ))}
+        {(status === 'granted' || web === 'on') && (
+          <Button variant="outline" size="sm" className="w-full" disabled={testing} onClick={sendTest}>
+            <Send className="mr-2 h-4 w-4" />
+            {t('Kirim notifikasi uji', 'Send a test notification')}
+          </Button>
+        )}
       </CardContent>
     </Card>
   );

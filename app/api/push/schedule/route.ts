@@ -29,6 +29,7 @@ export async function PUT(req: Request) {
         unique.map((n) => ({
           user_id: user.id,
           id: n.id,
+          kind: n.kind ?? 'other',
           title: n.title,
           body: n.body,
           url: n.url,
