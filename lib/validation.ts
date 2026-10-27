@@ -77,6 +77,11 @@ const transactionBaseSchema = z.object({
     .regex(/^[0-9a-f-]{36}\/[0-9a-f-]{36}\.(jpg|png|webp)$/)
     .nullable()
     .optional(),
+  /** Other files in the receipts bucket (warranty card, invoice PDF), at most 5. */
+  attachments: z
+    .array(z.string().regex(/^[0-9a-f-]{36}\/[0-9a-f-]{36}\.(jpg|png|webp|pdf)$/))
+    .max(5)
+    .optional(),
 });
 
 export const transactionCreateSchema = transactionBaseSchema.superRefine(

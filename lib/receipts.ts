@@ -6,6 +6,9 @@ const BUCKET = 'receipts';
 // that form without Supabase settings.
 const storage = async () => (await import('@/lib/supabase')).supabase.storage.from(BUCKET);
 const EXT: Record<string, string> = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' };
+/** Attachments may also be PDFs (an invoice, a warranty card). */
+const ATTACHMENT_EXT: Record<string, string> = { ...EXT, 'application/pdf': 'pdf' };
+export const MAX_ATTACHMENTS = 5;
 
 /** Stores a receipt photo under the space owner's folder; returns its path. */
 export async function uploadReceipt(ownerId: string, image: Blob): Promise<string> {
@@ -31,5 +34,27 @@ export async function setReceipt(transactionId: string, receiptPath: string | nu
     body: JSON.stringify({ receiptPath }),
   });
   if (!res.ok) throw new Error(tr('Gagal menyimpan foto struk', 'Could not save the receipt photo'));
+  useAppStore.getState().bumpData();
+}
+
+/** Stores an attachment (photo or PDF) under the space owner's folder; returns its path. */
+export async function uploadAttachment(ownerId: string, file: Blob): Promise<string> {
+  const ext = ATTACHMENT_EXT[file.type];
+  if (!ext) throw new Error(tr('Hanya foto atau PDF yang bisa dilampirkan', 'Only photos or PDFs can be attached'));
+  if (file.size > 5 * 1024 * 1024) throw new Error(tr('Ukuran file maksimal 5 MB', 'Files can be at most 5 MB'));
+  const path = `${ownerId}/${crypto.randomUUID()}.${ext}`;
+  const { error } = await (await storage()).upload(path, file, { contentType: file.type });
+  if (error) throw new Error(tr('Gagal mengunggah lampiran', 'Could not upload the attachment'));
+  return path;
+}
+
+/** Replaces a transaction's attachments. */
+export async function setAttachments(transactionId: string, attachments: string[]): Promise<void> {
+  const res = await fetch(`/api/transactions/${transactionId}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ attachments }),
+  });
+  if (!res.ok) throw new Error(tr('Gagal menyimpan lampiran', 'Could not save the attachments'));
   useAppStore.getState().bumpData();
 }

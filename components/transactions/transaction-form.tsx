@@ -44,6 +44,7 @@ import { defaultBudgetMonth } from '@/lib/budget-period';
 import { formatDate } from '@/lib/date';
 import { formatMoneyCompact, getDisplayCurrency } from '@/lib/currency';
 import { ReceiptField } from './receipt-field';
+import { AttachmentsField } from './attachments-field';
 import { useT } from '@/lib/i18n';
 
 export const getJakartaDate = () => {
@@ -694,7 +695,12 @@ export function TransactionForm({
               contentEl={contentEl}
               autoFocusAmount={!transaction}
             />
-            {transaction && <ReceiptField key={transaction.id} transaction={transaction} />}
+            {transaction && (
+              <div className="space-y-3">
+                <ReceiptField key={transaction.id} transaction={transaction} />
+                <AttachmentsField key={`${transaction.id}-files`} transaction={transaction} />
+              </div>
+            )}
 
             <DialogFooter
               className="sticky bottom-0 z-10 -mx-4 flex-row justify-between gap-2 border-t bg-background px-4 py-4"
