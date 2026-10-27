@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { callbackPath, isAppUA } from './native';
+import { callbackPath, isAppUA, widgetPath } from './native';
 
 test('the app is recognised by its user agent tag', () => {
   assert.equal(isAppUA('Mozilla/5.0 (iPhone) AppleWebKit/605.1.15 QalaSakuApp/1.0'), true);
@@ -14,4 +14,10 @@ test('OAuth deep links map to the callback page, nothing else does', () => {
   assert.equal(callbackPath('qalasaku://auth/callbackevil?code=1'), null);
   assert.equal(callbackPath('qalasaku://dashboard'), null);
   assert.equal(callbackPath('https://evil.example/auth/callback?code=1'), null);
+});
+
+test('widget links open their page', () => {
+  assert.equal(widgetPath('qalasaku://add'), '/transactions?action=add');
+  assert.equal(widgetPath('qalasaku://open'), '/dashboard');
+  assert.equal(widgetPath('qalasaku://auth/callback?code=x'), null);
 });

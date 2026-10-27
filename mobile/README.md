@@ -16,6 +16,7 @@ Store hanya perlu kalau bagian native berubah (plugin, ikon, izin, versi).
 | Export CSV | unduh file | lembar Bagikan (`@capacitor/filesystem` + `@capacitor/share`) |
 | Upgrade PRO / riwayat bayar | Midtrans | disembunyikan; PRO dibeli di website dan ikut ke aplikasi |
 | Banner "Pasang aplikasi" | tampil | disembunyikan |
+| Widget layar utama | - | Android `SakuWidgetProvider`, iOS target `SakuWidgetExtension`; datanya dikirim beranda lewat plugin `WidgetBridge` (`lib/widget.ts`) |
 
 Website mengenali aplikasi dari user agent `QalaSakuApp` (lihat `lib/native.ts`).
 
@@ -28,7 +29,9 @@ Website mengenali aplikasi dari user agent `QalaSakuApp` (lihat `lib/native.ts`)
    "Lanjutkan dengan Apple" di iOS gagal, dan App Store bisa menolak aplikasi
    (guideline 4.8).
 3. **Apple Developer**: buat App ID `digital.qala.saku` dengan kapabilitas
-   *Sign in with Apple*.
+   *Sign in with Apple* dan *App Groups* (`group.digital.qala.saku`), lalu App ID
+   `digital.qala.saku.SakuWidget` untuk widget dengan App Group yang sama. Di
+   Xcode, pilih tim signing untuk target **App** dan **SakuWidgetExtension**.
 4. **Google Play Console / App Store Connect**: daftarkan aplikasi dengan ID
    `digital.qala.saku`. ID ini permanen setelah dirilis; ganti `appId` di
    `capacitor.config.ts` sekarang kalau mau ID lain.

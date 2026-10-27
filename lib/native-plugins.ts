@@ -11,6 +11,8 @@ export const Browser = registerPlugin<{
 
 export const App = registerPlugin<{
   addListener(event: 'appUrlOpen', cb: (e: { url: string }) => void): Promise<PluginListenerHandle>;
+  /** The link that started the app, when it was opened by one (e.g. from the widget). */
+  getLaunchUrl(): Promise<{ url: string } | undefined>;
 }>('App');
 
 export const BiometricAuth = registerPlugin<{
@@ -38,6 +40,11 @@ export async function shareTextFile(filename: string, text: string) {
   const { uri } = await Filesystem.writeFile({ path: filename, data: text, directory: 'CACHE', encoding: 'utf8' });
   await Share.share({ title: filename, files: [uri] });
 }
+
+/** Our own plugin in the app shell: hands the home screen widget its numbers. */
+export const WidgetBridge = registerPlugin<{
+  update(options: { label: string; value: string; detail: string; updated: string }): Promise<void>;
+}>('WidgetBridge');
 
 export interface LocalNotificationSchema {
   id: number;

@@ -44,6 +44,9 @@ import { spacePlan } from '@/lib/plans';
 import { AccountStrip, BalanceHero, QuickActions, useHiddenBalance } from '@/components/dashboard/home-sections';
 import { BudgetWatch, CategoryDonut, SpendingChart, StatTiles, UpcomingRecurring } from '@/components/dashboard/insights';
 import { themedGreeting, useActiveTheme } from '@/components/appearance/theme-art';
+import { widgetSnapshot } from '@/lib/widget';
+import { isNativeApp } from '@/lib/native';
+import { formatMoney } from '@/lib/currency';
 import { useNotificationSync } from '@/components/notifications/notification-sync';
 import { format } from 'date-fns';
 import { ForecastCard, ReportReadyCard } from '@/components/dashboard/forecast-cards';
@@ -294,6 +297,24 @@ export default function DashboardPage() {
       over: remaining < 0,
     };
   }, [budget, budgetSummary, budgetMonth, budgetStartDay, categories]);
+
+  // The home screen widget (iOS/Android) shows today's allowance; refresh it with these numbers.
+  useEffect(() => {
+    if (loading || !isNativeApp()) return;
+    const today = formatDate(new Date());
+    const snapshot = widgetSnapshot(
+      {
+        budget: budgetCard,
+        spentToday: transactions.filter((tx) => tx.type === 'expense' && tx.actualDate === today).reduce((s, tx) => s + tx.amount, 0),
+        hidden,
+        now: new Date(),
+      },
+      formatMoney,
+      t
+    );
+    // App builds from before the widget don't have the plugin.
+    import('@/lib/native-plugins').then(({ WidgetBridge }) => WidgetBridge.update(snapshot)).catch(() => undefined);
+  }, [loading, budgetCard, transactions, hidden, t]);
 
   const showOnboarding = Boolean(user && !user.onboardingCompleted);
   const completeOnboarding = async () => {

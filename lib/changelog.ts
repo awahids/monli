@@ -16,7 +16,7 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '2026.10.27',
     date: '2026-10-27',
-    title: 'Laporan bulanan, prediksi, notifikasi, lampiran & tema Islami baru',
+    title: 'Laporan bulanan, prediksi, notifikasi, widget, lampiran & tema Islami baru',
     items: [
       { type: 'baru', text: 'Pengguna PRO bisa menyimpan sampai 5 lampiran lain di tiap transaksi, misalnya kartu garansi atau invoice PDF, selain foto struk.' },
       { type: 'peningkatan', text: 'Pencarian transaksi kini menemukan tag dari sebagian katanya, misalnya "kant" untuk tag "kantor".' },
@@ -25,6 +25,7 @@ export const CHANGELOG: ChangelogEntry[] = [
       { type: 'baru', text: 'Pengguna PRO melihat prediksi pengeluaran sampai akhir periode, apakah budget akan cukup, dan budget kategori mana yang akan habis duluan.' },
       { type: 'baru', text: 'Di aplikasi iOS dan Android, Qala Saku bisa mengingatkan tagihan yang jatuh tempo besok, mengingatkan mencatat jam 20.00 kalau hari itu belum ada transaksi, dan memberi tahu saat laporan bulanan siap. Atur di Pengaturan > Notifikasi.' },
       { type: 'baru', text: 'Peringatan saat budget kategori mencapai 80% dan 100%, sebagai notifikasi di aplikasi HP atau pesan di dalam aplikasi web.' },
+      { type: 'baru', text: 'Widget Qala Saku untuk layar utama iOS dan Android: sisa jatah hari ini sekilas, dan tombol + Catat untuk langsung mencatat transaksi.' },
     ],
   },
   {

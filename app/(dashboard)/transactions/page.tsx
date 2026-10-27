@@ -180,12 +180,19 @@ export default function TransactionsPage() {
     setAccountFilter(searchParams.get('accountId') ?? 'all');
   }, [searchParams]);
 
-  // Quick actions on Beranda open a tool here: ?action=scan or ?action=split.
+  // Quick actions on Beranda open a tool here: ?action=scan or ?action=split;
+  // the home screen widget's + opens the form with ?action=add.
   const router = useRouter();
   const action = searchParams.get('action');
   useEffect(() => {
     // Wait for the profile, which says whether scanning (PRO) is available.
     if (!action || !user) return;
+    if (action === 'add') {
+      receiptRef.current = null;
+      setEditing(undefined);
+      setInitialValues(undefined);
+      setFormOpen(true);
+    }
     if (action === 'split') setSplitOpen(true);
     if (action === 'scan' && user.plan === 'PRO') fileInputRef.current?.click();
     router.replace('/transactions');
