@@ -99,6 +99,8 @@ export interface Transaction {
   createdBy?: string | null;
   /** Receipt photo in storage (see lib/receipts). */
   receiptPath?: string | null;
+  /** Other files in the receipts bucket: warranty card, invoice PDF (see lib/receipts). */
+  attachments?: string[];
   account?: Account;
   fromAccount?: Account;
   toAccount?: Account;

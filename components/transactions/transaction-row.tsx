@@ -80,7 +80,9 @@ export function TransactionRow({ transaction: t, showDate = false, onClick }: Pr
       <span className="min-w-0 flex-1 text-left">
         <span className="flex items-center gap-1 text-sm font-medium">
           <span className="truncate">{transactionTitle(t, i18n.t)}</span>
-          {t.receiptPath && <Paperclip className="h-3 w-3 shrink-0 text-muted-foreground" aria-label={i18n.t('Ada foto struk', 'Has a receipt photo')} />}
+          {(t.receiptPath || !!t.attachments?.length) && (
+            <Paperclip className="h-3 w-3 shrink-0 text-muted-foreground" aria-label={i18n.t('Ada lampiran', 'Has attachments')} />
+          )}
         </span>
         {(meta.length > 0 || recorder) && (
           <span className="flex min-w-0 text-xs text-muted-foreground">

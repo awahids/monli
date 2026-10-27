@@ -186,6 +186,10 @@ export interface Database {
           category_id: string | null;
           note: string;
           tags: string[];
+          /** Generated from tags for partial search. */
+          tags_text: string;
+          receipt_path: string | null;
+          attachments: string[];
           created_by: string | null;
           created_at: string;
           updated_at: string;
@@ -204,6 +208,8 @@ export interface Database {
           category_id?: string | null;
           note?: string;
           tags?: string[];
+          receipt_path?: string | null;
+          attachments?: string[];
           created_at?: string;
           updated_at?: string;
         };
@@ -219,6 +225,8 @@ export interface Database {
           category_id?: string | null;
           note?: string;
           tags?: string[];
+          receipt_path?: string | null;
+          attachments?: string[];
           updated_at?: string;
         };
       };

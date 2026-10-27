@@ -45,3 +45,24 @@ export async function shareTextFile(filename: string, text: string) {
 export const WidgetBridge = registerPlugin<{
   update(options: { label: string; value: string; detail: string; updated: string }): Promise<void>;
 }>('WidgetBridge');
+
+export interface LocalNotificationSchema {
+  id: number;
+  title: string;
+  body: string;
+  schedule?: { at: Date; allowWhileIdle?: boolean };
+  extra?: Record<string, string>;
+}
+
+/** Notifications scheduled on the phone (mobile/package.json: @capacitor/local-notifications). */
+export const LocalNotifications = registerPlugin<{
+  checkPermissions(): Promise<{ display: 'granted' | 'denied' | 'prompt' | 'prompt-with-rationale' }>;
+  requestPermissions(): Promise<{ display: 'granted' | 'denied' | 'prompt' | 'prompt-with-rationale' }>;
+  schedule(options: { notifications: LocalNotificationSchema[] }): Promise<unknown>;
+  getPending(): Promise<{ notifications: { id: number; extra?: Record<string, string> }[] }>;
+  cancel(options: { notifications: { id: number }[] }): Promise<void>;
+  addListener(
+    event: 'localNotificationActionPerformed',
+    cb: (e: { notification: { extra?: Record<string, string> } }) => void
+  ): Promise<PluginListenerHandle>;
+}>('LocalNotifications');

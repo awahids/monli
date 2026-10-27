@@ -47,6 +47,10 @@ import { themedGreeting, useActiveTheme } from '@/components/appearance/theme-ar
 import { widgetSnapshot } from '@/lib/widget';
 import { isNativeApp } from '@/lib/native';
 import { formatMoney } from '@/lib/currency';
+import { useNotificationSync } from '@/components/notifications/notification-sync';
+import { format } from 'date-fns';
+import { ForecastCard, ReportReadyCard } from '@/components/dashboard/forecast-cards';
+import { budgetRunOuts, forecastSpending } from '@/lib/forecast';
 
 type BudgetSummary = { totalActual: number; perCategory: { categoryId: string; actual: number }[] };
 
@@ -92,7 +96,7 @@ export default function DashboardPage() {
   const [recurring, setRecurring] = useState<RecurringTransaction[]>([]);
   const [formOpen, setFormOpen] = useState(false);
   const { isOnline, addOfflineChange } = useOffline();
-  const { t, locale } = useT();
+  const { t, locale, dateLocale } = useT();
   const [hidden, toggleHidden] = useHiddenBalance();
   const theme = useActiveTheme();
 
@@ -225,16 +229,42 @@ export default function DashboardPage() {
   }, [user, space?.ownerId, isOnline, thisMonth, dataVersion]);
 
   const insights = useMemo(() => {
-    const { start, end } = budgetPeriod(thisMonth, budgetStartDay);
+    const period = budgetPeriod(thisMonth, budgetStartDay);
     const today = formatDate(new Date());
+    const usage = budgetUsage(budgets.find((b) => b.month === budgetMonth)?.items ?? [], transactions, budgetMonth);
+    // Savings and the like fill up by plan, not by daily pace: no run-out warning for them.
+    const notDaily = new Set(categories.filter((c) => c.dailyAllowance === false).map((c) => c.id));
     return {
       today,
-      days: dailyExpenses(transactions, start, end),
+      daysIntoPeriod: daysBetweenInclusive(period.start, today),
+      days: dailyExpenses(transactions, period.start, period.end),
       categories: categoryExpenses(transactions, thisMonth),
-      usage: budgetUsage(budgets.find((b) => b.month === budgetMonth)?.items ?? [], transactions, budgetMonth),
+      usage,
       upcoming: upcomingRecurring(recurring, today, 14),
+      forecast: forecastSpending(
+        transactions,
+        thisMonth,
+        period,
+        today,
+        recurring.filter((r) => r.active && r.type === 'expense')
+      ),
+      runOuts: budgetRunOuts(usage.filter((u) => !notDaily.has(u.categoryId)), period, today),
     };
-  }, [transactions, budgets, recurring, thisMonth, budgetMonth, budgetStartDay]);
+  }, [transactions, budgets, recurring, categories, thisMonth, budgetMonth, budgetStartDay]);
+
+  // Phone notifications (bills, evening nudge, report) and budget alerts follow this data.
+  useNotificationSync({
+    ready: !loading && !!user && isOnline,
+    recurring,
+    recordedToday: transactions.some((tx) => tx.actualDate === insights.today),
+    today: insights.today,
+    nextPeriodStart: budgetPeriod(shiftMonth(thisMonth, 1), budgetStartDay).start,
+    reportMonth: thisMonth,
+    reportLabel: format(new Date(`${thisMonth}-01T00:00:00`), 'MMMM', { locale: dateLocale }),
+    budgetMonth,
+    usage: insights.usage,
+    categories,
+  });
 
   const kpis = useMemo(() => {
     const now = monthTotals(transactions, thisMonth);
@@ -338,11 +368,23 @@ export default function DashboardPage() {
 
       <QuickActions isPro={spacePlan(user, space) === 'PRO'} onAdd={() => setFormOpen(true)} />
 
+      {prevTotals && <ReportReadyCard month={shiftMonth(thisMonth, -1)} daysIntoPeriod={insights.daysIntoPeriod} />}
+
       <StatTiles
         income={kpis.now.income}
         expense={kpis.now.expense}
         prevIncome={prevTotals?.income ?? null}
         prevExpense={prevTotals?.expense ?? null}
+        hidden={hidden}
+      />
+
+      <ForecastCard
+        forecast={insights.forecast}
+        planned={budget ? budget.totalAmount + (budget.carry ?? 0) : null}
+        income={kpis.now.income}
+        runOuts={insights.runOuts}
+        categories={categories}
+        isPro={spacePlan(user, space) === 'PRO'}
         hidden={hidden}
       />
 
