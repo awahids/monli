@@ -16,6 +16,7 @@ import {
   type AlertState,
 } from '@/lib/notifications';
 import { useT } from '@/lib/i18n';
+import { syncPushSchedule } from '@/lib/web-push';
 
 const SOURCE = 'saku';
 
@@ -40,8 +41,9 @@ export async function notificationsPlugin() {
 }
 
 /**
- * Keeps the phone's scheduled notifications in step with the data on the home
- * screen (re-run whenever it changes), and raises budget alerts as they cross
+ * Keeps the phone's scheduled notifications (or, in a browser with Web Push
+ * on, the server's schedule) in step with the data on the home screen
+ * (re-run whenever it changes), and raises budget alerts as they cross
  * 80% and 100%: as a notification in the app, as a toast on the web.
  */
 export function useNotificationSync({
@@ -77,19 +79,19 @@ export function useNotificationSync({
       const plugin = await notificationsPlugin();
       const granted = plugin && (await plugin.checkPermissions()).display === 'granted';
 
+      const plan = planNotifications({
+        settings,
+        now: new Date(),
+        today,
+        recurring,
+        recordedToday,
+        nextPeriodStart,
+        reportMonth,
+        reportLabel,
+        formatMoney,
+        t,
+      });
       if (granted && !cancelled) {
-        const plan = planNotifications({
-          settings,
-          now: new Date(),
-          today,
-          recurring,
-          recordedToday,
-          nextPeriodStart,
-          reportMonth,
-          reportLabel,
-          formatMoney,
-          t,
-        });
         const { notifications: pending } = await plugin.getPending();
         const ours = pending.filter((n) => n.extra?.source === SOURCE).map((n) => ({ id: n.id }));
         if (ours.length) await plugin.cancel({ notifications: ours });
@@ -104,6 +106,9 @@ export function useNotificationSync({
             })),
           });
         }
+      } else if (!plugin && !cancelled) {
+        // Installed web app with push on: the server sends the same plan.
+        await syncPushSchedule(plan).catch(() => undefined);
       }
 
       if (!settings.budget || cancelled) return;

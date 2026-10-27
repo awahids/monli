@@ -222,3 +222,24 @@ export const debtPaymentSchema = z.object({
   accountId: z.string().uuid().nullable().optional(),
   date: dateSchema.optional(),
 });
+
+/** A browser's push subscription (PushSubscription.toJSON()). */
+export const pushSubscriptionSchema = z.object({
+  endpoint: z.string().url().startsWith('https://').max(1000),
+  keys: z.object({ p256dh: z.string().min(1).max(200), auth: z.string().min(1).max(100) }),
+});
+
+/** The reminders the home screen planned (lib/notifications.ts), replacing the stored ones. */
+export const pushScheduleSchema = z.object({
+  notifications: z
+    .array(
+      z.object({
+        id: z.number().int().positive(),
+        title: z.string().min(1).max(120),
+        body: z.string().min(1).max(300),
+        url: z.string().startsWith('/').max(200),
+        at: z.string().datetime({ offset: true }),
+      })
+    )
+    .max(100),
+});

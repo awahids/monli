@@ -26,6 +26,7 @@ export const CHANGELOG: ChangelogEntry[] = [
       { type: 'baru', text: 'Di aplikasi iOS dan Android, Qala Saku bisa mengingatkan tagihan yang jatuh tempo besok, mengingatkan mencatat jam 20.00 kalau hari itu belum ada transaksi, dan memberi tahu saat laporan bulanan siap. Atur di Pengaturan > Notifikasi.' },
       { type: 'baru', text: 'Peringatan saat budget kategori mencapai 80% dan 100%, sebagai notifikasi di aplikasi HP atau pesan di dalam aplikasi web.' },
       { type: 'baru', text: 'Widget Qala Saku untuk layar utama iOS dan Android: sisa jatah hari ini sekilas, dan tombol + Catat untuk langsung mencatat transaksi.' },
+      { type: 'baru', text: 'Pengingat yang sama kini bisa sampai lewat browser dan aplikasi web yang dipasang, juga saat Qala Saku ditutup. Nyalakan di Pengaturan > Notifikasi. Di iPhone, tambahkan Qala Saku ke Layar Utama dulu.' },
     ],
   },
   {

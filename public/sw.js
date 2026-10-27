@@ -24,6 +24,38 @@ self.addEventListener('activate', (event) => {
   );
 });
 
+// Web Push (app/api/cron/push): show the reminder, open its page when tapped.
+self.addEventListener('push', (event) => {
+  let data = {};
+  try {
+    data = event.data ? event.data.json() : {};
+  } catch {}
+  if (!data.title) return;
+  event.waitUntil(
+    self.registration.showNotification(data.title, {
+      body: data.body,
+      icon: '/pwa-192x192.png',
+      data: { url: data.url || '/dashboard' },
+    })
+  );
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const url = new URL(event.notification.data?.url || '/dashboard', self.location.origin).href;
+  event.waitUntil(
+    (async () => {
+      const open = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+      const client = open.find((c) => new URL(c.url).origin === self.location.origin);
+      if (client) {
+        await client.focus();
+        return client.navigate(url).catch(() => self.clients.openWindow(url));
+      }
+      return self.clients.openWindow(url);
+    })()
+  );
+});
+
 self.addEventListener('message', (event) => {
   if (event.data?.type === 'warm') event.waitUntil(warm(event.data.urls || []));
 });

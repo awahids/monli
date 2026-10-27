@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Bell, BellOff } from 'lucide-react';
+import { toast } from 'sonner';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
@@ -10,15 +11,20 @@ import { isNativeApp } from '@/lib/native';
 import { NOTIFY_KEY, parseNotifySettings, type NotifySettings } from '@/lib/notifications';
 import { notificationsPlugin } from '@/components/notifications/notification-sync';
 import { useAppStore } from '@/lib/store';
+import { disableWebPush, enableWebPush, webPushState, type WebPushState } from '@/lib/web-push';
 import { useT } from '@/lib/i18n';
 
 type Status = 'loading' | 'web' | 'outdated' | 'granted' | 'denied' | 'prompt';
 
-/** Which reminders to get, and the phone's permission for them. */
+/** Web Push in the browser or installed web app; `unsupported` keeps the in-app budget alerts only. */
+type WebStatus = WebPushState | 'busy';
+
+/** Which reminders to get, and the phone's (or browser's) permission for them. */
 export function NotificationsCard() {
   const { t } = useT();
   const [settings, setSettings] = useState<NotifySettings>(parseNotifySettings(null));
   const [status, setStatus] = useState<Status>('loading');
+  const [web, setWeb] = useState<WebStatus>('unsupported');
 
   useEffect(() => {
     try {
@@ -26,6 +32,7 @@ export function NotificationsCard() {
     } catch {}
     if (!isNativeApp()) {
       setStatus('web');
+      webPushState().then(setWeb, () => setWeb('unsupported'));
       return;
     }
     notificationsPlugin().then(async (plugin) => {
@@ -53,13 +60,26 @@ export function NotificationsCard() {
     useAppStore.getState().bumpData();
   };
 
+  const setWebPush = async (on: boolean) => {
+    setWeb('busy');
+    try {
+      setWeb(await (on ? enableWebPush() : disableWebPush()));
+    } catch {
+      setWeb(await webPushState().catch(() => 'unsupported' as const));
+      toast.error(t('Notifikasi gagal dinyalakan. Coba lagi.', 'Could not turn on notifications. Try again.'));
+    }
+    // The home screen uploads the reminders once push is on.
+    useAppStore.getState().bumpData();
+  };
+
   const rows: { key: keyof NotifySettings; label: string; hint: string; phoneOnly: boolean }[] = [
     { key: 'bills', label: t('Tagihan besok', 'Bills due tomorrow'), hint: t('Pagi sebelum transaksi rutin jatuh tempo.', 'The morning before a recurring payment is due.'), phoneOnly: true },
     { key: 'budget', label: t('Budget hampir habis', 'Budget running low'), hint: t('Saat budget kategori mencapai 80% dan 100%.', 'When a category budget reaches 80% and 100%.'), phoneOnly: false },
     { key: 'daily', label: t('Pengingat harian', 'Daily reminder'), hint: t('Jam 20.00 kalau hari itu belum ada yang dicatat.', 'At 8 pm if nothing was recorded that day.'), phoneOnly: true },
     { key: 'report', label: t('Laporan bulanan', 'Monthly report'), hint: t('Pagi pertama periode baru.', 'On the first morning of a new period.'), phoneOnly: true },
   ];
-  const phone = status !== 'web' && status !== 'outdated';
+  const webPush = status === 'web' && (web === 'on' || web === 'off' || web === 'busy');
+  const phone = (status !== 'web' && status !== 'outdated') || webPush;
 
   return (
     <Card>
@@ -69,17 +89,39 @@ export function NotificationsCard() {
           {t('Notifikasi', 'Notifications')}
         </CardTitle>
         <CardDescription>
-          {status === 'web'
-            ? t(
-                'Pengingat ke HP tersedia di aplikasi Qala Saku untuk iOS dan Android. Di web, peringatan budget muncul di dalam aplikasi.',
-                'Phone reminders are in the Qala Saku app for iOS and Android. On the web, budget alerts show inside the app.'
-              )
-            : status === 'outdated'
+          {status === 'web' && webPush
+            ? t('Pengingat dikirim ke browser ini, juga saat Qala Saku ditutup.', 'Reminders are sent to this browser, even when Qala Saku is closed.')
+            : status === 'web' && web === 'install'
+              ? t(
+                  'Untuk menerima pengingat di iPhone, tambahkan Qala Saku ke Layar Utama (Bagikan > Tambahkan ke Layar Utama), lalu buka dari sana.',
+                  'To get reminders on iPhone, add Qala Saku to your Home Screen (Share > Add to Home Screen), then open it from there.'
+                )
+              : status === 'web' && web === 'denied'
+                ? t('Notifikasi untuk Qala Saku diblokir di pengaturan browser. Izinkan di sana untuk menerima pengingat.', 'Notifications for Qala Saku are blocked in your browser settings. Allow them there to get reminders.')
+                : status === 'web'
+                  ? t(
+                      'Pengingat ke HP tersedia di aplikasi Qala Saku untuk iOS dan Android. Di web, peringatan budget muncul di dalam aplikasi.',
+                      'Phone reminders are in the Qala Saku app for iOS and Android. On the web, budget alerts show inside the app.'
+                    )
+                  : status === 'outdated'
               ? t('Perbarui aplikasi Qala Saku dari App Store atau Play Store untuk menyalakan notifikasi.', 'Update the Qala Saku app from the App Store or Play Store to turn on notifications.')
               : t('Diatur di perangkat ini.', 'Set on this device.')}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        {webPush && (
+          <div className="flex items-center gap-3 rounded-xl bg-muted/60 p-3">
+            {web === 'on' ? <Bell className="h-5 w-5 shrink-0 text-primary" /> : <BellOff className="h-5 w-5 shrink-0 text-muted-foreground" />}
+            <p className="flex-1 text-sm">
+              {web === 'on'
+                ? t('Notifikasi menyala di browser ini.', 'Notifications are on in this browser.')
+                : t('Nyalakan notifikasi agar pengingat sampai walau Qala Saku ditutup.', 'Turn on notifications so reminders reach you even when Qala Saku is closed.')}
+            </p>
+            <Button size="sm" variant={web === 'on' ? 'outline' : 'default'} disabled={web === 'busy'} onClick={() => setWebPush(web !== 'on')}>
+              {web === 'on' ? t('Matikan', 'Turn off') : t('Nyalakan', 'Turn on')}
+            </Button>
+          </div>
+        )}
         {(status === 'prompt' || status === 'denied') && (
           <div className="flex items-center gap-3 rounded-xl bg-muted/60 p-3">
             <BellOff className="h-5 w-5 shrink-0 text-muted-foreground" />
