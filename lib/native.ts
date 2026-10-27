@@ -22,3 +22,10 @@ export function callbackPath(deepLink: string): string | null {
   const rest = deepLink.slice(prefix.length);
   return rest === '' || rest.startsWith('?') ? `/auth/callback${rest}` : null;
 }
+
+/** Where a home screen widget link (qalasaku://add, qalasaku://open) leads; null otherwise. */
+export function widgetPath(deepLink: string): string | null {
+  if (deepLink === `${APP_SCHEME}://add`) return '/transactions?action=add';
+  if (deepLink === `${APP_SCHEME}://open`) return '/dashboard';
+  return null;
+}

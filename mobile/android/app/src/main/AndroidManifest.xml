@@ -28,6 +28,18 @@
             </intent-filter>
         </activity>
 
+        <!-- Home screen widget: today's allowance and a quick add button. -->
+        <receiver
+            android:name=".SakuWidgetProvider"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_saku_info" />
+        </receiver>
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"

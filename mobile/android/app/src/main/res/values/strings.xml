@@ -4,4 +4,7 @@
     <string name="title_activity_main">Qala Saku</string>
     <string name="package_name">digital.qala.saku</string>
     <string name="custom_url_scheme">digital.qala.saku</string>
+    <string name="widget_description">Sisa jatah hari ini dan tombol catat cepat</string>
+    <string name="widget_add">+ Catat</string>
+    <string name="widget_open_app">Buka aplikasi untuk memuat data</string>
 </resources>

@@ -14,6 +14,14 @@ export type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2026.10.27',
+    date: '2026-10-27',
+    title: 'Widget layar utama',
+    items: [
+      { type: 'baru', text: 'Widget Qala Saku untuk layar utama iOS dan Android: sisa jatah hari ini sekilas, dan tombol + Catat untuk langsung mencatat transaksi.' },
+    ],
+  },
+  {
     version: '2026.10.26',
     date: '2026-10-26',
     title: 'Beranda baru, warna & tema, hapus item saat memeriksa transaksi',
