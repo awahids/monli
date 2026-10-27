@@ -303,6 +303,47 @@ export interface Database {
           created_at?: string;
         };
       };
+      push_subscriptions: {
+        Row: {
+          endpoint: string;
+          user_id: string;
+          p256dh: string;
+          auth: string;
+          created_at: string;
+        };
+        Insert: {
+          endpoint: string;
+          user_id: string;
+          p256dh: string;
+          auth: string;
+        };
+        Update: {
+          user_id?: string;
+          p256dh?: string;
+          auth?: string;
+        };
+      };
+      push_schedule: {
+        Row: {
+          user_id: string;
+          id: number;
+          title: string;
+          body: string;
+          url: string;
+          send_at: string;
+        };
+        Insert: {
+          user_id: string;
+          id: number;
+          title: string;
+          body: string;
+          url: string;
+          send_at: string;
+        };
+        Update: {
+          send_at?: string;
+        };
+      };
     };
   };
 }

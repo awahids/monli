@@ -20,10 +20,13 @@ test('on the web a budget alert shows once when a category passes 80%', async ({
   await page.waitForTimeout(1500);
   await expect(page.getByText('Budget Makan tinggal 20%')).toHaveCount(0);
 
-  // Phone-only reminders aren't offered on the web; budget alerts can be turned off.
+  // Without Web Push, phone-only reminders aren't offered on the web
+  // (tests/app/web-push.spec.ts covers it); budget alerts can be turned off.
   await page.goto('/settings');
-  await expect(page.getByText('Pengingat ke HP tersedia di aplikasi Qala Saku')).toBeVisible();
-  await expect(page.getByLabel('Tagihan besok')).toHaveCount(0);
+  if (!process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY) {
+    await expect(page.getByText('Pengingat ke HP tersedia di aplikasi Qala Saku')).toBeVisible();
+    await expect(page.getByLabel('Tagihan besok')).toHaveCount(0);
+  }
   await page.getByLabel('Budget hampir habis').click();
   await expect(page.getByLabel('Budget hampir habis')).not.toBeChecked();
 });

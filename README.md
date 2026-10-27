@@ -34,6 +34,25 @@ Untuk mengaktifkan pembayaran Midtrans, siapkan variabel lingkungan berikut:
 
 Atur **Payment Notification URL** di dashboard Midtrans ke `https://<domain>/api/payments/notify`. Plan user hanya di-upgrade ke PRO setelah status pembayaran diverifikasi langsung ke Midtrans (lewat webhook ini atau saat halaman pembayaran dibuka), tidak pernah dari status yang dikirim browser.
 
+## Web Push
+
+Aplikasi web yang dipasang (PWA) dan browser menerima pengingat yang sama dengan aplikasi HP. Beranda mengunggah jadwal pengingatnya ke `saku.push_schedule`. Setiap 5 menit, `pg_cron` (`saku.request_push_send`) memanggil `/api/cron/push` kalau ada yang jatuh tempo, lalu route itu mengirimnya ke setiap browser milik user.
+
+1. Buat sepasang kunci: `npx web-push generate-vapid-keys`.
+2. Isi variabel lingkungan di Vercel, lalu deploy ulang:
+   - `NEXT_PUBLIC_VAPID_PUBLIC_KEY` – kunci publik
+   - `VAPID_PRIVATE_KEY` – kunci privat
+   - `CRON_SECRET` – string acak panjang, misalnya dari `openssl rand -hex 24`
+   - `VAPID_SUBJECT` (opsional) – `mailto:` atau `https:` untuk dihubungi push service
+3. Simpan alamat aplikasi dan secret yang sama di Supabase Vault (SQL Editor):
+
+   ```sql
+   select vault.create_secret('https://monli.fun', 'saku_app_url');
+   select vault.create_secret('<CRON_SECRET yang sama>', 'saku_cron_secret');
+   ```
+
+Tanpa kunci VAPID, Pengaturan > Notifikasi di web tetap seperti sebelumnya (hanya peringatan budget di dalam aplikasi). Tanpa secret di Vault, cron tidak memanggil apa pun. Di iPhone, Web Push hanya jalan di iOS 16.4+ setelah Qala Saku ditambahkan ke Layar Utama.
+
 ## Konfigurasi OCR SumoPod
 
 Fitur pemindaian struk (OCR) untuk pembuatan transaksi tersedia untuk pengguna PRO. Tambahkan variabel lingkungan berikut:

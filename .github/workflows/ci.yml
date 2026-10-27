@@ -52,6 +52,14 @@ jobs:
             echo "NEXT_PUBLIC_SUPABASE_URL=$API_URL"
             echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=$ANON_KEY"
           } >> "$GITHUB_ENV"
+      - name: Web Push keys for this run
+        run: |
+          keys="$(npx web-push generate-vapid-keys --json)"
+          {
+            echo "NEXT_PUBLIC_VAPID_PUBLIC_KEY=$(echo "$keys" | jq -r .publicKey)"
+            echo "VAPID_PRIVATE_KEY=$(echo "$keys" | jq -r .privateKey)"
+            echo "CRON_SECRET=$(openssl rand -hex 24)"
+          } >> "$GITHUB_ENV"
       - run: npm run build
       - run: npx playwright install --with-deps chromium
       - run: npx playwright test
