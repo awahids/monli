@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { QalaMark } from "@/components/brand/qala-mark";
+import { Kanto } from "@/components/brand/kanto";
 
 /**
- * The animated logo while the app opens (the same one public/launch.html shows
- * first), until the signed-in user is loaded. Rendered on the server so it
- * paints before the skeletons; client navigations keep the shell, so it only
+ * Kanto waving above the animated logo while the app opens (the same as
+ * public/launch.html shows first), until the signed-in user is loaded.
+ * Rendered on the server so it paints before the skeletons; client navigations keep the shell, so it only
  * shows on a full load.
  */
 export function AppSplash({ ready }: { ready: boolean }) {
@@ -29,7 +30,10 @@ export function AppSplash({ ready }: { ready: boolean }) {
       className={`app-splash fixed inset-0 z-[90] grid place-items-center bg-background${leaving ? " app-splash-leaving" : ""}`}
       onAnimationEnd={(e) => e.target === e.currentTarget && setGone(true)}
     >
-      <QalaMark animated className="h-auto w-28 overflow-visible" />
+      <div className="flex flex-col items-center gap-5">
+        <Kanto mood="wave" className="h-28 w-28" />
+        <QalaMark animated className="h-auto w-20 overflow-visible" />
+      </div>
     </div>
   );
 }

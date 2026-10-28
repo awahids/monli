@@ -21,6 +21,7 @@ export const CHANGELOG: ChangelogEntry[] = [
       { type: 'peningkatan', text: 'Ikon menu kini digambar khusus untuk Qala Saku, masing-masing dengan berlian emas dari logo Qala yang berputar saat halamannya dibuka.' },
       { type: 'peningkatan', text: 'Semua 56 ikon kategori dan target tabungan digambar ulang dengan gaya yang sama. Kategori yang sudah kamu buat ikut berganti otomatis.' },
       { type: 'baru', text: 'Kenalan dengan Kanto, maskot Qala Saku: kantong mungil yang menyapa di beranda, melambai saat muncul dan melompat kegirangan kalau ditekan. Warnanya ikut warna aksen yang kamu pilih.' },
+      { type: 'peningkatan', text: 'Kanto kini ikut menyambut di layar pembuka saat Qala Saku dibuka.' },
     ],
   },
   {
