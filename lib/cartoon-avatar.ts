@@ -1,6 +1,6 @@
 /**
- * The drawn profile picture every account gets: a cartoon bust with bold
- * outlines and flat colours (components/brand/cartoon-avatar.tsx). Its looks
+ * The drawn profile picture every account gets: a cartoon bust in side
+ * profile with bold outlines and flat colours (components/brand/cartoon-avatar.tsx). Its looks
  * come from a seed, the account id until the person picks "Acak lagi", so the
  * same account always gets the same face without storing a picture.
  */
@@ -72,7 +72,7 @@ export const AVATAR_SEED_PATTERN = /^[0-9a-f]{8}$/;
  * Asks the image model to redraw the photo (first image) in the style of the
  * reference drawing (second image, lib/avatar/style-reference.png).
  */
-export const CARTOON_PROMPT = `Redraw the person in the first image as a cartoon portrait in exactly the drawing style of the second image: bold black outlines of even thickness, flat solid colours with no gradients or shading, simple rounded shapes and a friendly, slightly exaggerated expression. Show the head and shoulders facing forward on a plain white background.
+export const CARTOON_PROMPT = `Redraw the person in the first image as a cartoon portrait in exactly the drawing style of the second image: bold black outlines of even thickness, flat solid colours with no gradients or shading, simple rounded shapes and a friendly, slightly exaggerated expression. Show the head and shoulders in side profile, facing right (the nose, lips and chin form the outline on the right, one eye visible), on a plain white background, even though the second image faces forward.
 Keep what makes the person recognisable: face shape, skin tone, hairstyle and hair colour, glasses, beard, hijab or other head covering, and the colour of their top.
 The second image only shows the drawing style: do not copy its face, hair, expression or clothes. One person only, no text.`;
 
