@@ -23,7 +23,7 @@ export const CHANGELOG: ChangelogEntry[] = [
       { type: 'baru', text: 'Kenalan dengan Kanto, maskot Qala Saku: kantong mungil yang menyapa di beranda, melambai saat muncul dan melompat kegirangan kalau ditekan. Warnanya ikut warna aksen yang kamu pilih.' },
       { type: 'peningkatan', text: 'Kanto kini ikut menyambut di layar pembuka saat Qala Saku dibuka.' },
       { type: 'baru', text: 'Setiap akun kini punya foto profil kartun yang digambar khusus. Tidak cocok? Tekan Acak lagi di Pengaturan > Foto profil.' },
-      { type: 'baru', text: 'Pengguna PRO bisa mengubah fotonya jadi kartun dengan AI. Fotomu tidak disimpan, hanya kartunnya.' },
+      { type: 'baru', text: 'Pengguna PRO bisa membuat foto profil kartun yang mirip dirinya: AI melihat fotomu dan memilih warna kulit, rambut atau hijab, kacamata, baju, dan ekspresi. Fotomu tidak disimpan.' },
     ],
   },
   {

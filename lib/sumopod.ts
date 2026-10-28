@@ -1,7 +1,6 @@
 import { OpenAI } from 'openai';
 
-export function createSumopodClient() {
-  const apiKey = process.env.SUMOPOD_API_KEY;
+export function createSumopodClient(apiKey = process.env.SUMOPOD_API_KEY) {
   if (!apiKey) {
     throw new Error('SUMOPOD_API_KEY is not set');
   }
@@ -16,8 +15,16 @@ export function getSumopodModel() {
   return model && SUPPORTED_MODELS.has(model) ? model : FALLBACK_MODEL;
 }
 
+/**
+ * The cartoon from a photo (app/api/profile/avatar) has its own key and model,
+ * apart from the assistant's, on the same SumoPod endpoint. Without its own
+ * key it uses the assistant's.
+ */
+export function createSumopodAvatarClient() {
+  return createSumopodClient(process.env.SUMOPOD_AVATAR_API_KEY || process.env.SUMOPOD_API_KEY);
+}
 
-/** Image model for turning a photo into a cartoon avatar (app/api/profile/avatar). */
-export function getSumopodImageModel() {
-  return process.env.SUMOPOD_IMAGE_MODEL || 'gpt-image-1';
+/** Any SumoPod model that can see images. */
+export function getSumopodAvatarModel() {
+  return process.env.SUMOPOD_AVATAR_MODEL || 'gpt-4.1-mini';
 }
