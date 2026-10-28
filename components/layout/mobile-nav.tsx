@@ -3,23 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  BarChart3,
-  BookOpen,
-  CreditCard,
-  HandCoins,
-  Home,
-  LayoutGrid,
-  Megaphone,
-  Package2,
-  PieChart,
-  Plus,
-  Receipt,
-  Repeat,
-  Settings,
-  Sparkles,
-  Target,
-} from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import TransactionForm, {
@@ -28,6 +12,24 @@ import TransactionForm, {
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { QalaFamilyProducts } from "@/components/brand/qala-family";
+import { KantoBuddy } from "@/components/brand/kanto";
+import {
+  AccountsIcon,
+  AddIcon,
+  BudgetIcon,
+  DebtIcon,
+  GoalIcon,
+  GuideIcon,
+  HomeIcon,
+  MoreIcon,
+  NewsIcon,
+  ReceiptIcon,
+  RecurringIcon,
+  ReportIcon,
+  SettingsIcon,
+  WrappedIcon,
+  ZakatIcon,
+} from "@/components/brand/saku-icons";
 import { InstallCard } from "@/components/pwa/install-card";
 import { openOnboarding } from "@/components/onboarding/onboarding";
 import { useChangelogUnseen } from "@/lib/pwa";
@@ -45,22 +47,22 @@ import { useT } from '@/lib/i18n';
 import { trialDaysLeft } from '@/lib/plans';
 
 const tabs = [
-  { href: "/dashboard", icon: Home, label: "Beranda", en: "Home" },
-  { href: "/transactions", icon: Receipt, label: "Transaksi", en: "Transactions" },
-  { href: "/budgets", icon: PieChart, label: "Budget", en: "Budget" },
+  { href: "/dashboard", icon: HomeIcon, label: "Beranda", en: "Home" },
+  { href: "/transactions", icon: ReceiptIcon, label: "Transaksi", en: "Transactions" },
+  { href: "/budgets", icon: BudgetIcon, label: "Budget", en: "Budget" },
 ];
 
 /** Everything without its own tab, shown as a grid under "Lainnya". */
 const more = [
-  { href: "/accounts", icon: CreditCard, label: "Akun", en: "Accounts" },
-  { href: "/goals", icon: Target, label: "Target tabungan", en: "Savings goals" },
-  { href: "/debts", icon: HandCoins, label: "Hutang & piutang", en: "Debts" },
-  { href: "/recurring", icon: Repeat, label: "Transaksi rutin", en: "Recurring" },
-  { href: "/reports", icon: BarChart3, label: "Laporan", en: "Reports" },
-  { href: "/wrapped", icon: Sparkles, label: "Ringkasan tahunan", en: "Year in review" },
-  { href: "/zakat", icon: Package2, label: "Zakat", en: "Zakat" },
-  { href: "/settings", icon: Settings, label: "Pengaturan", en: "Settings" },
-  { href: "/changelog", icon: Megaphone, label: "Yang baru", en: "What's new" },
+  { href: "/accounts", icon: AccountsIcon, label: "Akun", en: "Accounts" },
+  { href: "/goals", icon: GoalIcon, label: "Target tabungan", en: "Savings goals" },
+  { href: "/debts", icon: DebtIcon, label: "Hutang & piutang", en: "Debts" },
+  { href: "/recurring", icon: RecurringIcon, label: "Transaksi rutin", en: "Recurring" },
+  { href: "/reports", icon: ReportIcon, label: "Laporan", en: "Reports" },
+  { href: "/wrapped", icon: WrappedIcon, label: "Ringkasan tahunan", en: "Year in review" },
+  { href: "/zakat", icon: ZakatIcon, label: "Zakat", en: "Zakat" },
+  { href: "/settings", icon: SettingsIcon, label: "Pengaturan", en: "Settings" },
+  { href: "/changelog", icon: NewsIcon, label: "Yang baru", en: "What's new" },
 ];
 
 const isAt = (pathname: string | null, href: string) =>
@@ -138,7 +140,7 @@ export function MobileNav() {
             aria-label={t("Catat transaksi", "Add transaction")}
             className="mx-1 -mt-7 flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 ring-4 ring-background transition-transform hover:scale-110 active:scale-95"
           >
-            <Plus className="h-7 w-7" />
+            <AddIcon className="h-7 w-7" />
           </button>
           <TabLink {...tabs[2]} active={isAt(pathname, tabs[2].href)} />
           <button
@@ -150,7 +152,7 @@ export function MobileNav() {
               moreActive ? "bg-primary/10 font-semibold text-primary" : "text-muted-foreground hover:text-foreground"
             )}
           >
-            <LayoutGrid className="relative h-5 w-5" />
+            <MoreIcon className="relative h-5 w-5" />
             {changelogUnseen && (
               <span aria-label={t("Ada yang baru", "Something new")} className="absolute right-[calc(50%-14px)] top-1.5 h-2 w-2 rounded-full bg-brand-gold" />
             )}
@@ -161,7 +163,8 @@ export function MobileNav() {
 
       <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
         <SheetContent side="bottom" className="max-h-[85dvh] overflow-y-auto">
-          <SheetHeader>
+          <SheetHeader className="flex-row items-center gap-3 space-y-0 text-left">
+            <KantoBuddy className="h-12 w-12 shrink-0" />
             <SheetTitle>Menu</SheetTitle>
           </SheetHeader>
           <ul className="mt-4 grid grid-cols-4 gap-2">
@@ -198,7 +201,7 @@ export function MobileNav() {
                 className="flex h-full w-full flex-col items-center gap-2 rounded-xl border px-1 py-3 text-center text-[11px] font-medium leading-tight transition-colors hover:bg-muted"
               >
                 <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
-                  <BookOpen className="h-5 w-5" />
+                  <GuideIcon className="h-5 w-5" />
                 </span>
                 {t("Panduan", "Guide")}
               </button>

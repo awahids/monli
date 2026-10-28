@@ -44,6 +44,7 @@ import { spacePlan } from '@/lib/plans';
 import { AccountStrip, BalanceHero, QuickActions, useHiddenBalance } from '@/components/dashboard/home-sections';
 import { BudgetWatch, CategoryDonut, SpendingChart, StatTiles, UpcomingRecurring } from '@/components/dashboard/insights';
 import { themedGreeting, useActiveTheme } from '@/components/appearance/theme-art';
+import { KantoBuddy } from '@/components/brand/kanto';
 import { widgetSnapshot } from '@/lib/widget';
 import { isNativeApp } from '@/lib/native';
 import { formatMoney } from '@/lib/currency';
@@ -334,17 +335,21 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-lg font-semibold">
-          {themedGreeting(theme, greeting(new Date(), t))}
-          {firstName ? `, ${firstName}` : ''}
-        </h1>
-        <p className="text-xs text-muted-foreground">
-          {space && !space.isOwn
-            ? t(`Keuangan bersama ${space.ownerName}`, `Shared finances of ${space.ownerName}`)
-            : t('Keuanganmu', 'Your finances')}{' '}
-          {range ? t(`periode ${range}`, `for ${range}`) : t('bulan ini', 'this month')}
-        </p>
+      <div className="flex items-center gap-3">
+        {/* Kanto waves hello; Kartun already has Tupi on the balance card. */}
+        {theme !== 'cartoon' && <KantoBuddy className="h-12 w-12 shrink-0" />}
+        <div>
+          <h1 className="text-lg font-semibold">
+            {themedGreeting(theme, greeting(new Date(), t))}
+            {firstName ? `, ${firstName}` : ''}
+          </h1>
+          <p className="text-xs text-muted-foreground">
+            {space && !space.isOwn
+              ? t(`Keuangan bersama ${space.ownerName}`, `Shared finances of ${space.ownerName}`)
+              : t('Keuanganmu', 'Your finances')}{' '}
+            {range ? t(`periode ${range}`, `for ${range}`) : t('bulan ini', 'this month')}
+          </p>
+        </div>
       </div>
 
       {showOnboarding && (

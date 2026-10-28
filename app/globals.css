@@ -1091,3 +1091,95 @@ html:not([data-app="ios"]) .ios-app-only {
   0%, 100% { opacity: 0.35; transform: scale(0.8); }
   50% { opacity: 1; transform: scale(1.15); }
 }
+
+/* Kanto the mascot (components/brand/kanto.tsx). The poses hold without
+   motion; the movement is only for people who have not asked to reduce it. */
+.kanto-arm-l, .kanto-arm-r {
+  transform-box: view-box;
+  transition: transform 0.3s ease-out;
+}
+.kanto-arm-l { transform-origin: 28px 72px; }
+.kanto-arm-r { transform-origin: 92px 72px; }
+.kanto[data-mood="wave"] .kanto-arm-r { transform: rotate(-115deg); }
+.kanto[data-mood="cheer"] .kanto-arm-l { transform: rotate(100deg); }
+.kanto[data-mood="cheer"] .kanto-arm-r { transform: rotate(-100deg); }
+.kanto-sparkle { opacity: 0; transition: opacity 0.2s; }
+.kanto[data-mood="cheer"] .kanto-sparkle { opacity: 1; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .kanto-body {
+    transform-box: view-box;
+    transform-origin: 60px 110px;
+    animation: kanto-bob 3s ease-in-out infinite;
+  }
+  .kanto-shadow {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: kanto-shadow 3s ease-in-out infinite;
+  }
+  .kanto-blink {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: tupi-blink 4.5s ease-in-out infinite;
+  }
+  .kanto-coin {
+    transform-box: view-box;
+    transform-origin: 80px 37px;
+    animation: kanto-coin 3s ease-in-out infinite;
+  }
+  .kanto[data-mood="wave"] .kanto-arm-r { animation: kanto-wave 0.7s ease-in-out infinite alternate; }
+  .kanto[data-mood="cheer"] .kanto-body,
+  .kanto[data-mood="cheer"] .kanto-shadow { animation: kanto-jump 0.6s ease-in-out infinite; }
+  .kanto[data-mood="cheer"] .kanto-shadow { animation-name: kanto-jump-shadow; }
+  .kanto[data-mood="cheer"] .kanto-coin { animation: kanto-coin-pop 0.6s ease-out infinite; }
+  .kanto[data-mood="cheer"] .kanto-sparkle {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: theme-twinkle 0.6s ease-in-out infinite;
+  }
+
+  /* The diamond in a Saku icon (components/brand/saku-icons.tsx) turns once
+     when its link becomes the current page. */
+  [aria-current="page"] .saku-gem {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: saku-gem-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+}
+
+@keyframes kanto-bob {
+  0%, 100% { transform: translateY(0) scale(1, 1); }
+  50% { transform: translateY(-4px) scale(0.98, 1.02); }
+}
+@keyframes kanto-shadow {
+  0%, 100% { transform: scaleX(1); opacity: 0.12; }
+  50% { transform: scaleX(0.85); opacity: 0.08; }
+}
+@keyframes kanto-coin {
+  0%, 70%, 100% { transform: translateY(0) rotate(0deg); }
+  80% { transform: translateY(-5px) rotate(-12deg); }
+  90% { transform: translateY(-2px) rotate(8deg); }
+}
+@keyframes kanto-wave {
+  from { transform: rotate(-95deg); }
+  to { transform: rotate(-135deg); }
+}
+@keyframes kanto-jump {
+  0%, 100% { transform: translateY(0) scale(1.06, 0.94); }
+  15% { transform: translateY(0) scale(1, 1); }
+  50% { transform: translateY(-14px) scale(0.96, 1.04); }
+  85% { transform: translateY(0) scale(1, 1); }
+}
+@keyframes kanto-jump-shadow {
+  0%, 15%, 85%, 100% { transform: scaleX(1); }
+  50% { transform: scaleX(0.6); }
+}
+@keyframes kanto-coin-pop {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-10px) rotate(180deg); }
+}
+@keyframes saku-gem-pop {
+  0% { transform: rotate(0) scale(1); }
+  50% { transform: rotate(90deg) scale(1.35); }
+  100% { transform: rotate(180deg) scale(1); }
+}
