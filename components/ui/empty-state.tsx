@@ -3,6 +3,7 @@
 import type { LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { SquirrelMascot, useActiveTheme } from '@/components/appearance/theme-art';
+import { KantoBuddy } from '@/components/brand/kanto';
 
 interface EmptyStateProps {
   icon: LucideIcon;
@@ -12,7 +13,7 @@ interface EmptyStateProps {
   className?: string;
 }
 
-/** Friendly placeholder for lists and charts that have no data yet. */
+/** Friendly placeholder for lists and charts that have no data yet, with Kanto (Tupi in Kartun) and the page's icon. */
 export function EmptyState({ icon: Icon, title, description, action, className }: EmptyStateProps) {
   const theme = useActiveTheme();
   return (
@@ -25,8 +26,11 @@ export function EmptyState({ icon: Icon, title, description, action, className }
       {theme === 'cartoon' ? (
         <SquirrelMascot className="h-20 w-20" />
       ) : (
-        <span className="flex h-12 w-12 items-center justify-center rounded-full bg-accent text-accent-foreground">
-          <Icon className="h-6 w-6" />
+        <span className="relative">
+          <KantoBuddy className="h-20 w-20" />
+          <span className="absolute -bottom-1 -right-2 flex h-8 w-8 items-center justify-center rounded-full bg-accent text-accent-foreground ring-4 ring-background">
+            <Icon className="h-4 w-4" />
+          </span>
         </span>
       )}
       <div className="space-y-1">
