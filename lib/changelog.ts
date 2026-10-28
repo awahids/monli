@@ -24,6 +24,7 @@ export const CHANGELOG: ChangelogEntry[] = [
       { type: 'peningkatan', text: 'Kanto kini ikut menyambut di layar pembuka saat Qala Saku dibuka.' },
       { type: 'baru', text: 'Setiap akun kini punya foto profil kartun yang digambar khusus. Tidak cocok? Tekan Acak lagi di Pengaturan > Foto profil.' },
       { type: 'baru', text: 'Pengguna PRO bisa mengubah fotonya jadi kartun dengan AI. Fotomu tidak disimpan, hanya kartunnya.' },
+      { type: 'perbaikan', text: 'Kalau layanan AI gambar sedang tidak tersedia, foto kartun kini memberi tahu dengan jelas, bukan pesan gagal umum.' },
     ],
   },
   {

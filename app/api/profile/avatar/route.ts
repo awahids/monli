@@ -91,8 +91,9 @@ export async function POST(req: Request) {
   } catch (e) {
     console.error(e);
     const message = e instanceof Error ? e.message : '';
-    // A gateway without image models answers with 404 or "model not found".
-    if (/404|not found|does not exist|unsupported/i.test(message)) {
+    // A gateway without the image model answers with 404, "model not found" or
+    // (LiteLLM, when the key has no access to it) 400 "Invalid model name".
+    if (/404|not found|does not exist|unsupported|invalid model/i.test(message)) {
       return NextResponse.json({ error: 'Layanan AI gambar belum tersedia. Coba lagi nanti.' }, { status: 503 });
     }
     return NextResponse.json({ error: 'Gagal membuat foto kartun. Coba lagi.' }, { status: 500 });

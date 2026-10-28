@@ -61,3 +61,4 @@ Fitur pemindaian struk (OCR) untuk pembuatan transaksi tersedia untuk pengguna P
 
 - `SUMOPOD_API_KEY` – API key untuk [SumoPod AI](https://ai.sumopod.com)
 - `SUMOPOD_MODEL` – ID model SumoPod AI (`gpt-4o-mini` default; supports `gpt-4o`)
+- `SUMOPOD_IMAGE_MODEL` – model gambar untuk foto profil kartun PRO (`gpt-image-1` default). Harus mendukung `/images/edits` dan aktif untuk API key tersebut; cek daftarnya di `GET https://ai.sumopod.com/v1/models`. Kalau tidak tersedia, pengguna melihat "Layanan AI gambar belum tersedia".
