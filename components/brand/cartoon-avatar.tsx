@@ -29,10 +29,30 @@ function Mouth({ t }: { t: AvatarTraits }) {
   );
 }
 
-/** A hijab over the hair, ear and neck, open around the face. */
-const HIJAB =
-  'M225 52C140 52 100 120 104 210C108 290 126 345 160 384L312 384C350 340 362 290 356 205C352 110 315 52 225 52Z' +
-  'M182 166C214 150 282 146 306 158C320 200 324 260 318 292C306 332 272 344 242 344C206 344 186 322 179 292C173 252 175 202 182 166Z';
+/**
+ * A hijab, drawn over the drawing without its hair: snug around the face
+ * (forehead just above the lashes, cheeks, under the chin), round over the
+ * head, and falling wide over the shoulders and chest.
+ */
+const HIJAB_OUTER =
+  'M246 80C178 80 136 128 136 200C136 262 142 306 152 334C134 368 108 410 88 460H384C366 412 344 370 330 334C344 294 350 250 348 200C346 126 312 80 246 80Z';
+/** The face opening, laid just over the drawing's own face outline. */
+const HIJAB_FACE =
+  'M185 172C212 158 270 150 307 158C318 192 322 240 318 280C312 318 282 342 246 344C214 346 193 326 187 296C182 258 181 212 185 172Z';
+/** The underscarf (ciput) showing as a band across the forehead. */
+const HIJAB_BAND = 'M185 172C212 158 270 150 307 158L305 143C268 134 208 142 179 158Z';
+
+function Hijab({ color }: { color: string }) {
+  return (
+    <>
+      <path d={HIJAB_OUTER + HIJAB_FACE} fill={color} fillRule="evenodd" {...line} />
+      <path d={HIJAB_BAND} fill="#000" fillOpacity="0.22" />
+      <path d={HIJAB_BAND} fill="none" {...line} strokeWidth={6} />
+      {/* folds where the cloth wraps under the chin and falls onto the chest */}
+      <path d="M196 356Q246 380 300 350M162 360Q152 410 130 456M316 358Q328 410 350 456" fill="none" {...line} strokeWidth={6} />
+    </>
+  );
+}
 
 /**
  * The profile picture every account has until it is turned into a cartoon of
@@ -41,13 +61,14 @@ const HIJAB =
  */
 export function CartoonAvatar({ seed, className }: { seed: string; className?: string }) {
   const t = avatarTraits(seed);
+  const hijab = t.hairStyle === 'hijab';
   return (
     <svg viewBox="0 0 460 460" className={cn('h-10 w-10', className)} aria-hidden>
       <rect width="460" height="460" fill={t.background} />
-      <path d={ART.figure} fill="#fff" fillRule="evenodd" />
+      <path d={hijab ? ART.figureBare : ART.figure} fill="#fff" fillRule="evenodd" />
       <path d={ART.skin} fill={t.skin} fillRule="evenodd" />
-      <path d={ART.ink} fill={INK} fillRule="evenodd" />
-      {t.hairColor !== INK && t.hairStyle !== 'hijab' && <path d={ART.hair} fill={t.hairColor} fillRule="evenodd" {...outlined} />}
+      <path d={hijab ? ART.inkBare : ART.ink} fill={INK} fillRule="evenodd" />
+      {t.hairColor !== INK && !hijab && <path d={ART.hair} fill={t.hairColor} fillRule="evenodd" {...outlined} />}
       {t.shirt !== INK && <path d={ART.shirt} fill={t.shirt} fillRule="evenodd" {...outlined} />}
       <Mouth t={t} />
       {t.glasses && (
@@ -57,7 +78,7 @@ export function CartoonAvatar({ seed, className }: { seed: string; className?: s
           <path d="M242 211Q247 207 253 208M182 216 162 228" fill="none" />
         </g>
       )}
-      {t.hairStyle === 'hijab' && <path d={HIJAB} fill={t.hairColor} fillRule="evenodd" {...line} />}
+      {hijab && <Hijab color={t.hairColor} />}
     </svg>
   );
 }
