@@ -65,7 +65,7 @@ export function AvatarCard() {
         <CardTitle>{t('Foto profil', 'Profile picture')}</CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-4 sm:flex-row sm:items-center">
-        <div className="relative self-center">
+        <div className="relative self-center" data-testid="profile-avatar">
           <UserAvatar user={user} className="h-24 w-24 ring-4 ring-muted" />
           {busy === 'photo' && (
             <span className="absolute inset-0 flex items-center justify-center rounded-full bg-background/70">
