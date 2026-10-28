@@ -9,8 +9,9 @@ import { createSumopodClient, getSumopodImageModel } from '@/lib/sumopod';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
 
-// Redrawing a photo takes the image model up to a minute.
-export const maxDuration = 120;
+// Redrawing a photo takes the image model up to a minute; 60s is the most
+// this Vercel plan allows (as for app/api/chat).
+export const maxDuration = 60;
 
 const BUCKET = 'avatars';
 const PHOTO_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
