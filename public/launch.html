@@ -8,26 +8,40 @@
 <!--
   Start page of the installed app. It is static and kept by the service worker,
   so it paints at once; it then opens Beranda, and the logo stays on screen
-  until Beranda is ready instead of a blank white page.
+  until Beranda is ready instead of a blank white page. Kanto waves above the
+  logo, a copy of components/brand/kanto.tsx in the default teal, the same
+  as the splash Beranda shows next (components/layout/app-splash.tsx).
 -->
 <style>
   html, body { margin: 0; height: 100%; background: #F2EFE9; }
-  body { display: grid; place-items: center; }
-  svg { width: 112px; height: auto; overflow: visible; }
+  body { display: grid; place-items: center; color: #0F172A; }
+  .splash { display: flex; flex-direction: column; align-items: center; gap: 20px; }
+  .kanto { width: 112px; height: 112px; overflow: visible; }
+  .mark { width: 80px; height: auto; overflow: visible; }
   .arc { animation: breathe 1.6s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
   .arc.right { animation-delay: .2s; }
   .gem { animation: spin 1.6s cubic-bezier(.65, 0, .35, 1) infinite; transform-box: fill-box; transform-origin: center; }
   @keyframes breathe { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .55; transform: scale(.94); } }
   @keyframes spin { 0% { transform: rotate(0) scale(1); } 50% { transform: rotate(90deg) scale(1.25); } 100% { transform: rotate(180deg) scale(1); } }
-  @media (prefers-reduced-motion: reduce) { .arc, .gem { animation: none; } }
+  .kanto-arm-r { transform-box: view-box; transform-origin: 92px 72px; transform: rotate(-115deg); }
+  .kanto-body { transform-box: view-box; transform-origin: 60px 110px; animation: kanto-bob 3s ease-in-out infinite; }
+  .kanto-blink { transform-box: fill-box; transform-origin: center; animation: kanto-blink 4.5s ease-in-out infinite; }
+  .kanto .kanto-arm-r { animation: kanto-wave .7s ease-in-out infinite alternate; }
+  @keyframes kanto-bob { 0%, 100% { transform: translateY(0) scale(1, 1); } 50% { transform: translateY(-4px) scale(.98, 1.02); } }
+  @keyframes kanto-blink { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(.1); } }
+  @keyframes kanto-wave { from { transform: rotate(-95deg); } to { transform: rotate(-135deg); } }
+  @media (prefers-reduced-motion: reduce) { .arc, .gem, .kanto-body, .kanto-blink, .kanto .kanto-arm-r { animation: none; } }
 </style>
 </head>
 <body>
-<svg viewBox="0 0 328 179" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Qala Saku sedang dibuka">
+<div class="splash" role="img" aria-label="Qala Saku sedang dibuka">
+<svg viewBox="0 0 120 120" data-mood="wave" class="kanto" aria-hidden="true"><ellipse class="kanto-shadow" cx="60" cy="114" rx="24" ry="3.5" fill="currentColor" opacity="0.12"></ellipse><g class="kanto-body"><g class="kanto-coin"><circle cx="80" cy="27" r="10" fill="#F9A720" stroke="#B7791F" stroke-width="2"></circle><path d="M80 22.5v9" stroke="#B7791F" stroke-width="2.2" stroke-linecap="round"></path></g><g class="kanto-arm-l"><path d="M28 72C20 76 18 84 20 90" fill="none" stroke="#0E8079" stroke-width="7" stroke-linecap="round"></path><circle cx="20" cy="91" r="5" fill="#0E8079"></circle></g><g class="kanto-arm-r"><path d="M92 72C100 76 102 84 100 90" fill="none" stroke="#0E8079" stroke-width="7" stroke-linecap="round"></path><circle cx="100" cy="91" r="5" fill="#0E8079"></circle></g><ellipse cx="47" cy="107" rx="8" ry="4.5" fill="#0E8079"></ellipse><ellipse cx="73" cy="107" rx="8" ry="4.5" fill="#0E8079"></ellipse><ellipse cx="47" cy="107" rx="8" ry="4.5" fill="#000" opacity="0.15"></ellipse><ellipse cx="73" cy="107" rx="8" ry="4.5" fill="#000" opacity="0.15"></ellipse><path d="M24 38H96V74C96 95 80 106 60 106S24 95 24 74Z" fill="#0E8079"></path><path d="M31 45H89V74C89 90 76 99 60 99S31 90 31 74Z" fill="none" stroke="#fff" stroke-opacity="0.45" stroke-width="1.6" stroke-dasharray="3 4" stroke-linecap="round"></path><path d="M21 36Q21 29 29 29H91Q99 29 99 36L65 57Q60 60 55 57Z" fill="#0E8079"></path><path d="M21 36Q21 29 29 29H91Q99 29 99 36L65 57Q60 60 55 57Z" fill="#000" opacity="0.14"></path><path d="M60 47L69 56L60 65L51 56Z" fill="#F9A720"></path><path d="M57.5 51.5L60 49L62.5 51.5L60 54Z" fill="#fff" opacity="0.7"></path><g class="kanto-blink"><ellipse cx="47" cy="78" rx="5.5" ry="6.5" fill="#fff"></ellipse><ellipse cx="73" cy="78" rx="5.5" ry="6.5" fill="#fff"></ellipse><circle cx="48" cy="79" r="3.4" fill="#0F172A"></circle><circle cx="74" cy="79" r="3.4" fill="#0F172A"></circle><circle cx="49.2" cy="77.6" r="1.1" fill="#fff"></circle><circle cx="75.2" cy="77.6" r="1.1" fill="#fff"></circle></g><ellipse cx="38" cy="88" rx="4.5" ry="2.8" fill="#FB7185" opacity="0.55"></ellipse><ellipse cx="82" cy="88" rx="4.5" ry="2.8" fill="#FB7185" opacity="0.55"></ellipse><path d="M55 89Q60 93 65 89" fill="none" stroke="#0F172A" stroke-width="2.5" stroke-linecap="round"></path></g></svg>
+<svg class="mark" viewBox="0 0 328 179" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
   <path class="arc" d="M89.5 0C117.938 0 143.276 13.2639 159.67 33.9414L139.102 54.5098C128.244 39.0812 110.3 29 90 29C56.8629 29 30 55.8629 30 89C30 122.137 56.8629 149 90 149C110.043 149 127.789 139.172 138.686 124.073L159.67 145.058C143.276 165.735 117.938 179 89.5 179C40.0705 179 0 138.929 0 89.5C0 40.0705 40.0705 0 89.5 0Z" fill="#14A7A1"/>
   <path class="arc right" d="M238.5 0C287.93 0.000241212 328 40.0707 328 89.5C328 138.929 287.93 179 238.5 179C209.819 179 184.29 165.507 167.911 144.524L189.507 122.927C200.322 138.673 218.455 149 239 149C272.137 149 299 122.137 299 89C299 55.8631 272.137 29.0002 239 29C218.197 29 199.866 39.5875 189.103 55.668L167.911 34.4746C184.29 13.4922 209.819 0 238.5 0Z" fill="#14A7A1"/>
   <g class="gem"><rect x="123.006" y="89.7026" width="56.9338" height="56.9338" transform="rotate(-46 123.006 89.7026)" fill="#F9A720"/></g>
 </svg>
+</div>
 <script>
   // Let the logo paint first, then open Beranda (sign-in when signed out).
   requestAnimationFrame(function () { setTimeout(function () { location.replace('/dashboard'); }, 0); });
