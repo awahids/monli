@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 import { useT } from '@/lib/i18n';
 
 /**
- * Curated lucide icons for money categories, with Indonesian labels for screen
+ * Curated Qala Saku icons for money categories, with Indonesian labels for screen
  * readers. Rendered inline: a popover listing all ~3,500 lucide icons took
  * seconds to open and ended up behind the dialog, so nothing could be picked.
  */
