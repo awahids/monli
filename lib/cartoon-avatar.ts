@@ -1,7 +1,7 @@
 /**
- * The drawn profile picture every account gets: a cartoon bust in side
- * profile with bold outlines and flat colours (components/brand/cartoon-avatar.tsx). Its looks
- * come from a seed, the account id until the person picks "Acak lagi", so the
+ * The drawn profile picture every account gets: a cartoon bust turned a
+ * little to the right, with bold outlines and flat colours
+ * (components/brand/cartoon-avatar.tsx). Its looks come from a seed, the account id until the person picks "Acak lagi", so the
  * same account always gets the same face without storing a picture.
  */
 
@@ -72,7 +72,7 @@ export const AVATAR_SEED_PATTERN = /^[0-9a-f]{8}$/;
  * Asks the image model to redraw the photo (first image) in the style of the
  * reference drawing (second image, lib/avatar/style-reference.png).
  */
-export const CARTOON_PROMPT = `Redraw the person in the first image as a cartoon portrait in exactly the drawing style of the second image: bold black outlines of even thickness, flat solid colours with no gradients or shading, simple rounded shapes and a friendly, slightly exaggerated expression. Show the head and shoulders in side profile, facing right (the nose, lips and chin form the outline on the right, one eye visible), on a plain white background, even though the second image faces forward.
+export const CARTOON_PROMPT = `Redraw the person in the first image as a cartoon portrait in exactly the drawing style of the second image: bold black outlines of even thickness, flat solid colours with no gradients or shading, simple rounded shapes and a friendly, slightly exaggerated expression. Use the same pose and framing as the second image: head and shoulders, the face turned slightly to the right in three-quarter view with both eyes and one ear (on the left) visible, on a plain white background.
 Keep what makes the person recognisable: face shape, skin tone, hairstyle and hair colour, glasses, beard, hijab or other head covering, and the colour of their top.
 The second image only shows the drawing style: do not copy its face, hair, expression or clothes. One person only, no text.`;
 
