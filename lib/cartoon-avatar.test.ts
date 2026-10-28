@@ -11,7 +11,7 @@ test('different accounts get varied faces', () => {
   const faces = new Set(Array.from({ length: 50 }, (_, i) => JSON.stringify(avatarTraits(`user-${i}`))));
   assert.ok(faces.size >= 45, `only ${faces.size} different faces out of 50`);
   const styles = new Set(Array.from({ length: 200 }, (_, i) => avatarTraits(`user-${i}`).hairStyle));
-  assert.deepEqual(Array.from(styles).sort(), [...HAIR_STYLES].sort());
+  assert.deepEqual(Array.from(styles).sort(), Array.from(new Set(HAIR_STYLES)).sort());
 });
 
 test('a hijab takes a hijab colour', () => {

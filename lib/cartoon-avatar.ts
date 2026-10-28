@@ -1,33 +1,28 @@
 /**
- * The drawn profile picture every account gets: a cartoon bust turned a
- * little to the right, with bold outlines and flat colours
- * (components/brand/cartoon-avatar.tsx). Its looks come from a seed, the account id until the person picks "Acak lagi", so the
- * same account always gets the same face without storing a picture.
+ * The drawn profile picture every account gets: the reference drawing
+ * (components/brand/cartoon-avatar.tsx) in colours and details picked from a
+ * seed, the account id until the person picks "Acak lagi", so the same
+ * account always gets the same face without storing a picture.
  */
 
-export const SKIN_TONES = ['#FAD7C0', '#F3C4A2', '#E2AE88', '#C98D64', '#A06A45', '#7B4F34'] as const;
-export const HAIR_COLORS = ['#161616', '#3A2418', '#5B3A22', '#8A5A2B', '#A8432A'] as const;
+export const SKIN_TONES = ['#F8D5C2', '#F3C4A2', '#E2AE88', '#C98D64', '#A06A45', '#7B4F34'] as const;
+export const HAIR_COLORS = ['#161616', '#161616', '#3A2418', '#5B3A22', '#8A5A2B', '#A8432A'] as const;
 export const HIJAB_COLORS = ['#0E8079', '#2F3E66', '#B5537A', '#6B4FBF', '#C9863A', '#556B4E'] as const;
-export const SHIRT_COLORS = ['#161616', '#0E8079', '#F9A720', '#3B6FD8', '#D9436A', '#6B4FBF', '#2E9E6A'] as const;
+export const SHIRT_COLORS = ['#161616', '#161616', '#0E8079', '#F9A720', '#3B6FD8', '#D9436A', '#6B4FBF', '#2E9E6A'] as const;
 export const BACKGROUNDS = ['#FDF0DC', '#DDF2EF', '#ECE6FB', '#FCE4EC', '#E2ECFB', '#E7F5E1'] as const;
 
-export const HAIR_STYLES = ['quiff', 'side', 'curly', 'long', 'bun', 'buzz', 'hijab'] as const;
-export const EYES = ['dot', 'lash', 'happy'] as const;
-export const BROWS = ['flat', 'raised', 'worried'] as const;
+/** Hair styles: the reference's quiff, or a hijab (one in four). */
+export const HAIR_STYLES = ['quiff', 'quiff', 'quiff', 'hijab'] as const;
 export const MOUTHS = ['grit', 'smile', 'grin', 'o', 'smirk'] as const;
-export const COLLARS = ['collar', 'crew'] as const;
 
 export type AvatarTraits = {
   skin: string;
   hairStyle: (typeof HAIR_STYLES)[number];
   /** Hair colour, or the hijab's colour with the hijab style. */
   hairColor: string;
-  eyes: (typeof EYES)[number];
-  brows: (typeof BROWS)[number];
   mouth: (typeof MOUTHS)[number];
   glasses: boolean;
   shirt: string;
-  collar: (typeof COLLARS)[number];
   background: string;
 };
 
@@ -51,12 +46,9 @@ export function avatarTraits(seed: string): AvatarTraits {
     skin: pick(SKIN_TONES, seed, 'skin'),
     hairStyle,
     hairColor: pick(hairStyle === 'hijab' ? HIJAB_COLORS : HAIR_COLORS, seed, 'hair-color'),
-    eyes: pick(EYES, seed, 'eyes'),
-    brows: pick(BROWS, seed, 'brows'),
     mouth: pick(MOUTHS, seed, 'mouth'),
     glasses: hash(seed, 'glasses') % 4 === 0,
     shirt: pick(SHIRT_COLORS, seed, 'shirt'),
-    collar: pick(COLLARS, seed, 'collar'),
     background: pick(BACKGROUNDS, seed, 'background'),
   };
 }
