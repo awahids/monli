@@ -16,11 +16,13 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '2026.10.28',
     date: '2026-10-28',
-    title: 'Ikon khas Qala Saku, ikon kategori baru & kenalan dengan Kanto',
+    title: 'Ikon khas Qala Saku, kenalan dengan Kanto & foto profil kartun',
     items: [
       { type: 'peningkatan', text: 'Ikon menu kini digambar khusus untuk Qala Saku, masing-masing dengan berlian emas dari logo Qala yang berputar saat halamannya dibuka.' },
       { type: 'peningkatan', text: 'Semua 56 ikon kategori dan target tabungan digambar ulang dengan gaya yang sama. Kategori yang sudah kamu buat ikut berganti otomatis.' },
       { type: 'baru', text: 'Kenalan dengan Kanto, maskot Qala Saku: kantong mungil yang menyapa di beranda, melambai saat muncul dan melompat kegirangan kalau ditekan. Warnanya ikut warna aksen yang kamu pilih.' },
+      { type: 'baru', text: 'Setiap akun kini punya foto profil kartun yang digambar khusus. Tidak cocok? Tekan Acak lagi di Pengaturan > Foto profil.' },
+      { type: 'baru', text: 'Pengguna PRO bisa mengubah fotonya jadi kartun dengan AI. Fotomu tidak disimpan, hanya kartunnya.' },
     ],
   },
   {
