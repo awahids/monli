@@ -55,8 +55,7 @@ function Hijab({ color }: { color: string }) {
 }
 
 /**
- * The profile picture every account has until it is turned into a cartoon of
- * a photo: the reference drawing (lib/avatar/style-reference.png, traced by
+ * The profile picture every account has: the reference drawing (lib/avatar/style-reference.png, traced by
  * scripts/trace-avatar.py) in colours and details picked from `seed`.
  */
 export function CartoonAvatar({ seed, className }: { seed: string; className?: string }) {

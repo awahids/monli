@@ -13,7 +13,7 @@ import { useAppStore } from '@/lib/store';
 
 /**
  * The profile picture: a drawn cartoon for everyone ("Acak lagi" for another
- * face), and for PRO a cartoon of their own photo, made by AI.
+ * face), and for PRO one that looks like their own photo, read by AI.
  */
 export function AvatarCard() {
   const { t } = useT();
@@ -50,7 +50,7 @@ export function AvatarCard() {
       const res = await fetch('/api/profile/avatar', { method: 'POST', body });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      save({ avatarPath: data.avatarPath });
+      save(data);
       toast.success(t('Foto kartunmu sudah jadi!', 'Your cartoon is ready!'));
     } catch (e) {
       toast.error((e as Error).message || t('Gagal membuat foto kartun. Coba lagi.', 'Could not make the cartoon. Try again.'));
@@ -105,13 +105,13 @@ export function AvatarCard() {
           </div>
           {busy === 'photo' ? (
             <p className="text-xs text-muted-foreground">
-              {t('AI sedang menggambar ulang fotomu, biasanya kurang dari semenit.', 'The AI is redrawing your photo, usually in under a minute.')}
+              {t('AI sedang melihat fotomu, biasanya hanya beberapa detik.', 'The AI is looking at your photo, usually just a few seconds.')}
             </p>
           ) : isPro ? (
             <p className="text-xs text-muted-foreground">
               {t(
-                'Fotomu hanya dikirim ke AI untuk digambar ulang dan tidak disimpan. Yang disimpan hanya kartunnya.',
-                'Your photo is only sent to the AI to be redrawn and is not stored. Only the cartoon is kept.'
+                'AI melihat fotomu untuk memilih warna kulit, rambut atau hijab, kacamata, baju, dan ekspresi kartunmu. Fotomu tidak disimpan.',
+                'The AI looks at your photo to pick your cartoon\'s skin, hair or hijab, glasses, clothes and expression. Your photo is not stored.'
               )}
             </p>
           ) : (

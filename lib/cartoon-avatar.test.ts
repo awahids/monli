@@ -1,6 +1,16 @@
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { AVATAR_SEED_PATTERN, HAIR_STYLES, HIJAB_COLORS, avatarTraits, imageType, newAvatarSeed } from './cartoon-avatar';
+import {
+  AVATAR_SEED_PATTERN,
+  HAIR_STYLES,
+  HIJAB_COLORS,
+  PHOTO_CHOICES,
+  avatarTraits,
+  newAvatarSeed,
+  parsePhotoTraits,
+  seedForTraits,
+  type PhotoTraits,
+} from './cartoon-avatar';
 
 test('the same seed always draws the same face', () => {
   const id = '3f1c2b9e-7a44-4d1e-9c55-0b2a6f9e1d20';
@@ -25,10 +35,43 @@ test('new seeds match the stored format', () => {
   assert.match(newAvatarSeed(), AVATAR_SEED_PATTERN);
 });
 
-test('the cartoon is stored as the type the model returned', () => {
-  const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
-  const webp = new TextEncoder().encode('RIFF\0\0\0\0WEBPVP8 ');
-  assert.equal(imageType(png), 'image/png');
-  assert.equal(imageType(webp), 'image/webp');
-  assert.equal(imageType(new TextEncoder().encode('<html>')), null);
+test('the AI\'s reply becomes the drawing\'s traits', () => {
+  const reply = '```json\n{"face": true, "skin": "brown", "hijab": "navy", "hair": "black", "glasses": true, "top": "green", "expression": "grin"}\n```';
+  assert.deepEqual(parsePhotoTraits(reply), {
+    skin: PHOTO_CHOICES.skin.brown,
+    hairStyle: 'hijab',
+    hairColor: PHOTO_CHOICES.hijab.navy,
+    mouth: 'grin',
+    glasses: true,
+    shirt: PHOTO_CHOICES.top.green,
+  });
+  assert.deepEqual(parsePhotoTraits('{"face": true, "skin": "tan", "hijab": null, "hair": "red", "glasses": false, "top": "white", "expression": "frown"}'), {
+    skin: PHOTO_CHOICES.skin.tan,
+    hairStyle: 'quiff',
+    hairColor: PHOTO_CHOICES.hair.red,
+    mouth: 'smile',
+    glasses: false,
+    shirt: PHOTO_CHOICES.top.black,
+  });
+  assert.equal(parsePhotoTraits('{"face": false}'), null);
+  assert.equal(parsePhotoTraits('Sorry, I cannot help with that.'), undefined);
+});
+
+test('every look read from a photo has a seed that draws it', () => {
+  const looks: PhotoTraits[] = [];
+  for (const skin of Object.values(PHOTO_CHOICES.skin)) {
+    for (const [hairStyle, colors] of [['quiff', PHOTO_CHOICES.hair], ['hijab', PHOTO_CHOICES.hijab]] as const) {
+      for (const hairColor of Object.values(colors)) {
+        looks.push({ skin, hairStyle, hairColor, mouth: 'o', glasses: true, shirt: PHOTO_CHOICES.top.purple });
+      }
+    }
+  }
+  looks.push({ skin: PHOTO_CHOICES.skin.light, hairStyle: 'quiff', hairColor: PHOTO_CHOICES.hair.black, mouth: 'smile', glasses: false, shirt: PHOTO_CHOICES.top.black });
+  for (const look of looks) {
+    const seed = seedForTraits(look);
+    assert.match(seed, AVATAR_SEED_PATTERN);
+    const { background, ...drawn } = avatarTraits(seed);
+    assert.ok(background);
+    assert.deepEqual(drawn, look);
+  }
 });

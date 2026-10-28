@@ -26,13 +26,22 @@ export type AvatarTraits = {
   background: string;
 };
 
-/** FNV-1a, salted per trait so the traits do not move together. */
+/**
+ * FNV-1a, salted per trait so the traits do not move together. FNV's low bits
+ * depend only on the input's low bits, whatever the salt, so they are mixed
+ * (murmur3's finaliser) before the `%` that picks a trait.
+ */
 function hash(seed: string, salt: string): number {
   let h = 0x811c9dc5;
   for (const ch of `${salt}:${seed}`) {
     h ^= ch.codePointAt(0)!;
     h = Math.imul(h, 0x01000193);
   }
+  h ^= h >>> 16;
+  h = Math.imul(h, 0x85ebca6b);
+  h ^= h >>> 13;
+  h = Math.imul(h, 0xc2b2ae35);
+  h ^= h >>> 16;
   return h >>> 0;
 }
 
@@ -60,18 +69,103 @@ export function newAvatarSeed(): string {
 
 export const AVATAR_SEED_PATTERN = /^[0-9a-f]{8}$/;
 
-/**
- * Asks the image model to redraw the photo (first image) in the style of the
- * reference drawing (second image, lib/avatar/style-reference.png).
- */
-export const CARTOON_PROMPT = `Redraw the person in the first image as a cartoon portrait in exactly the drawing style of the second image: bold black outlines of even thickness, flat solid colours with no gradients or shading, simple rounded shapes and a friendly, slightly exaggerated expression. Use the same pose and framing as the second image: head and shoulders, the face turned slightly to the right in three-quarter view with both eyes and one ear (on the left) visible, on a plain white background.
-Keep what makes the person recognisable: face shape, skin tone, hairstyle and hair colour, glasses, beard, hijab or other head covering, and the colour of their top.
-The second image only shows the drawing style: do not copy its face, hair, expression or clothes. One person only, no text.`;
+/** What can be read from a photo: everything a drawn avatar shows but its background. */
+export type PhotoTraits = Omit<AvatarTraits, 'background'>;
 
-/** The cartoon's file type from its first bytes, or null when it is neither. */
-export function imageType(bytes: Uint8Array): 'image/png' | 'image/webp' | null {
-  const ascii = (from: number, to: number) => String.fromCharCode(...Array.from(bytes.slice(from, to)));
-  if (bytes[0] === 0x89 && ascii(1, 4) === 'PNG') return 'image/png';
-  if (ascii(0, 4) === 'RIFF' && ascii(8, 12) === 'WEBP') return 'image/webp';
-  return null;
+/**
+ * The words the AI picks from when it reads a photo (app/api/profile/avatar),
+ * each standing for one of the drawing's colours or details.
+ */
+export const PHOTO_CHOICES = {
+  skin: {
+    'very light': SKIN_TONES[0],
+    light: SKIN_TONES[1],
+    'light tan': SKIN_TONES[2],
+    tan: SKIN_TONES[3],
+    brown: SKIN_TONES[4],
+    'dark brown': SKIN_TONES[5],
+  },
+  hair: { black: HAIR_COLORS[0], 'dark brown': HAIR_COLORS[2], brown: HAIR_COLORS[3], 'light brown': HAIR_COLORS[4], red: HAIR_COLORS[5] },
+  hijab: {
+    teal: HIJAB_COLORS[0],
+    navy: HIJAB_COLORS[1],
+    pink: HIJAB_COLORS[2],
+    purple: HIJAB_COLORS[3],
+    mustard: HIJAB_COLORS[4],
+    olive: HIJAB_COLORS[5],
+  },
+  top: {
+    black: SHIRT_COLORS[0],
+    teal: SHIRT_COLORS[2],
+    yellow: SHIRT_COLORS[3],
+    blue: SHIRT_COLORS[4],
+    pink: SHIRT_COLORS[5],
+    purple: SHIRT_COLORS[6],
+    green: SHIRT_COLORS[7],
+  },
+  expression: { grit: 'grit', smile: 'smile', grin: 'grin', o: 'o', smirk: 'smirk' },
+} as const;
+
+const choices = (list: object) => Object.keys(list).map((k) => `"${k}"`).join(', ');
+
+/** Asks a vision model which of the drawing's details fit the person in the photo. */
+export const PHOTO_TRAITS_PROMPT = `The photo is turned into a simple cartoon avatar drawn from a fixed set of colours and details. Pick the ones closest to the person in the photo and reply with JSON only:
+{"face": true, "skin": ..., "hijab": ..., "hair": ..., "glasses": ..., "top": ..., "expression": ...}
+- face: false when there is no single clearly visible human face (then leave out the rest).
+- skin: one of ${choices(PHOTO_CHOICES.skin)}.
+- hijab: the colour of their hijab or other head covering, one of ${choices(PHOTO_CHOICES.hijab)}, or null when their hair shows.
+- hair: their hair colour, one of ${choices(PHOTO_CHOICES.hair)} (grey, white or blond: "light brown"; bald or shaved: "black").
+- glasses: true or false.
+- top: the colour of their clothes, one of ${choices(PHOTO_CHOICES.top)} (white, grey or dark clothes: "black").
+- expression: "smile" (closed-mouth smile or neutral), "grin" (open-mouth laugh), "grit" (wide smile showing clenched teeth), "smirk" (lopsided smile) or "o" (surprised, open mouth).`;
+
+/**
+ * The traits in the AI's reply, null when it saw no face, undefined when the
+ * reply is not the JSON asked for. A detail it got wrong falls back to the
+ * most common one rather than failing the whole photo.
+ */
+export function parsePhotoTraits(reply: string): PhotoTraits | null | undefined {
+  let data: Record<string, unknown>;
+  try {
+    data = JSON.parse(reply.match(/\{[\s\S]*\}/)?.[0] ?? '');
+  } catch {
+    return undefined;
+  }
+  if (!data || typeof data !== 'object') return undefined;
+  if (data.face === false) return null;
+  const read = <T extends Record<string, string>>(list: T, key: unknown, fallback: keyof T): T[keyof T] =>
+    list[(typeof key === 'string' && key in list ? key : fallback) as keyof T];
+  const hijab = typeof data.hijab === 'string' && data.hijab in PHOTO_CHOICES.hijab;
+  return {
+    skin: read(PHOTO_CHOICES.skin, data.skin, 'light tan'),
+    hairStyle: hijab ? 'hijab' : 'quiff',
+    hairColor: hijab ? read(PHOTO_CHOICES.hijab, data.hijab, 'teal') : read(PHOTO_CHOICES.hair, data.hair, 'black'),
+    mouth: read(PHOTO_CHOICES.expression, data.expression, 'smile'),
+    glasses: data.glasses === true,
+    shirt: read(PHOTO_CHOICES.top, data.top, 'black'),
+  };
+}
+
+/**
+ * A seed whose drawing has `wanted`, so an avatar read from a photo is kept
+ * like any other drawn avatar: as its seed. Seeds are tried in turn from a
+ * random one; the rarest look turns up about once in 25,000 seeds.
+ */
+export function seedForTraits(wanted: PhotoTraits): string {
+  const start = Math.floor(Math.random() * 0x100000000);
+  for (let i = 0; i < 5_000_000; i++) {
+    const seed = ((start + i) >>> 0).toString(16).padStart(8, '0');
+    const t = avatarTraits(seed);
+    if (
+      t.skin === wanted.skin &&
+      t.hairStyle === wanted.hairStyle &&
+      t.hairColor === wanted.hairColor &&
+      t.mouth === wanted.mouth &&
+      t.glasses === wanted.glasses &&
+      t.shirt === wanted.shirt
+    ) {
+      return seed;
+    }
+  }
+  throw new Error('No seed draws these traits');
 }
