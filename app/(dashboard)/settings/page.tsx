@@ -35,6 +35,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { CategoryFormDialog, CategoryFormValues } from '@/components/settings/category-form-dialog';
 import { SharedSpaceCard } from '@/components/settings/shared-space-card';
+import { AvatarCard } from '@/components/settings/avatar-card';
 import { AboutAppCard } from '@/components/settings/about-app-card';
 import { AppearanceCard } from '@/components/settings/appearance-card';
 import { NotificationsCard } from '@/components/settings/notifications-card';
@@ -179,6 +180,7 @@ export default function SettingsPage() {
         </p>
       </div>
       <div className="grid gap-6">
+        <AvatarCard />
         <Card>
           <CardHeader>
             <CardTitle>{t('Profil & preferensi', 'Profile & preferences')}</CardTitle>

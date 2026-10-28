@@ -15,6 +15,8 @@ export interface Database {
           live_price_used_at: string | null;
           onboarding_completed: boolean;
           budget_start_day: number;
+          avatar_seed: string | null;
+          avatar_path: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -29,6 +31,8 @@ export interface Database {
           live_price_used_at?: string | null;
           onboarding_completed?: boolean;
           budget_start_day?: number;
+          avatar_seed?: string | null;
+          avatar_path?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -43,6 +47,8 @@ export interface Database {
           live_price_used_at?: string | null;
           onboarding_completed?: boolean;
           budget_start_day?: number;
+          avatar_seed?: string | null;
+          avatar_path?: string | null;
           updated_at?: string;
         };
       };

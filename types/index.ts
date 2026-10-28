@@ -9,6 +9,10 @@ export interface User {
   proUntil: string | null;
   /** Day budget periods start on (1 = calendar month, 25 = payday the 25th). */
   budgetStartDay: number;
+  /** Picks the drawn cartoon avatar; null draws it from the account id. */
+  avatarSeed?: string | null;
+  /** The AI cartoon of a photo in the "avatars" bucket, shown instead of the drawn one. */
+  avatarPath?: string | null;
 }
 
 /** A shared space the user joined ("Kelola bersama"). */

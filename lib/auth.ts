@@ -136,6 +136,8 @@ export async function getCurrentUser(): Promise<User | null> {
     plan: profile.plan,
     proUntil: profile.pro_until,
     budgetStartDay: profile.budget_start_day ?? 1,
+    avatarSeed: profile.avatar_seed,
+    avatarPath: profile.avatar_path,
   };
 
   // Set before the user so pages that wait for the user also see the space.

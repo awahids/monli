@@ -4,6 +4,10 @@ const nextConfig = {
   env: {
     NEXT_PUBLIC_BUILD_ID: process.env.VERCEL_GIT_COMMIT_SHA || String(Date.now()),
   },
+  // The avatar route reads the style drawing from disk; ship it with the function.
+  outputFileTracingIncludes: {
+    '/api/profile/avatar': ['./lib/avatar/style-reference.png'],
+  },
   // output: 'export',
   eslint: {
     ignoreDuringBuilds: true,

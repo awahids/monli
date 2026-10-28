@@ -16,3 +16,8 @@ export function getSumopodModel() {
   return model && SUPPORTED_MODELS.has(model) ? model : FALLBACK_MODEL;
 }
 
+
+/** Image model for turning a photo into a cartoon avatar (app/api/profile/avatar). */
+export function getSumopodImageModel() {
+  return process.env.SUMOPOD_IMAGE_MODEL || 'gpt-image-1';
+}

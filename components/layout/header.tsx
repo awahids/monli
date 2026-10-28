@@ -3,7 +3,7 @@
 import { useAppStore } from '@/lib/store';
 import { signOut } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { UserAvatar } from '@/components/brand/user-avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -42,23 +42,11 @@ function UserNav() {
     }
   };
 
-  const getInitials = (name?: string | null) => {
-    return name
-      ? name
-          .split(' ')
-          .map(n => n[0])
-          .join('')
-          .toUpperCase()
-      : 'U';
-  };
-
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-          <Avatar className="h-10 w-10">
-            <AvatarFallback>{getInitials(user?.name)}</AvatarFallback>
-          </Avatar>
+          <UserAvatar user={user} className="h-10 w-10" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56" align="end" forceMount>
