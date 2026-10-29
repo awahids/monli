@@ -24,7 +24,7 @@ export const CHANGELOG: ChangelogEntry[] = [
       { type: 'baru', text: 'Ringkasan mingguan di Laporan: pengeluaran minggu ini dibanding minggu lalu, per hari, dan kategori yang paling naik.' },
       { type: 'baru', text: 'Setiap Minggu jam 19.00 Qala Saku mengirim ringkasan minggumu lewat notifikasi. Atur di Pengaturan > Notifikasi.' },
       { type: 'perbaikan', text: 'Budget yang terpakai tepat 100% kini berlabel Habis, bukan Hampir habis.' },
-      { type: 'peningkatan', text: 'Foto profil kartun dari foto (PRO) kini lebih mirip: AI juga membaca model rambut (keriting, pendek, panjang, jambul, atau botak), bentuk wajah (oval, bulat, atau kotak), serta kumis dan janggut. Kartun acak juga ikut punya variasi ini, jadi kartun yang sudah ada bisa berubah.' },
+      { type: 'peningkatan', text: 'Foto profil kartun kini digambar dengan ilustrasi Open Peeps yang lebih rapi, dengan banyak model rambut (keriting, keriting panjang, pendek, sebahu, panjang, jambul, botak, atau hijab) serta kumis dan janggut. Kartun dari foto (PRO) jadi lebih mirip karena AI juga membaca model rambut. Kartun yang sudah ada ikut berganti gambar.' },
       { type: 'peningkatan', text: 'Kartu budget kini menunjukkan berapa persen yang sudah terpakai, dan rincian kategori di Laporan menjelaskan bahwa persennya adalah bagian dari total pengeluaran.' },
     ],
   },
