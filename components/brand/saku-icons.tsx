@@ -96,6 +96,15 @@ export const GoalIcon: SakuIcon = (props) => (
   </Icon>
 );
 
+/** A flag on its pole, the diamond waving on the cloth. */
+export const ChallengeIcon: SakuIcon = (props) => (
+  <Icon {...props}>
+    <path d="M6 21V4" />
+    <path d="M6 4.5h11l-2.5 4 2.5 4H6" />
+    <Gem x={11} y={8.5} r={2} />
+  </Icon>
+);
+
 export const DebtIcon: SakuIcon = (props) => (
   <Icon {...props}>
     <path d="M4 7.5h14M15 4.5l3 3-3 3" />

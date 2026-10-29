@@ -1103,6 +1103,8 @@ html:not([data-app="ios"]) .ios-app-only {
 .kanto[data-mood="wave"] .kanto-arm-r { transform: rotate(-115deg); }
 .kanto[data-mood="cheer"] .kanto-arm-l { transform: rotate(100deg); }
 .kanto[data-mood="cheer"] .kanto-arm-r { transform: rotate(-100deg); }
+.kanto-coin { transition: transform 0.4s ease-out; }
+.kanto[data-mood="sad"] .kanto-coin { transform: translateY(12px); }
 .kanto-sparkle { opacity: 0; transition: opacity 0.2s; }
 .kanto[data-mood="cheer"] .kanto-sparkle { opacity: 1; }
 
@@ -1127,6 +1129,9 @@ html:not([data-app="ios"]) .ios-app-only {
     transform-origin: 80px 37px;
     animation: kanto-coin 3s ease-in-out infinite;
   }
+  .kanto[data-mood="sad"] .kanto-body,
+  .kanto[data-mood="sad"] .kanto-shadow { animation-duration: 6s; }
+  .kanto[data-mood="sad"] .kanto-coin { animation: none; }
   .kanto[data-mood="wave"] .kanto-arm-r { animation: kanto-wave 0.7s ease-in-out infinite alternate; }
   .kanto[data-mood="cheer"] .kanto-body,
   .kanto[data-mood="cheer"] .kanto-shadow { animation: kanto-jump 0.6s ease-in-out infinite; }

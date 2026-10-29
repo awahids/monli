@@ -223,6 +223,16 @@ export const debtPaymentSchema = z.object({
   date: dateSchema.optional(),
 });
 
+/** A new tantangan hemat (lib/challenges.ts), starting today. */
+export const challengeSchema = z
+  .object({
+    /** The expense category to stay away from; null for all spending. */
+    categoryId: z.string().uuid().nullable(),
+    lengthDays: z.number().int().min(3).max(30),
+    targetDays: z.number().int().min(1),
+  })
+  .refine((c) => c.targetDays <= c.lengthDays, { message: 'Target melebihi lama tantangan', path: ['targetDays'] });
+
 /** A browser's push subscription (PushSubscription.toJSON()). */
 export const pushSubscriptionSchema = z.object({
   endpoint: z.string().url().startsWith('https://').max(1000),

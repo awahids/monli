@@ -11,6 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { RecentTransactions } from '@/components/dashboard/recent-transactions';
 import { GettingStarted } from '@/components/dashboard/getting-started';
 import { GoalsSummary } from '@/components/dashboard/goals-summary';
+import { ChallengeSummary } from '@/components/dashboard/challenge-summary';
 import TransactionForm, {
   TransactionFormValues,
 } from '@/components/transactions/transaction-form';
@@ -372,6 +373,8 @@ export default function DashboardPage() {
       />
 
       <QuickActions isPro={spacePlan(user, space) === 'PRO'} onAdd={() => setFormOpen(true)} />
+
+      {isOnline && <ChallengeSummary categories={categories} refresh={dataVersion} />}
 
       {prevTotals && <ReportReadyCard month={shiftMonth(thisMonth, -1)} daysIntoPeriod={insights.daysIntoPeriod} />}
 
