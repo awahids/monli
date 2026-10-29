@@ -14,6 +14,15 @@ export type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2026.10.29',
+    date: '2026-10-29',
+    title: 'Persen budget lebih jelas',
+    items: [
+      { type: 'perbaikan', text: 'Budget yang terpakai tepat 100% kini berlabel Habis, bukan Hampir habis.' },
+      { type: 'peningkatan', text: 'Kartu budget kini menunjukkan berapa persen yang sudah terpakai, dan rincian kategori di Laporan menjelaskan bahwa persennya adalah bagian dari total pengeluaran.' },
+    ],
+  },
+  {
     version: '2026.10.28',
     date: '2026-10-28',
     title: 'Ikon khas Qala Saku, kenalan dengan Kanto & foto profil kartun',
