@@ -3,12 +3,13 @@ import { test, expect, signIn } from '../fixtures';
 test('every account has a drawn cartoon avatar that "Acak lagi" redraws', async ({ page, user, admin }) => {
   await signIn(page, user);
   await page.goto('/settings');
-  const avatar = page.getByTestId('profile-avatar').locator('svg');
-  const before = await avatar.innerHTML();
+  const avatar = page.getByTestId('profile-avatar').locator('img');
+  const before = await avatar.getAttribute('src');
+  expect((await page.request.get(before!)).headers()['content-type']).toBe('image/svg+xml');
 
   await page.getByRole('button', { name: 'Acak lagi' }).click();
   await expect.poll(async () => (await admin.from('profiles').select('avatar_seed').eq('id', user.id).single()).data?.avatar_seed).toMatch(/^[0-9a-f]{8}$/);
-  await expect.poll(() => avatar.innerHTML()).not.toBe(before);
+  await expect.poll(() => avatar.getAttribute('src')).not.toBe(before);
 });
 
 test('turning a photo into a cartoon is PRO only', async ({ page, user }) => {

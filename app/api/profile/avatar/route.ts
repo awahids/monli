@@ -14,9 +14,9 @@ const MAX_PHOTO_BYTES = 8 * 1024 * 1024;
 
 /**
  * PRO: a drawn avatar that looks like the uploaded photo. The AI only reads
- * the photo (skin, hair or hijab, glasses, clothes, expression); the look is
- * kept as the seed that draws it and the photo is never stored. Drops an
- * earlier AI cartoon, if any.
+ * the photo (skin, hair style and colour or hijab, facial hair, glasses,
+ * clothes, expression); the look is kept as the seed that draws it
+ * and the photo is never stored. Drops an earlier AI cartoon, if any.
  */
 export async function POST(req: Request) {
   try {

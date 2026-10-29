@@ -13,6 +13,8 @@
   },
   "dependencies": {
     "@capacitor/core": "8.5.3",
+    "@dicebear/core": "^9.4.3",
+    "@dicebear/open-peeps": "^9.4.3",
     "@hookform/resolvers": "^5.2.1",
     "@radix-ui/react-accordion": "^1.2.0",
     "@radix-ui/react-alert-dialog": "^1.1.1",
