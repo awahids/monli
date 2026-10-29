@@ -114,11 +114,15 @@ const PEEPS_INK = 'fill="#000"';
 
 /** The Qala gold diamond (lib/brand), worn as a pin on the shirt or a brooch on the hijab. */
 const GOLD = '#F9A720';
-/** Where the pin sits, in Open Peeps' 704px space: clear of the hair, inside a round crop. */
+/**
+ * Where the pin sits, in Open Peeps' 704px space, always on cloth and inside a
+ * round crop: on the shirt, low on a hijab, and as a hair clip with long hair,
+ * which covers the shirt.
+ */
 function pinAt(style: AvatarTraits['hairStyle']): [number, number] {
-  if (style === 'hijab') return [356, 594];
-  if (style === 'long' || style === 'curlyLong') return [418, 668];
-  return [224, 646];
+  if (style === 'hijab') return [352, 664];
+  if (style === 'long') return [292, 212];
+  return [220, 638];
 }
 function pin([x, y]: [number, number]): string {
   const r = 28;
