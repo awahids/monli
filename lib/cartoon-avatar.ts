@@ -27,7 +27,7 @@ export type AvatarTraits = {
   /** Hair colour, or the hijab's colour with the hijab style. */
   hairColor: string;
   face: (typeof FACE_SHAPES)[number];
-  /** Always "none" under a hijab. */
+  /** Always "none" under a hijab or with long hair. */
   facialHair: (typeof FACIAL_HAIR)[number];
   mouth: (typeof MOUTHS)[number];
   glasses: boolean;
@@ -91,7 +91,7 @@ export function avatarTraits(seed: string): AvatarTraits {
     hairStyle: style,
     hairColor: (style === 'hijab' ? HIJAB_COLORS : HAIR_COLORS)[hairColor],
     face: FACE_SHAPES[face],
-    facialHair: style === 'hijab' ? 'none' : FACIAL_HAIR[facialHair],
+    facialHair: style === 'hijab' || style === 'long' ? 'none' : FACIAL_HAIR[facialHair],
     mouth: MOUTHS[mouth],
     glasses: GLASSES[glasses],
     shirt: SHIRT_COLORS[shirt],
@@ -184,7 +184,7 @@ export function parsePhotoTraits(reply: string): PhotoTraits | null | undefined 
     hairStyle: hijab ? 'hijab' : read(PHOTO_CHOICES.hairStyle, data.hairStyle, 'quiff'),
     hairColor: hijab ? read(PHOTO_CHOICES.hijab, data.hijab, 'teal') : read(PHOTO_CHOICES.hair, data.hair, 'black'),
     face: read(PHOTO_CHOICES.face, data.faceShape, 'oval'),
-    facialHair: hijab ? 'none' : read(PHOTO_CHOICES.facialHair, data.facialHair, 'none'),
+    facialHair: hijab || data.hairStyle === 'long' ? 'none' : read(PHOTO_CHOICES.facialHair, data.facialHair, 'none'),
     mouth: read(PHOTO_CHOICES.expression, data.expression, 'smile'),
     glasses: data.glasses === true,
     shirt: read(PHOTO_CHOICES.top, data.top, 'black'),

@@ -78,7 +78,7 @@ const HAIR = {
       [186, 236], [160, 244], [134, 236], [114, 210], [104, 178], [108, 146], [120, 116], [142, 90], [170, 72], [202, 60],
       [236, 56], [270, 60], [302, 72], [328, 94], [346, 124], [354, 158], [350, 192], [338, 222],
     ],
-    [[322, 206], [320, 190], [314, 176], [302, 166], [288, 162], [274, 162], [260, 164], [246, 166], [232, 170], [218, 172], [204, 174], [192, 180], [186, 196], [184, 214]]
+    [[322, 206], [316, 182], [302, 166], [278, 162], [252, 166], [224, 172], [200, 174], [186, 194], [184, 216]]
   ),
   /** Close cut, following the skull. */
   short:
@@ -89,21 +89,12 @@ const HAIR = {
     'M186 238C184 280 176 330 172 372C160 384 140 386 124 378C130 340 120 290 118 240C114 180 124 130 152 102C182 74 232 66 272 72C316 80 344 110 352 152C358 200 352 260 350 320C348 350 352 372 360 388C342 392 326 384 320 370C322 320 324 260 322 206' +
     'C316 180 306 160 290 150C276 168 250 176 226 170C206 168 190 172 184 186C182 204 186 220 186 238Z',
 };
-/** The lines inside the hair that show its texture. */
-const HAIR_LINES = {
-  curly: 'M150 120Q160 108 172 114M138 168Q150 160 158 172M204 92Q218 84 228 96M262 88Q276 82 286 94M314 120Q326 116 332 128M326 166Q336 164 338 176M128 214Q138 206 148 214',
-  short: 'M160 124Q190 106 222 104M250 102Q284 104 308 122M142 184Q148 160 158 146',
-  long: 'M290 150Q300 124 280 96M336 200Q340 280 338 350M150 140Q136 220 144 360',
-};
-
 /**
  * A bald head: the skull, and skin over the hairline and temple that the
  * drawing without its hair keeps.
  */
 const SKULL = 'M140 226C124 196 122 160 134 130C152 94 196 78 246 80C292 82 322 104 328 140C332 166 326 200 321 228';
-const BALD = `${SKULL}L306 228L302 200L300 178L298 162L270 159L246 163L216 167L196 170L186 172L182 200L186 238L178 236L160 232L144 234Z`;
-/** The top of the ear, which the hair covered in the reference. */
-const EAR_TOP = 'M142 236C144 226 156 222 168 226C172 228 176 232 178 236';
+const BALD = `${SKULL}L306 228L302 200L300 178L298 162L270 159L246 163L216 167L196 170L186 172L182 200L188 246L178 242L166 232L150 222Z`;
 
 /** The reference's own jaw, below the ear (left) and the cheekbone (right). */
 const JAW_INSIDE = 'M188 252L308 250L314 286L302 314L284 328L250 336L216 330L198 316L188 290Z';
@@ -136,13 +127,13 @@ function FacialHair({ t }: { t: AvatarTraits }) {
     <>
       {t.facialHair === 'beard' && (
         <path
-          d={`${CHIN[t.face]}C322 280 318 266 314 256C306 290 292 318 252 322C214 322 196 300 190 270C184 276 178 282 176 290Z`}
+          d={`${CHIN[t.face]}C322 284 320 270 316 262C310 300 296 330 252 332C210 332 192 304 188 272C184 278 178 284 176 290Z`}
           fill={color}
           {...outlined}
         />
       )}
       {/* the moustache, with or without a beard */}
-      <path d="M212 268C224 252 244 254 252 262C262 252 284 252 294 266C282 274 262 270 252 268C240 272 222 276 212 268Z" fill={color} {...outlined} strokeWidth={6} />
+      <path d="M222 263C232 251 246 251 254 257C262 251 278 251 288 263C276 265 264 263 254 261C244 263 232 265 222 263Z" fill={color} {...outlined} strokeWidth={6} />
     </>
   );
 }
@@ -152,17 +143,12 @@ function Hair({ t }: { t: AvatarTraits }) {
     return (
       <>
         <path d={BALD} fill={t.skin} />
-        <path d={SKULL + EAR_TOP} fill="none" {...line} />
+        <path d={SKULL} fill="none" {...line} />
       </>
     );
   }
   if (t.hairStyle === 'quiff' || t.hairStyle === 'hijab') return null;
-  return (
-    <>
-      <path d={HAIR[t.hairStyle]} fill={t.hairColor} {...line} />
-      <path d={HAIR_LINES[t.hairStyle]} fill="none" {...line} strokeWidth={5} stroke={t.hairColor === INK ? '#4a4a4a' : INK} />
-    </>
-  );
+  return <path d={HAIR[t.hairStyle]} fill={t.hairColor} {...line} />;
 }
 
 /**

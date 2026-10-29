@@ -36,6 +36,14 @@ test('a stored seed is read as a number, the same way every time', () => {
   assert.equal(avatarTraits('ffffffff').background !== undefined, true);
 });
 
+test('long hair is drawn without a beard', () => {
+  for (let i = 0; i < 400; i++) {
+    const t = avatarTraits(`user-${i}`);
+    if (t.hairStyle === 'long') assert.equal(t.facialHair, 'none');
+  }
+  assert.equal(parsePhotoTraits('{"face": true, "hairStyle": "long", "facialHair": "beard"}')?.facialHair, 'none');
+});
+
 test('a hijab takes a hijab colour and no beard', () => {
   for (let i = 0; i < 400; i++) {
     const t = avatarTraits(`user-${i}`);
@@ -93,7 +101,7 @@ test('every look read from a photo has a seed that draws it', () => {
     for (const face of FACE_SHAPES) {
       for (const hairStyle of Object.values(PHOTO_CHOICES.hairStyle)) {
         for (const hairColor of Object.values(PHOTO_CHOICES.hair)) {
-          for (const facialHair of Object.values(PHOTO_CHOICES.facialHair)) {
+          for (const facialHair of hairStyle === 'long' ? (['none'] as const) : Object.values(PHOTO_CHOICES.facialHair)) {
             looks.push({ skin, hairStyle, hairColor, face, facialHair, mouth: 'o', glasses: true, shirt: PHOTO_CHOICES.top.purple });
           }
         }
