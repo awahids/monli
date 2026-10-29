@@ -16,8 +16,10 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '2026.10.29',
     date: '2026-10-29',
-    title: 'Persen budget lebih jelas',
+    title: 'Ringkasan mingguan & persen budget lebih jelas',
     items: [
+      { type: 'baru', text: 'Ringkasan mingguan di Laporan: pengeluaran minggu ini dibanding minggu lalu, per hari, dan kategori yang paling naik.' },
+      { type: 'baru', text: 'Setiap Minggu jam 19.00 Qala Saku mengirim ringkasan minggumu lewat notifikasi. Atur di Pengaturan > Notifikasi.' },
       { type: 'perbaikan', text: 'Budget yang terpakai tepat 100% kini berlabel Habis, bukan Hampir habis.' },
       { type: 'peningkatan', text: 'Kartu budget kini menunjukkan berapa persen yang sudah terpakai, dan rincian kategori di Laporan menjelaskan bahwa persennya adalah bagian dari total pengeluaran.' },
     ],

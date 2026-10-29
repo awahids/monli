@@ -107,6 +107,7 @@ export function NotificationsCard() {
     { key: 'bills', label: t('Tagihan besok', 'Bills due tomorrow'), hint: t('Pagi sebelum transaksi rutin jatuh tempo.', 'The morning before a recurring payment is due.'), phoneOnly: true },
     { key: 'budget', label: t('Budget hampir habis', 'Budget running low'), hint: t('Saat budget kategori mencapai 80% dan 100%.', 'When a category budget reaches 80% and 100%.'), phoneOnly: false },
     { key: 'daily', label: t('Pengingat harian', 'Daily reminder'), hint: t('Jam 20.00 kalau hari itu belum ada yang dicatat.', 'At 8 pm if nothing was recorded that day.'), phoneOnly: true },
+    { key: 'weekly', label: t('Ringkasan mingguan', 'Weekly summary'), hint: t('Minggu jam 19.00: pengeluaran minggu ini dibanding minggu lalu.', 'Sunday at 7 pm: this week’s spending against last week’s.'), phoneOnly: true },
     { key: 'report', label: t('Laporan bulanan', 'Monthly report'), hint: t('Pagi pertama periode baru.', 'On the first morning of a new period.'), phoneOnly: true },
   ];
   const webPush = status === 'web' && (web === 'on' || web === 'off' || web === 'busy');

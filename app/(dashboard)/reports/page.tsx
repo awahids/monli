@@ -25,7 +25,7 @@ import {
 } from 'recharts';
 import { formatMoney, formatMoneyCompact } from '@/lib/currency';
 import { ProLock } from '@/components/ui/pro-lock';
-import { ChevronRight, Download, FileBarChart, Filter } from 'lucide-react';
+import { CalendarDays, ChevronRight, Download, FileBarChart, Filter } from 'lucide-react';
 import CategoryMovementChart from '@/components/reports/category-movement-chart';
 import { CategoryBreakdown } from '@/components/reports/category-breakdown';
 import { useAppStore } from '@/lib/store';
@@ -239,6 +239,20 @@ export default function ReportsPage() {
           </div>
         </CollapsibleContent>
       </Collapsible>
+
+      <Link
+        href="/reports/weekly"
+        className="flex items-center gap-3 rounded-2xl bg-card p-4 shadow-sm ring-1 ring-border transition-colors hover:bg-muted/50"
+      >
+        <CalendarDays className="h-5 w-5 shrink-0 text-primary" />
+        <span className="min-w-0 flex-1">
+          <span className="block text-sm font-semibold">{t('Ringkasan mingguan', 'Weekly summary')}</span>
+          <span className="block text-xs text-muted-foreground">
+            {t('Pengeluaran minggu ini dibanding minggu lalu, dan kategori yang naik.', "This week's spending against last week's, and what went up.")}
+          </span>
+        </span>
+        <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+      </Link>
 
       <Link
         href="/reports/monthly"

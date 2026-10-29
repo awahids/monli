@@ -237,7 +237,7 @@ export const pushScheduleSchema = z.object({
     .array(
       z.object({
         id: z.number().int().positive(),
-        kind: z.enum(['bill', 'daily', 'report']).optional(),
+        kind: z.enum(['bill', 'daily', 'report', 'weekly']).optional(),
         title: z.string().min(1).max(120),
         body: z.string().min(1).max(300),
         url: z.string().startsWith('/').max(200),
