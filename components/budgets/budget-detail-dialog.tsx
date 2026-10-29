@@ -36,7 +36,7 @@ import { cn } from '@/lib/utils';
 import { spacePlan } from '@/lib/plans';
 import { getBudgetStartDay } from '@/lib/budget-period';
 import { periodRange } from '@/lib/date';
-import { indonesian, type Translate } from '@/lib/locale';
+import { budgetStatus, budgetUsedPct } from '@/lib/budget-status';
 import { useT } from '@/lib/i18n';
 
 type BudgetDetailDialogProps = {
@@ -48,18 +48,6 @@ type BudgetDetailDialogProps = {
 };
 
 const sumAmounts = (items: { amount: number }[]) => items.reduce((sum, i) => sum + i.amount, 0);
-
-export type BudgetStatus = { label: string; badge: string; bar: string };
-
-/** Aman < 80%, Hampir habis 80–100%, Lewat > 100%. */
-export function budgetStatus(spent: number, planned: number, t: Translate = indonesian): BudgetStatus {
-  const pct = planned > 0 ? (spent / planned) * 100 : spent > 0 ? 101 : 0;
-  if (pct > 100)
-    return { label: t('Lewat', 'Over'), badge: 'bg-red-500/15 text-red-700 dark:text-red-300', bar: 'bg-red-500' };
-  if (pct >= 80)
-    return { label: t('Hampir habis', 'Almost used'), badge: 'bg-amber-500/15 text-amber-700 dark:text-amber-300', bar: 'bg-amber-500' };
-  return { label: t('Aman', 'On track'), badge: 'bg-green-500/15 text-green-700 dark:text-green-300', bar: 'bg-primary' };
-}
 
 export function BudgetDetailDialog({
   budgetId,
@@ -279,8 +267,8 @@ export function BudgetDetailDialog({
                 />
                 <p className="text-sm text-muted-foreground">
                   {t(
-                    `Terpakai ${formatMoney(totalSpent)} dari ${formatMoney(totalBudget)}`,
-                    `Used ${formatMoney(totalSpent)} of ${formatMoney(totalBudget)}`
+                    `Terpakai ${formatMoney(totalSpent)} dari ${formatMoney(totalBudget)} (${budgetUsedPct(totalSpent, totalBudget)}%)`,
+                    `Used ${formatMoney(totalSpent)} of ${formatMoney(totalBudget)} (${budgetUsedPct(totalSpent, totalBudget)}%)`
                   )}
                   {carry > 0 &&
                     t(
@@ -365,7 +353,10 @@ export function BudgetDetailDialog({
                           <>
                             <Progress value={pct} className="h-1.5" indicatorClassName={status.bar} />
                             <p className="text-xs text-muted-foreground">
-                              {t(`${formatMoney(spent)} dari ${formatMoney(item.amount)}`, `${formatMoney(spent)} of ${formatMoney(item.amount)}`)}
+                              {t(
+                                `${formatMoney(spent)} dari ${formatMoney(item.amount)} · ${budgetUsedPct(spent, item.amount)}% terpakai`,
+                                `${formatMoney(spent)} of ${formatMoney(item.amount)} · ${budgetUsedPct(spent, item.amount)}% used`
+                              )}
                               {spent > item.amount &&
                                 t(` · lewat ${formatMoney(spent - item.amount)}`, ` · ${formatMoney(spent - item.amount)} over`)}
                             </p>

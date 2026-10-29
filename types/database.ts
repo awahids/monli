@@ -336,7 +336,7 @@ export interface Database {
         Row: {
           user_id: string;
           id: number;
-          kind: 'bill' | 'daily' | 'report' | 'other';
+          kind: 'bill' | 'daily' | 'report' | 'weekly' | 'other';
           title: string;
           body: string;
           url: string;
@@ -345,7 +345,7 @@ export interface Database {
         Insert: {
           user_id: string;
           id: number;
-          kind?: 'bill' | 'daily' | 'report' | 'other';
+          kind?: 'bill' | 'daily' | 'report' | 'weekly' | 'other';
           title: string;
           body: string;
           url: string;

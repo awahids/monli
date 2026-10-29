@@ -3,6 +3,9 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { STALE_MS } from '@/lib/push';
 import { configureWebPush, isCronRequest, sendPush } from '@/lib/push-send';
 import { formatDate } from '@/lib/date';
+import { formatMoney } from '@/lib/currency';
+import { weekStart, weeklySummaryText, weeklyTitle } from '@/lib/weekly-summary';
+import { loadWeeklySummary } from '@/lib/weekly-summary-server';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,7 +14,7 @@ export const dynamic = 'force-dynamic';
  * forgets them. Called every 5 minutes by pg_cron (saku.request_push_send)
  * with the shared secret; reminders more than STALE_MS late are dropped
  * unsent, and so is the evening nudge once that day has a transaction,
- * whichever device recorded it.
+ * whichever device recorded it. The weekly summary gets the week's numbers.
  */
 export async function POST(req: Request) {
   if (!isCronRequest(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -43,7 +46,9 @@ export async function POST(req: Request) {
 
   let sent = 0;
   for (const n of toSend) {
-    sent += await sendPush(admin, (subs ?? []).filter((s) => s.user_id === n.user_id), n);
+    const targets = (subs ?? []).filter((s) => s.user_id === n.user_id);
+    if (!targets.length) continue;
+    sent += await sendPush(admin, targets, n.kind === 'weekly' ? await withWeekNumbers(admin, n) : n);
   }
 
   for (const userId of Array.from(new Set(due.map((n) => n.user_id)))) {
@@ -71,4 +76,24 @@ async function recordedOn(admin: ReturnType<typeof createAdminClient>, checks: {
     if (count) found.add(key);
   }
   return found;
+}
+
+/**
+ * The weekly summary with this week's spending against last week's, in the
+ * language it was planned in; as planned when the numbers cannot be read.
+ */
+async function withWeekNumbers<N extends { user_id: string; title: string; body: string; url: string; send_at: string }>(
+  admin: ReturnType<typeof createAdminClient>,
+  n: N
+): Promise<N> {
+  const day = formatDate(new Date(n.send_at));
+  const [{ data }, { data: profile }] = await Promise.all([
+    loadWeeklySummary(admin, n.user_id, weekStart(day), day),
+    admin.from('profiles').select('default_currency').eq('id', n.user_id).maybeSingle(),
+  ]);
+  if (!data) return n;
+  const english = n.title === weeklyTitle((_, en) => en);
+  const money = (amount: number) => formatMoney(amount, profile?.default_currency || 'IDR');
+  const text = weeklySummaryText(data, money, (id, en) => (english ? en : id));
+  return { ...n, ...text };
 }

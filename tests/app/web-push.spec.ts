@@ -78,6 +78,22 @@ test('the evening nudge is skipped once that day has a transaction', async ({ re
   expect(count).toBe(0);
 });
 
+test('the weekly summary is sent with the week\'s numbers', async ({ request, user, admin }) => {
+  const now = Date.now();
+  await admin.from('push_subscriptions').insert({
+    endpoint: `https://push.invalid/${user.id}`, user_id: user.id, p256dh: 'not-a-key', auth: 'not-a-secret',
+  });
+  const { error } = await admin.from('push_schedule').insert([
+    { user_id: user.id, id: 20, kind: 'weekly', title: 'Ringkasan minggu ini', body: 'b', url: '/reports/weekly', send_at: new Date(now - 60_000).toISOString() },
+  ]);
+  expect(error).toBeNull();
+
+  const res = await request.post('/api/cron/push', { headers: { Authorization: `Bearer ${secret}` } });
+  expect(res.ok()).toBe(true);
+  const { count } = await admin.from('push_schedule').select('id', { count: 'exact', head: true }).eq('user_id', user.id);
+  expect(count).toBe(0);
+});
+
 test('budget alerts are sent once per level from the server', async ({ request, user, admin }) => {
   const month = currentBudgetMonth(1);
   const day = formatDate(new Date());

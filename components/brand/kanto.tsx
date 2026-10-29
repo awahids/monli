@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 
-export type KantoMood = 'idle' | 'wave' | 'cheer';
+export type KantoMood = 'idle' | 'wave' | 'cheer' | 'sad';
 
 const INK = '#0F172A';
 const GOLD = 'hsl(var(--brand-gold))';
@@ -25,11 +25,13 @@ function Sparkle({ x, y, r, delay }: { x: number; y: number; r: number; delay?: 
 /**
  * "Kanto" (from kantong, a pocket), Qala Saku's own mascot: a pocket in the
  * accent colour, fastened with the gold diamond of the Qala mark, with a coin
- * peeking out. Idles (bob, blink, coin peek), waves, or cheers; the motion
+ * peeking out. Idles (bob, blink, coin peek), waves, cheers, or looks sad
+ * (the coin sinks into the pocket); the motion
  * lives in app/globals.css and stops when the device asks for reduced motion.
  */
 export function Kanto({ mood = 'idle', className }: { mood?: KantoMood; className?: string }) {
   const happy = mood === 'cheer';
+  const sad = mood === 'sad';
   return (
     <svg viewBox="0 0 120 120" data-mood={mood} className={cn('kanto overflow-visible', className)} aria-hidden>
       <ellipse className="kanto-shadow" cx="60" cy="114" rx="24" ry="3.5" fill="currentColor" opacity="0.12" />
@@ -78,6 +80,16 @@ export function Kanto({ mood = 'idle', className }: { mood?: KantoMood; classNam
             <path d="M41 80Q47 72 53 80" />
             <path d="M67 80Q73 72 79 80" />
           </g>
+        ) : sad ? (
+          <g>
+            {/* brows tilted up in the middle, eyes looking down */}
+            <path d="M40 69L52 66M80 69L68 66" fill="none" stroke={INK} strokeWidth="2.5" strokeLinecap="round" />
+            <ellipse cx="47" cy="79" rx="5.5" ry="5.5" fill="#fff" />
+            <ellipse cx="73" cy="79" rx="5.5" ry="5.5" fill="#fff" />
+            <circle cx="47" cy="81" r="3.2" fill={INK} />
+            <circle cx="73" cy="81" r="3.2" fill={INK} />
+            <path d="M80 85Q82 90 80 92Q78 90 80 85Z" fill="#7DD3FC" />
+          </g>
         ) : (
           <g className="kanto-blink">
             <ellipse cx="47" cy="78" rx="5.5" ry="6.5" fill="#fff" />
@@ -92,6 +104,8 @@ export function Kanto({ mood = 'idle', className }: { mood?: KantoMood; classNam
         <ellipse cx="82" cy="88" rx="4.5" ry="2.8" fill="#FB7185" opacity="0.55" />
         {happy ? (
           <path d="M54 88Q60 97 66 88Z" fill={INK} stroke={INK} strokeWidth="1.5" strokeLinejoin="round" />
+        ) : sad ? (
+          <path d="M54 93Q60 87 66 93" fill="none" stroke={INK} strokeWidth="2.5" strokeLinecap="round" />
         ) : (
           <path d="M55 89Q60 93 65 89" fill="none" stroke={INK} strokeWidth="2.5" strokeLinecap="round" />
         )}

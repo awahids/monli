@@ -14,6 +14,20 @@ export type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2026.10.29',
+    date: '2026-10-29',
+    title: 'Arisan, tantangan hemat bareng Kanto, ringkasan mingguan & persen budget lebih jelas',
+    items: [
+      { type: 'baru', text: 'Arisan: catat arisan RT, kantor, atau keluarga lengkap dengan urutan giliran (bisa dikocok), setoran tiap putaran, dan centang siapa yang sudah bayar. Qala Saku mengingatkan setoranmu sehari sebelumnya, dan memberi tahu saat giliranmu menerima.' },
+      { type: 'baru', text: 'Tantangan hemat bareng Kanto: pilih kategori yang mau dihindari, misalnya 5 dari 7 hari tanpa jajan, dan lihat setiap harinya terisi. Kanto ikut senang saat berhasil, dan sedih kalau ada yang bolong.' },
+      { type: 'baru', text: 'Streak mencatat: berapa hari berturut-turut kamu mencatat transaksi, tampil di beranda dan di Lainnya > Tantangan hemat.' },
+      { type: 'baru', text: 'Ringkasan mingguan di Laporan: pengeluaran minggu ini dibanding minggu lalu, per hari, dan kategori yang paling naik.' },
+      { type: 'baru', text: 'Setiap Minggu jam 19.00 Qala Saku mengirim ringkasan minggumu lewat notifikasi. Atur di Pengaturan > Notifikasi.' },
+      { type: 'perbaikan', text: 'Budget yang terpakai tepat 100% kini berlabel Habis, bukan Hampir habis.' },
+      { type: 'peningkatan', text: 'Kartu budget kini menunjukkan berapa persen yang sudah terpakai, dan rincian kategori di Laporan menjelaskan bahwa persennya adalah bagian dari total pengeluaran.' },
+    ],
+  },
+  {
     version: '2026.10.28',
     date: '2026-10-28',
     title: 'Ikon khas Qala Saku, kenalan dengan Kanto & foto profil kartun',

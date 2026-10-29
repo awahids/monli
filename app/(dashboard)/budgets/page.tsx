@@ -23,7 +23,8 @@ import {
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
-import { BudgetDetailDialog, budgetStatus } from '@/components/budgets/budget-detail-dialog';
+import { BudgetDetailDialog } from '@/components/budgets/budget-detail-dialog';
+import { budgetStatus, budgetUsedPct } from '@/lib/budget-status';
 import { BudgetFormDialog } from '@/components/budgets/budget-form-dialog';
 import { useT } from '@/lib/i18n';
 
@@ -184,7 +185,7 @@ export default function BudgetsPage() {
                     <Progress value={pct} className="h-2" indicatorClassName={status.bar} />
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">
-                        {formatMoney(b.actual)} / {formatMoney(b.planned)}
+                        {formatMoney(b.actual)} / {formatMoney(b.planned)} · {budgetUsedPct(b.actual, b.planned)}%
                       </span>
                       <span
                         className={cn(

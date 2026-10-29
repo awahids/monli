@@ -1,6 +1,10 @@
+import { addDays, weekStart, weeklyTitle } from './weekly-summary';
+import { arisanReminders, potSize, type Arisan } from './arisan';
+
 /**
  * Local notifications for the iOS/Android app: what to schedule on the phone
- * (bills due tomorrow, a daily nudge to record, the monthly report) and which
+ * (bills due tomorrow, a daily nudge to record, the weekly summary, the
+ * monthly report) and which
  * budget alerts to raise now. Scheduling itself lives in
  * components/notifications/notification-sync.tsx; this file is pure.
  */
@@ -13,9 +17,10 @@ export interface NotifySettings {
   budget: boolean;
   daily: boolean;
   report: boolean;
+  weekly: boolean;
 }
 
-export const DEFAULT_NOTIFY: NotifySettings = { bills: true, budget: true, daily: true, report: true };
+export const DEFAULT_NOTIFY: NotifySettings = { bills: true, budget: true, daily: true, report: true, weekly: true };
 
 export function parseNotifySettings(raw: string | null): NotifySettings {
   try {
@@ -28,8 +33,11 @@ export function parseNotifySettings(raw: string | null): NotifySettings {
 export interface PlannedNotification {
   /** Stable for the same event, so rescheduling replaces rather than doubles. */
   id: number;
-  /** The server skips a `daily` nudge once that day has a transaction (Web Push). */
-  kind: 'bill' | 'daily' | 'report';
+  /**
+   * The server skips a `daily` nudge once that day has a transaction, and
+   * fills a `weekly` one with the week's numbers (Web Push).
+   */
+  kind: 'bill' | 'daily' | 'report' | 'weekly';
   title: string;
   body: string;
   at: Date;
@@ -51,8 +59,6 @@ const at = (date: string, hour: number) => {
   const [y, m, d] = date.split('-').map(Number);
   return new Date(y, m - 1, d, hour, 0, 0);
 };
-const addDays = (date: string, days: number) =>
-  new Date(Date.parse(`${date}T00:00:00Z`) + days * 86_400_000).toISOString().slice(0, 10);
 
 export interface PlanInput {
   settings: NotifySettings;
@@ -60,6 +66,8 @@ export interface PlanInput {
   /** Today in Jakarta, YYYY-MM-DD. */
   today: string;
   recurring: { id: string; type: string; active: boolean; amount: number; note: string; nextDate: string; endDate?: string | null; category?: { name: string } | null }[];
+  /** Arisans the user is in, for setoran reminders and their own turn. */
+  arisans?: Arisan[];
   /** True once something is recorded today: no evening nudge then. */
   recordedToday: boolean;
   /** First day of the next budget period, and the month whose report it brings. */
@@ -72,9 +80,11 @@ export interface PlanInput {
 
 /**
  * Everything to have scheduled on the phone right now, replacing what was
- * there: each bill due within the next 30 days the morning before (09:00),
- * the 20:00 nudge for the next 7 days, and the report on the new period's
- * first morning (08:00). Times already past are dropped.
+ * there: each bill and arisan setoran due within the next 30 days the
+ * morning before (09:00), the user's arisan turn on its morning (08:00),
+ * the 20:00 nudge for the next 7 days, the weekly summary on Sunday at 19:00,
+ * and the report on the new period's first morning (08:00). Times already
+ * past are dropped.
  */
 export function planNotifications(input: PlanInput): PlannedNotification[] {
   const { settings, now, today, t } = input;
@@ -95,6 +105,31 @@ export function planNotifications(input: PlanInput): PlannedNotification[] {
         url: '/recurring',
       });
     }
+    for (const r of arisanReminders(input.arisans ?? [], today, until)) {
+      const { name, amount } = r.arisan;
+      out.push(
+        r.kind === 'pay'
+          ? {
+              id: notificationId(r.key),
+              kind: 'bill',
+              title: t('Setoran arisan besok', 'Arisan payment due tomorrow'),
+              body: t(
+                `${name}: ${input.formatMoney(amount)} untuk putaran ${r.round.round}.`,
+                `${name}: ${input.formatMoney(amount)} for round ${r.round.round}.`
+              ),
+              at: at(addDays(r.round.date, -1), 9),
+              url: '/arisan',
+            }
+          : {
+              id: notificationId(r.key),
+              kind: 'bill',
+              title: t(`Giliranmu menerima arisan ${name}`, `Your turn to take the ${name} arisan`),
+              body: t(`Hari ini kamu menerima ${input.formatMoney(potSize(r.arisan))}.`, `You take ${input.formatMoney(potSize(r.arisan))} today.`),
+              at: at(r.round.date, 8),
+              url: '/arisan',
+            }
+      );
+    }
   }
 
   if (settings.daily) {
@@ -109,6 +144,20 @@ export function planNotifications(input: PlanInput): PlannedNotification[] {
         url: '/dashboard',
       });
     }
+  }
+
+  if (settings.weekly) {
+    // This Sunday's, or next Sunday's once this one's has gone by.
+    let sunday = addDays(weekStart(today), 6);
+    if (at(sunday, 19) <= now) sunday = addDays(sunday, 7);
+    out.push({
+      id: notificationId(`weekly:${sunday}`),
+      kind: 'weekly',
+      title: weeklyTitle(t),
+      body: t('Lihat pengeluaran minggu ini dibanding minggu lalu.', 'See this week’s spending against last week’s.'),
+      at: at(sunday, 19),
+      url: `/reports/weekly?week=${weekStart(sunday)}`,
+    });
   }
 
   if (settings.report) {

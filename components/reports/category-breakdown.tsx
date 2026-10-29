@@ -38,6 +38,9 @@ export function CategoryBreakdown({ rows }: { rows: Row[] }) {
           <span className="font-display text-base font-bold tabular-nums">{formatMoney(total)}</span>
         </div>
       </div>
+      <p className="text-xs text-muted-foreground">
+        {t('Persen = bagian dari total pengeluaran, bukan dari budget.', 'Percent = share of total spending, not of the budget.')}
+      </p>
       <ul className="divide-y text-sm">
         {sorted.map((r) => (
           <li key={r.categoryId} className="flex items-center gap-3 py-2">

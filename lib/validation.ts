@@ -223,6 +223,45 @@ export const debtPaymentSchema = z.object({
   date: dateSchema.optional(),
 });
 
+/** A new tantangan hemat (lib/challenges.ts), starting today. */
+export const challengeSchema = z
+  .object({
+    /** The expense category to stay away from; null for all spending. */
+    categoryId: z.string().uuid().nullable(),
+    lengthDays: z.number().int().min(3).max(30),
+    targetDays: z.number().int().min(1),
+  })
+  .refine((c) => c.targetDays <= c.lengthDays, { message: 'Target melebihi lama tantangan', path: ['targetDays'] });
+
+/** A new arisan (lib/arisan.ts); members in turn order, the first takes round 1. */
+export const arisanSchema = z.object({
+  name: z.string().trim().min(1, 'Isi nama arisan').max(80),
+  amount: z.number().positive('Masukkan setoran per orang'),
+  frequency: z.enum(['weekly', 'monthly']),
+  startDate: dateSchema,
+  note: z.string().trim().max(200).nullable().optional(),
+  members: z
+    .array(z.object({ name: z.string().trim().min(1, 'Isi nama anggota').max(60), isMe: z.boolean().optional() }))
+    .min(2, 'Arisan butuh minimal 2 anggota')
+    .max(50, 'Paling banyak 50 anggota')
+    .refine((m) => m.filter((x) => x.isMe).length <= 1, 'Hanya satu anggota yang bisa ditandai sebagai kamu'),
+});
+
+/** Editing an arisan: its name, setoran and note, and the turn order (member ids, first takes round 1). */
+export const arisanUpdateSchema = z.object({
+  name: z.string().trim().min(1, 'Isi nama arisan').max(80).optional(),
+  amount: z.number().positive('Masukkan setoran per orang').optional(),
+  note: z.string().trim().max(200).nullable().optional(),
+  memberOrder: z.array(z.string().uuid()).max(50).optional(),
+});
+
+/** Marks a member's setoran for a round as paid, or not. */
+export const arisanPaymentSchema = z.object({
+  memberId: z.string().uuid(),
+  round: z.number().int().min(1),
+  paid: z.boolean(),
+});
+
 /** A browser's push subscription (PushSubscription.toJSON()). */
 export const pushSubscriptionSchema = z.object({
   endpoint: z.string().url().startsWith('https://').max(1000),
@@ -237,7 +276,7 @@ export const pushScheduleSchema = z.object({
     .array(
       z.object({
         id: z.number().int().positive(),
-        kind: z.enum(['bill', 'daily', 'report']).optional(),
+        kind: z.enum(['bill', 'daily', 'report', 'weekly']).optional(),
         title: z.string().min(1).max(120),
         body: z.string().min(1).max(300),
         url: z.string().startsWith('/').max(200),

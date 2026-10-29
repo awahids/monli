@@ -16,7 +16,9 @@ import { KantoBuddy } from "@/components/brand/kanto";
 import {
   AccountsIcon,
   AddIcon,
+  ArisanIcon,
   BudgetIcon,
+  ChallengeIcon,
   DebtIcon,
   GoalIcon,
   GuideIcon,
@@ -57,6 +59,8 @@ const more = [
   { href: "/accounts", icon: AccountsIcon, label: "Akun", en: "Accounts" },
   { href: "/goals", icon: GoalIcon, label: "Target tabungan", en: "Savings goals" },
   { href: "/debts", icon: DebtIcon, label: "Hutang & piutang", en: "Debts" },
+  { href: "/arisan", icon: ArisanIcon, label: "Arisan", en: "Arisan" },
+  { href: "/challenges", icon: ChallengeIcon, label: "Tantangan hemat", en: "Challenges" },
   { href: "/recurring", icon: RecurringIcon, label: "Transaksi rutin", en: "Recurring" },
   { href: "/reports", icon: ReportIcon, label: "Laporan", en: "Reports" },
   { href: "/wrapped", icon: WrappedIcon, label: "Ringkasan tahunan", en: "Year in review" },
