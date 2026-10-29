@@ -110,8 +110,8 @@ export function AvatarCard() {
           ) : isPro ? (
             <p className="text-xs text-muted-foreground">
               {t(
-                'AI melihat fotomu untuk memilih warna kulit, rambut atau hijab, kacamata, baju, dan ekspresi kartunmu. Fotomu tidak disimpan.',
-                'The AI looks at your photo to pick your cartoon\'s skin, hair or hijab, glasses, clothes and expression. Your photo is not stored.'
+                'AI melihat fotomu untuk memilih warna kulit, model dan warna rambut atau hijab, bentuk wajah, kumis atau janggut, kacamata, baju, dan ekspresi kartunmu. Fotomu tidak disimpan.',
+                'The AI looks at your photo to pick your cartoon\'s skin, hair style and colour or hijab, face shape, moustache or beard, glasses, clothes and expression. Your photo is not stored.'
               )}
             </p>
           ) : (
