@@ -53,6 +53,8 @@ test('the drawing shows the traits', () => {
   }
   // Black hair is left as Open Peeps draws it.
   assert.ok(!avatarSvg({ ...look, hairColor: PHOTO_CHOICES.hair.black }).includes(PHOTO_CHOICES.hair.black));
+  // Every avatar wears the Qala gold diamond.
+  for (const hairStyle of HAIR_STYLES) assert.ok(avatarSvg({ ...look, hairStyle }).includes('#F9A720'), `${hairStyle} has no pin`);
   // Different hair styles draw differently.
   assert.notEqual(avatarSvg({ ...look, hairStyle: 'bald' }), svg);
 });

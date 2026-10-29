@@ -112,10 +112,26 @@ const BEARDS = { mustache: 'moustache9', beard: 'full' } as const;
 /** Open Peeps draws the head (hair or hijab, and its outline) in this black. */
 const PEEPS_INK = 'fill="#000"';
 
+/** The Qala gold diamond (lib/brand), worn as a pin on the shirt or a brooch on the hijab. */
+const GOLD = '#F9A720';
+/** Where the pin sits, in Open Peeps' 704px space: clear of the hair, inside a round crop. */
+function pinAt(style: AvatarTraits['hairStyle']): [number, number] {
+  if (style === 'hijab') return [356, 594];
+  if (style === 'long' || style === 'curlyLong') return [418, 668];
+  return [224, 646];
+}
+function pin([x, y]: [number, number]): string {
+  const r = 28;
+  return (
+    `<path d="M${x} ${y - r}L${x + r} ${y}L${x} ${y + r}L${x - r} ${y}Z" fill="${GOLD}" stroke="#000" stroke-width="6" stroke-linejoin="round"/>` +
+    `<path d="M${x - 8} ${y - 13}L${x} ${y - 21}L${x + 8} ${y - 13}L${x} ${y - 5}Z" fill="#fff" fill-opacity="0.75"/>`
+  );
+}
+
 /** The avatar as SVG markup. */
 export function avatarSvg(t: AvatarTraits): string {
   const hex = (color: string) => color.slice(1).toLowerCase();
-  const svg = createAvatar(openPeeps, {
+  let svg = createAvatar(openPeeps, {
     seed: 'qala',
     head: [HEADS[t.hairStyle]] as openPeeps.Options['head'],
     face: [FACES[t.mouth]] as openPeeps.Options['face'],
@@ -128,12 +144,13 @@ export function avatarSvg(t: AvatarTraits): string {
     clothingColor: [hex(t.shirt)],
     backgroundColor: [hex(t.background)],
   }).toString();
-  if (t.hairColor === HAIR_COLORS[0]) return svg;
   // The head is the group placed after the body; recolour its black for brown hair or the hijab's colour.
-  const head = svg.indexOf('<g transform=');
+  const head = svg.indexOf('<g transform="matrix(');
   const end = svg.indexOf('</g></g>', head);
-  if (head < 0 || end < 0) return svg;
-  return svg.slice(0, head) + svg.slice(head, end).replaceAll(PEEPS_INK, `fill="${t.hairColor}"`) + svg.slice(end);
+  if (t.hairColor !== HAIR_COLORS[0] && head >= 0 && end >= 0) {
+    svg = svg.slice(0, head) + svg.slice(head, end).replaceAll(PEEPS_INK, `fill="${t.hairColor}"`) + svg.slice(end);
+  }
+  return svg.replace(/<\/g><\/svg>$/, `${pin(pinAt(t.hairStyle))}</g></svg>`);
 }
 
 /** A fresh seed for "Acak lagi": short, so it fits the profile column comfortably. */
