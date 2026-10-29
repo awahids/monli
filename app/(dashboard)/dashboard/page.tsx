@@ -53,6 +53,7 @@ import { useNotificationSync } from '@/components/notifications/notification-syn
 import { format } from 'date-fns';
 import { ForecastCard, ReportReadyCard } from '@/components/dashboard/forecast-cards';
 import { budgetRunOuts, forecastSpending } from '@/lib/forecast';
+import type { Arisan } from '@/lib/arisan';
 
 type BudgetSummary = { totalActual: number; perCategory: { categoryId: string; actual: number }[] };
 
@@ -96,6 +97,7 @@ export default function DashboardPage() {
   const [budgetSummary, setBudgetSummary] = useState<BudgetSummary | null>(null);
   const [prevTotals, setPrevTotals] = useState<{ income: number; expense: number } | null>(null);
   const [recurring, setRecurring] = useState<RecurringTransaction[]>([]);
+  const [arisans, setArisans] = useState<Arisan[]>([]);
   const [formOpen, setFormOpen] = useState(false);
   const { isOnline, addOfflineChange } = useOffline();
   const { t, locale, dateLocale } = useT();
@@ -225,6 +227,12 @@ export default function DashboardPage() {
         if (!cancelled && data?.data) setRecurring(keysToCamel<RecurringTransaction[]>(data.data));
       })
       .catch(() => {});
+    fetch('/api/arisan')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!cancelled && data?.data) setArisans(data.data);
+      })
+      .catch(() => {});
     return () => {
       cancelled = true;
     };
@@ -254,10 +262,11 @@ export default function DashboardPage() {
     };
   }, [transactions, budgets, recurring, categories, thisMonth, budgetMonth, budgetStartDay]);
 
-  // Phone notifications (bills, evening nudge, report) and budget alerts follow this data.
+  // Phone notifications (bills, arisan, evening nudge, report) and budget alerts follow this data.
   useNotificationSync({
     ready: !loading && !!user && isOnline,
     recurring,
+    arisans,
     recordedToday: transactions.some((tx) => tx.actualDate === insights.today),
     today: insights.today,
     nextPeriodStart: budgetPeriod(shiftMonth(thisMonth, 1), budgetStartDay).start,

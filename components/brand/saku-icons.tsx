@@ -96,6 +96,17 @@ export const GoalIcon: SakuIcon = (props) => (
   </Icon>
 );
 
+/** Three heads round the pot, the diamond in it: the arisan circle. */
+export const ArisanIcon: SakuIcon = (props) => (
+  <Icon {...props}>
+    <circle cx="12" cy="4.5" r="2" />
+    <circle cx="4.5" cy="10" r="2" />
+    <circle cx="19.5" cy="10" r="2" />
+    <path d="M5 15.5h14c0 2.8-3.1 5-7 5s-7-2.2-7-5Z" />
+    <Gem x={12} y={12} r={2} />
+  </Icon>
+);
+
 /** A flag on its pole, the diamond waving on the cloth. */
 export const ChallengeIcon: SakuIcon = (props) => (
   <Icon {...props}>

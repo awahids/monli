@@ -63,6 +63,35 @@ test('the weekly summary comes on Sunday at 19:00', () => {
   assert.equal(late.url, '/reports/weekly?week=2026-03-16');
 });
 
+test('arisan: the setoran the morning before, and the user\'s turn on its morning', () => {
+  const plan = planNotifications({
+    ...base,
+    settings: { ...DEFAULT_NOTIFY, daily: false, report: false, weekly: false },
+    arisans: [
+      {
+        id: 'rt',
+        name: 'RT 05',
+        amount: 100000,
+        frequency: 'weekly',
+        startDate: '2026-03-05',
+        members: [
+          { id: 'a', name: 'Bu Sari', turn: 1, isMe: false },
+          { id: 'b', name: 'Bu Rina', turn: 2, isMe: false },
+          { id: 'me', name: 'Saya', turn: 3, isMe: true },
+        ],
+        payments: [],
+      },
+    ],
+  });
+  assert.deepEqual(
+    plan.map((n) => [n.title, n.body, n.at.getDate(), n.at.getHours()]),
+    [
+      ['Setoran arisan besok', 'RT 05: Rp100000 untuk putaran 2.', 11, 9],
+      ['Giliranmu menerima arisan RT 05', 'Hari ini kamu menerima Rp300000.', 19, 8],
+    ]
+  );
+});
+
 test('notification ids are stable positive 31-bit ints', () => {
   assert.equal(notificationId('bill:a:2026-03-15'), notificationId('bill:a:2026-03-15'));
   assert.notEqual(notificationId('bill:a:2026-03-15'), notificationId('bill:a:2026-04-15'));

@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { toast } from 'sonner';
 import type { Category, RecurringTransaction } from '@/types';
 import type { BudgetUsage } from '@/lib/dashboard';
+import type { Arisan } from '@/lib/arisan';
 import { formatMoney } from '@/lib/currency';
 import { isNativeApp } from '@/lib/native';
 import {
@@ -50,6 +51,7 @@ export async function notificationsPlugin() {
 export function useNotificationSync({
   ready,
   recurring,
+  arisans,
   recordedToday,
   today,
   nextPeriodStart,
@@ -61,6 +63,7 @@ export function useNotificationSync({
 }: {
   ready: boolean;
   recurring: RecurringTransaction[];
+  arisans: Arisan[];
   recordedToday: boolean;
   today: string;
   nextPeriodStart: string;
@@ -85,6 +88,7 @@ export function useNotificationSync({
         now: new Date(),
         today,
         recurring,
+        arisans,
         recordedToday,
         nextPeriodStart,
         reportMonth,
@@ -145,5 +149,5 @@ export function useNotificationSync({
     return () => {
       cancelled = true;
     };
-  }, [ready, recurring, recordedToday, today, nextPeriodStart, reportMonth, reportLabel, budgetMonth, usage, categories, t]);
+  }, [ready, recurring, arisans, recordedToday, today, nextPeriodStart, reportMonth, reportLabel, budgetMonth, usage, categories, t]);
 }

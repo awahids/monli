@@ -1,4 +1,5 @@
 import { addDays, weekStart, weeklyTitle } from './weekly-summary';
+import { arisanReminders, potSize, type Arisan } from './arisan';
 
 /**
  * Local notifications for the iOS/Android app: what to schedule on the phone
@@ -65,6 +66,8 @@ export interface PlanInput {
   /** Today in Jakarta, YYYY-MM-DD. */
   today: string;
   recurring: { id: string; type: string; active: boolean; amount: number; note: string; nextDate: string; endDate?: string | null; category?: { name: string } | null }[];
+  /** Arisans the user is in, for setoran reminders and their own turn. */
+  arisans?: Arisan[];
   /** True once something is recorded today: no evening nudge then. */
   recordedToday: boolean;
   /** First day of the next budget period, and the month whose report it brings. */
@@ -77,7 +80,8 @@ export interface PlanInput {
 
 /**
  * Everything to have scheduled on the phone right now, replacing what was
- * there: each bill due within the next 30 days the morning before (09:00),
+ * there: each bill and arisan setoran due within the next 30 days the
+ * morning before (09:00), the user's arisan turn on its morning (08:00),
  * the 20:00 nudge for the next 7 days, the weekly summary on Sunday at 19:00,
  * and the report on the new period's first morning (08:00). Times already
  * past are dropped.
@@ -100,6 +104,31 @@ export function planNotifications(input: PlanInput): PlannedNotification[] {
         at: at(addDays(r.nextDate, -1), 9),
         url: '/recurring',
       });
+    }
+    for (const r of arisanReminders(input.arisans ?? [], today, until)) {
+      const { name, amount } = r.arisan;
+      out.push(
+        r.kind === 'pay'
+          ? {
+              id: notificationId(r.key),
+              kind: 'bill',
+              title: t('Setoran arisan besok', 'Arisan payment due tomorrow'),
+              body: t(
+                `${name}: ${input.formatMoney(amount)} untuk putaran ${r.round.round}.`,
+                `${name}: ${input.formatMoney(amount)} for round ${r.round.round}.`
+              ),
+              at: at(addDays(r.round.date, -1), 9),
+              url: '/arisan',
+            }
+          : {
+              id: notificationId(r.key),
+              kind: 'bill',
+              title: t(`Giliranmu menerima arisan ${name}`, `Your turn to take the ${name} arisan`),
+              body: t(`Hari ini kamu menerima ${input.formatMoney(potSize(r.arisan))}.`, `You take ${input.formatMoney(potSize(r.arisan))} today.`),
+              at: at(r.round.date, 8),
+              url: '/arisan',
+            }
+      );
     }
   }
 

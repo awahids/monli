@@ -16,8 +16,9 @@ export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '2026.10.29',
     date: '2026-10-29',
-    title: 'Tantangan hemat bareng Kanto, ringkasan mingguan & persen budget lebih jelas',
+    title: 'Arisan, tantangan hemat bareng Kanto, ringkasan mingguan & persen budget lebih jelas',
     items: [
+      { type: 'baru', text: 'Arisan: catat arisan RT, kantor, atau keluarga lengkap dengan urutan giliran (bisa dikocok), setoran tiap putaran, dan centang siapa yang sudah bayar. Qala Saku mengingatkan setoranmu sehari sebelumnya, dan memberi tahu saat giliranmu menerima.' },
       { type: 'baru', text: 'Tantangan hemat bareng Kanto: pilih kategori yang mau dihindari, misalnya 5 dari 7 hari tanpa jajan, dan lihat setiap harinya terisi. Kanto ikut senang saat berhasil, dan sedih kalau ada yang bolong.' },
       { type: 'baru', text: 'Streak mencatat: berapa hari berturut-turut kamu mencatat transaksi, tampil di beranda dan di Lainnya > Tantangan hemat.' },
       { type: 'baru', text: 'Ringkasan mingguan di Laporan: pengeluaran minggu ini dibanding minggu lalu, per hari, dan kategori yang paling naik.' },
